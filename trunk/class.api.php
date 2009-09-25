@@ -200,9 +200,9 @@
 
 			//
 			// obtain USER_CONTROL when possible
-			if( $auth_key = $this->resource['auth_key'] )
+			if( $auth_key = $this->resource['auth_token'] )
 			{
-				$user_c = ID::userByAuthKey( strtolower($this->resource['user']), $auth_key );
+				$user_c = ID::userByAuthKey( strtolower($this->resource['auth_user']), $auth_key );
 			}
 			else if( $api_key = $this->resource['key'] )
 			{
