@@ -181,10 +181,131 @@
 		{
 			return WrapMySQL::affected("UPDATE nuclear_userkey SET pass='$pass' WHERE id=$id LIMIT 1;", "Error on password update");
 		}
+
+		//
+		// ACCOUNTS DESTROY
+		//
+
+		public static function accountDestroyRequest ( $email )
+		{
+			// test for email validity
+			$e = str_replace("'", "", $email);
+			
+			// get user or email data
+			$r = WrapMySQL::single("SELECT * FROM nuclear_user where email='$email' LIMIT 1;", "Unable to query user email");
+
+			if( !$r ) return array(false, "User does not exist");
+
+			// create hash
+			$h = implode( '', Keys::generate( $r['id'] . number_format((microtime(true) * rand())) . $e ) );
+
+			// insert hash to password table
+			$c = WrapMySQL::affected( "INSERT INTO nuclear_account_destroy (id,name,hash) VALUES ({$r['id']},'{$r['name']}', '$h');", "Unable to create verification hash");
+
+			if( !$c ) return array(false, "Could not insert destroy data");
+
+			// send
+			self::sendDestroyVerification( $e, $h );
+
+			// fire onHashed
+			$o = new Object();
+			$o->details = $r;
+			$o->hash = $h;
+			self::fire('NuclearAccountDestroyRequested',$o);
+
+			return array($c,"Please check email for verification");
+		}
+
+		public static function accountDestroyVerification( $c )
+		{
+			//
+			// basic validations
+			//
+			if( !($user = str_replace("'","",$c->user)) ) throw new Exception("Missing username for password reset",4);
+			if( !($hash = str_replace(' ','+',$c->hash)) ) throw new Exception("Missing hash for password reset",4);
+
+			//
+			// check hash size
+			if( !(preg_match('/^[a-zA-Z0-9=_\+]{40,60}$/', $hash)) ) throw new Exception("Invalid hash format", 5);
+
+			//
+			// check for hash
+			if( !($r = WrapMySQL::single("SELECT id FROM nuclear_account_destroy WHERE name='$user' && hash='$hash' LIMIT 1;", "Error querying reset hash.")) )
+		          return array(false, "Invalid destroy verification");
+
+			// destroy account 
+			if( !self::accountDestroy( $r['id'], $user ) )
+			  return array(false, "Account not destroyed");
+
+			// remove hash
+			WrapMySQL::void(
+				"DELETE FROM nuclear_account_destroy WHERE id={$r['id']} LIMIT 1;",
+				"Unable to remove destroy hash");
+
+			// return
+			return array(true, "Account destroyed");
+		}
+
+		private static function accountDestroy( $user_id, $user_name )
+		{
+		  $tables = array(
+		    "nuclear_user",
+		    "nuclear_username",
+		    "nuclear_userapi",
+		    "nuclear_userkey",
+		    "nuclear_system");
+
+		  $a = 0;
+		  foreach( $tables as $T )
+		  {
+		    $a += WrapMySQL::affected(
+		     "delete from {$T} where id={$user_id} limit 1;",
+		     "Error destroying user data"
+		    );
+		  }
+
+		  //
+		  // relation graphs
+		    WrapMySQL::void(
+		     "delete from nuclear_friendship where user0={$user_id} || user1={$user_id};"
+		    );
+
+		  //
+		  // api auth
+		    WrapMySQL::void(
+		     "delete from nuclear_api_auth where user={$user_id};"
+		    );
+
+		  //
+		  // log
+		    WrapMySQL::void(
+		     "insert into nuclear_accounts_destroyed (id, name) values ({$user_id}, '{$user_name}');"
+		    );
+
+		  return $a;
+		}
 		
 		//
 		// MAILERS
 		//
+
+		private static function sendDestroyVerification( $rcpt, $hash )
+		{
+			$body = "In order to complete your account removal please continue to the following link:<br /><br />" . 
+				"<a href=\"http://{$GLOBALS['APPLICATION_DOMAIN']}/account/destroy/$hash\">http://{$GLOBALS['APPLICATION_DOMAIN']}/account/destroy/$hash</a><br /><br />" . 
+				"If you did not initiate a account removal, please report this to {$GLOBALS['SUPPORT_MAIL']}.<br /><br />" . 
+				"Thank you,<br />{$GLOBALS['APPLICATION_NAME']}";
+
+			$headers = 'MIME-Version: 1.0' . "\r\n";
+			$headers.= "Content-Type: text/html; charset=utf-8\r\n";
+			$headers.= "From: {$GLOBALS['APPLICATION_NAME']} <{$GLOBALS['AUTH_MAIL']}>\r\n";
+
+			$subject = "Complete your {$GLOBALS['APPLICATION_NAME']} account removal\r\n";
+
+			// send
+			mail( $rcpt, $subject, $body, $headers );
+		}
+
 
 		private static function sendResetVerification( $rcpt, $hash )
 		{
