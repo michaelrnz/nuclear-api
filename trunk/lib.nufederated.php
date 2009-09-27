@@ -1,5 +1,7 @@
 <?php
 
+  require_once('lib.nuoauth.php');
+
   //
   // Identification and Generation lib
   //
@@ -81,19 +83,21 @@
     private static function isFlagged( $domain )
     {
       $flag = $GLOBALS['CACHE'] .'/'. $domain;
-      return file_exists( $cache .'/'. $domain );
+      if( !file_exists( $flag ) )
+	return false;
+      return @file_get_contents( $flag );
     }
 
     //
     // FLAG REQUESTED
     //
-    private static function flagRequested( $domain )
+    private static function flagRequested( $domain, $nonce )
     {
       $flag = $GLOBALS['CACHE'] .'/'. $domain;
-      if( file_exists( $cache .'/'. $domain ) )
+      if( file_exists( $flag ) )
 	return false;
       else
-	return @touch( $flag );
+	return @file_put_contents( $flag, $nonce );
     }
 
     //
@@ -110,11 +114,10 @@
     //
     public static function requestPublisherKeys( $domain )
     {
-      if( self::flagRequested( $domain ) )
+      $nonce = mt_rand();
+      if( self::flagRequested( $domain, $nonce ) )
       {
-	$uri = "http://{$domain}/api/federated/publisher_token?domain=" . urlencode($GLOBALS['APPLICATION_DOMAIN']);
-
-	//TODO Files should use curl/fopen method
+	$uri = "http://{$domain}/api/fps/publisher_token?nonce={$nonce}&domain=" . urlencode($GLOBALS['APPLICATION_DOMAIN']);
 	NuFiles::curl( $uri, "get" );
       }
       else // another request is in progress
@@ -124,11 +127,11 @@
 
     //
     // ACCEPT KEYS
-    // used by /api/federated/publisher_keys
+    // used by /api/fps/publisher_token
     //
-    public static function acceptPublisherKeys( $domain, $token, $secret )
+    public static function acceptPublisherKeys( $domain, $nonce, $token, $secret )
     {
-      if( self::isFlagged( $domain ) )
+      if( $nonce == self::isFlagged( $domain ) )
       {
 	// get domain identification
 	$domain_id = NuFederatedID::domain( $domain );
@@ -150,6 +153,44 @@
       }
 
       return false;
+    }
+
+    //
+    // PROVIDE KEYS
+    // used by /api/fps/publisher_token
+    // NOTE: keys are generally random sha1
+    //
+    public static function providePublisherKeys( $domain, $nonce )
+    {
+
+      // generate new key
+      $token = NuFederatedStatic::generateToken( $domain );
+      $secret= NuFederatedStatic::generateToken( $nonce );
+
+      // get domain identification
+      $domain_id = NuFederatedID::domain( $domain );
+
+      // clean tokens
+      $tok_v = safe_slash($token);
+      $sec_v = safe_slash($secret);
+
+      // insert keys
+      WrapMySQL::void(
+	"insert into nu_federated_subscriber_domain (domain, token, secret) ".
+	 "values ({$domain_id}, '{$tok_v}', '{$sec_v}');",
+	 "Error adding subscriber keys");
+
+      $uri = "http://{$domain}/api/fps/publisher_token.json";
+
+      $post_data = array(
+	"domain"=> urlencode($GLOBALS['APPLICATION_DOMAIN']),
+	"nonce"=>  urlencode($nonce),
+	"consumer_key"=> $token,
+	"consumer_secret"=>$secret
+      );
+
+      return NuFiles::curl( $uri, "post", $post_data );
+
     }
 
   }

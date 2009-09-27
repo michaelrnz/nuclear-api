@@ -214,6 +214,16 @@
 
 				switch( $op_auth )
 				{
+				  case 'access_auth':
+				    // ACCESS OAUTH
+
+				    break;
+
+				  case 'federation_auth':
+				    // PUBLISHER OAUTH
+
+				    break;
+
 				  case 'publisher_auth':
 				    // PUBLISHER OAUTH
 
@@ -296,8 +306,14 @@
 		// useful for Federated OAuth
 		protected function operationType( $op="" )
 		{
-		  if( isType("federatedpublish|federatedaccess_token", $op) )
+		  if( $op == "fpsaccess_token" )
+		    return "federation_auth";
+
+		  if( strpos($op, "fps")===0 )
 		    return 'publisher_auth';
+
+		  if( $op == "oauthaccess_token" )
+		    return 'access_auth';
 
 		  return 'user_auth';
 		}
@@ -308,7 +324,7 @@
 		// default no override
 		protected function overridePostAuthentication($op="")
 		{
-		  if( isType("register|verify|login|resetpassword|verifyresetpassword|nuclearaccountsdestroyverification|federatedshare_token", $op) ) return true;
+		  if( isType("register|verify|login|resetpassword|verifyresetpassword|nuclearaccountsdestroyverification|fpsshare_token|fpspublisher_token", $op) ) return true;
 		}
 
 

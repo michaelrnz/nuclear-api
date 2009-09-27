@@ -217,7 +217,7 @@
   $a_t = sha1("user1" . md5("me2"));
   $a_s = sha1("userfjdkflj");
 
-  $resource = "http://melative.com/api/federation/access";
+  $resource = "http://melative.com/api/fps/access_token";
   $method = "post";
 
   $extra_params = array('nuf_publisher'=>'user1@melative.com', 'nuf_subscriber'=>'user2@kuuki.org');
