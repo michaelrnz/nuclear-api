@@ -2,9 +2,10 @@
   
   /*
       Nuclear OAuth Module
-      general basis for OAuth compatibility
-
+      =======================================
       altman.ryan, 2009 Fall
+
+      general basis for OAuth compatibility
 
       Notes:
         This module is the basis for federated
@@ -56,12 +57,14 @@
   }
 
 
-  //
-  // NuOAuthParameters
-  //
-  // Specific container for oauth values
-  // capable of signing data based on params
-  // 
+  /*
+
+    NuOAuthParameters
+  
+    Specific container for oauth values
+    capable of signing data based on params
+
+  */ 
   class NuOAuthParameters
   {
 
@@ -140,133 +143,43 @@
 
 
   /*
-    OAuth API
-    provides the API with OAuthentication abilities
+
+    Consumer
+    basic oauth consumer data-class
+
   */
-  class NuOAuthAPI
+  class NuOAuthConsumer
   {
-    public static function parameters( &$request )
+    protected $token;
+    protected $secret;
+
+    function __construct( $token=false, $secret=false )
     {
-      $auth = array();
-      foreach( array('oauth_consumer_key','oauth_nonce','oauth_signature_method','oauth_timestamp','oauth_token','oauth_version') as $p )
+      if( $token ) $this->token = $token;
+      if( $secret ) $this->secret = $secret;
+    }
+
+    function __get( $f )
+    {
+      switch( $f )
       {
-	if( !isset($request[$p]) )
-	  return array(false, "Missing {$p} from oauth parameters");
-
-	$auth[$p] = $request[ $p ];
+	case 'token':
+	case 'secret':
+	  return $this->$f;
+	
+	default:
+	  return null;
       }
-
-      return $auth;
     }
 
-    public static function authorizeUser( $resource, $method, &$request, $param_filter='op|output|format' )
-    {
-      $auth         = self::parameters( $request );
-      $consumer_key = str_replace("'","",$auth['oauth_consumer_key']);
-      $token        = str_replace("'","",$auth['oauth_token']);
-      $signature    = $request['oauth_signature'];
-
-      if( !$signature )
-	return array(false, "Missing signature from oauth parameters");
-
-      //
-      // get consumer secret
-      $consumer = WrapMySQL::single(
-		    "select * from nu_oauth_consumer as K ".
-		    "where K.token='{$consumer_key} limit 1;",
-		    "Error fetching Consumer token");
-      
-      if( !$consumer )
-	return array(false, "Unauthorized Consumer");
-
-      //
-      // get publisher secret
-      $user = WrapMySQL::single(
-		"select K.* from nu_oauth_auth as K ".
-		"where K.token='{$token} limit 1;",
-		"Error fetching Authorization token");
-
-      if( !$user )
-	return array(false, "Unauthorized User Token");
-
-
-      //
-      // create Param object
-      $oauth_params = new NuOAuthParameters( 
-			    $consumer_key, 
-			    $consumer['secret'], 
-			    $token, 
-			    $user['secret'],
-			    $auth['oauth_signature_method'],
-			    $auth['timestamp'],
-			    $auth['nonce']);
-
-      //
-      // check signature
-      if( $signature == NuOAuth::signature( $oauth_params, $resource, $method, $request, $param_filter ) )
-	return $user;
-
-      return array(false, "Unauthorized");
-    }
-
-    public static function authorizePublisher( $resource, $method, &$request, $param_filter='op|output|format' )
-    {
-      $auth         = self::parameters( $request );
-      $consumer_key = str_replace("'","",$auth['oauth_consumer_key']);
-      $token        = str_replace("'","",$auth['oauth_token']);
-      $signature    = $request['oauth_signature'];
-
-      if( !$signature )
-	return array(false, "Missing signature from oauth parameters");
-
-      //
-      // get consumer secret
-      $consumer = WrapMySQL::single(
-		    "select * from nu_federated_publisher_domain as K ".
-		    "left join nu_federated_domain as D on D.id=K.domain ".
-		    "where K.token='{$consumer_key} limit 1;",
-		    "Error fetching Publisher token");
-      
-      if( !$consumer )
-	return array(false, "Unauthorized Consumer");
-
-      //
-      // get publisher secret
-      $publisher = WrapMySQL::single(
-		    "select K.*, U.* from nu_federated_publisher_auth as K ".
-		    "left join nu_federated_user as U on U.id=K.federated_user ".
-		    "left join nu_federated_domain as D on D.id=U.domain ".
-		    "where K.token='{$token} limit 1;",
-		    "Error fetching Publisher token");
-
-      if( !$publisher )
-	return array(false, "Unauthorized Publisher");
-
-
-      //
-      // create Param object
-      $oauth_params = new NuOAuthParameters( 
-			    $consumer_key, 
-			    $consumer['secret'], 
-			    $token, 
-			    $publisher['secret'],
-			    $auth['oauth_signature_method'],
-			    $auth['timestamp'],
-			    $auth['nonce']);
-
-      //
-      // check signature
-      if( $signature == NuOAuth::signature( $oauth_params, $resource, $method, $request, $param_filter ) )
-	return $publisher;
-
-      return array(false, "Unauthorized");
-    }
   }
 
 
   /*
+
     OAuth Request
     General Request from Nuclear to Another OAuth-enabled service
+
   */
   class NuOAuthRequest
   {
@@ -292,9 +205,6 @@
       return $data;
     }
   }
-
-
-
 
 
   //
