@@ -53,6 +53,10 @@
 				$this->validateCall();
 
 				//
+				// parse 
+				$this->parse();
+
+				//
 				// process call
 				$this->process();
 
@@ -74,8 +78,10 @@
 			// output
 			if( isset($this->resource['output']) )
 			  $GLOBALS['API_FORMAT'] = $this->resource['output'];
+
 			else if( isset($_GET['output']) )
 			  $GLOBALS['API_FORMAT'] = $_GET['output'];
+
 			else
 			  $GLOBALS['API_FORMAT'] = 'json';
 
@@ -85,16 +91,11 @@
 			$this->format = $this->mapField('format');
 		}
 
+
 		//
 		// process the call
 		private function process()
 		{
-			//
-			// parse 
-			$this->parse();
-
-			//
-			// include
 			self::includer( strtolower($this->opFile()) );
 		}
 
@@ -103,35 +104,29 @@
 		// rest method
 		private function restMethod()
 		{
-		//$this->readOnly = true; // for stalling backups
 			// POST over GET
-			switch( true )
+			switch( $_SERVER['REQUEST_METHOD'] )
 			{
 				// Create, Update, Delete
-				case count($_POST)>0:
+				case 'POST':
 					$r = 4;
 					$this->resource = &$_POST;
 					break;
 
-				case $_SERVER['REQUEST_METHOD'] == 'POST':
-					$r = 4;
-					$this->resource = &$_GET;
-					break;
-					
 				// Create, Update
-				case count($_PUT)>0:
+				case 'PUT':
 					$r = 3;
 					$this->resource = &$_PUT;
 					break;
 
 				// Delete
-				case count($_DELETE)>0:
+				case 'DELETE':
 					$r = 2;
 					$this->resource = &$_DELETE;
 					break;
 
 				// Read
-				case count($_GET)>0:
+				case 'GET':
 					$r = 1;
 					$this->resource = &$_GET;
 					$this->readOnly = true;
@@ -166,6 +161,13 @@
 		private function operation()
 		{
 			return $this->mapField('op', "Missing API operation");
+		}
+
+		//
+		// text-only operation
+		private function opText()
+		{
+			return strtolower(preg_replace('/[^\w]/', "", $this->op));
 		}
 
 		//
@@ -204,10 +206,24 @@
 			{
 				$user_c = ID::userByAuthKey( strtolower($this->resource['auth_user']), $auth_key );
 			}
-			else if( $api_key = $this->resource['key'] )
+			else if( isset($this->resource['oauth_version']) )
 			{
-				// obtain CONTROL via ID
-				$user_c = ID::userByAPI( $api_key );
+				// Attempt to validate oauth?
+				//
+				$op_auth = $this->operationType( $this->opText() );
+
+				switch( $op_auth )
+				{
+				  case 'publisher_auth':
+				    // PUBLISHER OAUTH
+
+				    break;
+
+				  default:
+				    // USER OAUTH
+
+				    break;
+				}
 			}
 			else if( $_SESSION['logged'] == 1 )
 			{
@@ -239,7 +255,7 @@
 			// OVERRIDE POSTS BY AUTHORITY
 			if( $this->method == 4 )
 			{
-				if( $this->overridePostAuthentication(strtolower($this->op)) )
+				if( $this->overridePostAuthentication($this->opText()) )
 				{
 					// override the post, stuff like registration|login|verification
 					return true;
@@ -252,29 +268,58 @@
 			// BLOCK GETS BY AUTHORITY
 			$getBlocks = $this->requireAuthentication();
 
-			if( isType( $getBlocks, strtolower(preg_replace('/[^\w]/','',$this->op))) )
+			if( isType( $getBlocks, $this->opText() ) )
 			{
-				throw new Exception("Unauthorized access for get.{$this->op}", 2);
+				$this->basicAuthentication();
+				//throw new Exception("Unauthorized access for get.{$this->op}", 2);
 			}
 
 			return true;
 		}
+
+
+		//
+		// basic authentication
+		// default realm to APPLICATION_NAME
+		protected function basicAuthentication()
+		{
+			$app_name = $GLOBALS['APPLICATION_NAME'];
+			header('WWW-Authenticate: Basic realm="'. ($app_name ? $app_name : 'Nuclear') .'"');
+			header('HTTP/1.0 401 Unauthorized');
+			echo "You must enter a valid login ID and password to access this resource\n";
+			exit;
+		}
+
+
+		//
+		// operation-auth-type
+		// useful for Federated OAuth
+		protected function operationType( $op="" )
+		{
+		  if( isType("federatedpublish|federatedaccess_token", $op) )
+		    return 'publisher_auth';
+
+		  return 'user_auth';
+		}
+
 
 		//
 		// post overrides
 		// default no override
 		protected function overridePostAuthentication($op="")
 		{
-			return false;
+		  if( isType("register|verify|login|resetpassword|verifyresetpassword|nuclearaccountsdestroyverification|federatedshare_token", $op) ) return true;
 		}
+
 
 		//
 		// access authentication
 		// default no override
 		protected function requireAuthentication()
 		{
-			return false;
+			return "|authtokens|tokens";
 		}
+
 
 		//
 		// override for custom access
@@ -282,6 +327,7 @@
 		{
 			return false;
 		}
+
 
 		//
 		// test for call
@@ -387,10 +433,12 @@
 			return $methop;
 		}
 
+
 		//
 		// leaving to subclass
 		// not necessary for action
 		protected function parse() { }
+
 
 		//
 		// public to invalidate
