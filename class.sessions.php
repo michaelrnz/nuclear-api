@@ -48,7 +48,6 @@
 		  global $sess_save_path;
 
 		  $sess_file = "$sess_save_path/sess_$id";
-		  //error_log("Reading session {$sess_file}");
 		  return (string) @file_get_contents($sess_file);
 		}
 
@@ -61,7 +60,6 @@
 		  //
 		  $sess_file = "$sess_save_path/sess_$id";
 		  $tmp_sess = $sess_file . microtime(true);
-		  //error_log("Writing session {$sess_file}");
 		  if( $fp = @fopen($tmp_sess, "w") )
 		  {
 		    $return = fwrite($fp, $sess_data);
@@ -87,13 +85,10 @@
 		{
 		  global $sess_save_path;
 
-		  //error_log("Garbage collecting sessions, lifetime: {$maxlifetime}");
 		  $c = time();
 		  $maxl = intval( $maxlifetime );
 		  foreach (glob("$sess_save_path/sess_*") as $filename) {
-		    //error_log("Checking time for {$filename}");
 		    if ( (filemtime($filename) + $maxl) < $c) {
-		      //error_log("Removed {$filename}, lifetime was: ". filemtime($filename) .", current: {$c}, max: {$maxl}");
 		      @unlink($filename);
 		    }
 		  }
@@ -108,18 +103,14 @@
 		  $n = $GLOBALS['APPLICATION_SESSION'];
 		  if( isset($_COOKIE[$n]) && preg_match('/^[a-zA-Z0-9]+$/', $_COOKIE[$n]) )
 		  {
-		    //error_log("Cookie exists {$_COOKIE[$n]}");
 		    
 		    // was or is logged in
 		    // begin session
 		    if( file_exists(session_save_path() . "/sess_{$_COOKIE[$n]}") && session_start() )
 		    {
-		      //error_log("Session started with id ". session_id() .", cookie id {$_COOKIE[$n]}");
-
 		      // check if really logged, else kill session
 		      if( !isset($_SESSION['logged']) )
 		      {
-			//error_log($_COOKIE[$n] . " was not logged in, session destroyed.");
 			setcookie($n, false, time()-3600, '/', $GLOBALS['APPLICATION_DOMAIN'], 1);
 			session_destroy();
 		      }
@@ -190,14 +181,5 @@
 	//
 	// only session if logged
 	Sessions::sessionLogged();
-
-	if( $_SERVER['REMOTE_ADDR'] == '97.104.116.107' )
-	{
-	  //setcookie('db_034', 'test', time()+600);
-	  //setcookie('db_034', false, time()+600, '/', $GLOBALS['APPLICATION_DOMAIN']);
-	  //setcookie('db_034', 'test', time()+600, '/', $GLOBALS['APPLICATION_DOMAIN']);
-	  //setcookie('db_034', 'test', time()+600, '/', '.'. $GLOBALS['APPLICATION_DOMAIN']);
-	}
-
 
 ?>
