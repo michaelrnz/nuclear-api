@@ -226,35 +226,6 @@
   }
 
   //
-  // Consumer
-  //
-  class NuOAuthConsumer
-  {
-    protected $token;
-    protected $secret;
-
-    function __construct( $token=false, $secret=false )
-    {
-      if( $token ) $this->token = $token;
-      if( $secret ) $this->secret = $secret;
-    }
-
-    function __get( $f )
-    {
-      switch( $f )
-      {
-	case 'token':
-	case 'secret':
-	  return $this->$f;
-	
-	default:
-	  return null;
-      }
-    }
-
-  }
-
-  //
   // FederatedConsumer
   //
   abstract class NuFederatedConsumer extends NuOAuthConsumer
