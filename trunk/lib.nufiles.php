@@ -79,6 +79,8 @@
       $resp = curl_exec( $csess );
 
       curl_close( $csess );
+
+      return $resp;
     }
 
   }

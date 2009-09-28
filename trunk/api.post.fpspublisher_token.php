@@ -44,6 +44,7 @@
       else
       {
 	$o->status = "error";
+	$o->message= "Federated consumer keys not accepted";
 	$o->code = 11;
       }
 	

@@ -1,6 +1,7 @@
 <?php
 
   require_once('lib.nuoauth.php');
+  require_once('lib.nufiles.php');
 
   //
   // Identification and Generation lib
@@ -24,6 +25,10 @@
 	
 	$id = mysql_insert_id();
       }
+      else
+      {
+	$id = $id[0];
+      }
 
       return $id;
     }
@@ -33,7 +38,7 @@
     //
     public function generateToken( $seed=false )
     {
-      return hash("sha1", $this->domain . mt_rand() . microtime(true) . $seed);
+      return hash("sha1", mt_rand() . microtime(true) . $seed);
     }
 
     //
@@ -117,11 +122,26 @@
       $nonce = mt_rand();
       if( self::flagRequested( $domain, $nonce ) )
       {
-	$uri = "http://{$domain}/api/fps/publisher_token?nonce={$nonce}&domain=" . urlencode($GLOBALS['APPLICATION_DOMAIN']);
-	NuFiles::curl( $uri, "get" );
+	$uri = "http://{$domain}/api/fps/publisher_token.json?nonce={$nonce}&domain=" . urlencode($GLOBALS['DOMAIN']);
+
+	$json_txt = NuFiles::curl( $uri, "get" );
+
+	file_put_contents($GLOBALS['CACHE'] .'/'. 'publisher.request.log', "$domain: $json_txt\n", FILE_APPEND);
+
+	$json = json_decode( $json_txt );
+
+	// remove flag
+	if( is_null( $json ) || $json->status == "error" )
+	{
+	  self::unflagRequested( $domain );
+	  return false;
+	}
+
+	return true;
       }
       else // another request is in progress
       {
+	return false;
       }
     }
 
@@ -134,17 +154,24 @@
       if( $nonce == self::isFlagged( $domain ) )
       {
 	// get domain identification
-	$domain_id = NuFederatedID::domain( $domain );
+	$domain_id = NuFederatedStatic::domain( $domain );
 
 	// clean tokens
 	$tok_v = safe_slash($token);
 	$sec_v = safe_slash($secret);
 
-	// insert keys
-	WrapMySQL::void(
-	 "insert into nu_federated_publisher_domain (domain, token, secret) ".
-	 "values ({$domain_id}, '{$tok_v}', '{$sec_v}');",
-	 "Error adding publisher keys");
+	try
+	{
+	  // insert keys
+	  WrapMySQL::void(
+	    "insert into nu_federated_publisher_domain (domain, token, secret) ".
+	    "values ({$domain_id}, '{$tok_v}', '{$sec_v}');",
+	    "Error adding publisher keys");
+	}
+	catch( Exception $e )
+	{
+	  file_put_contents($GLOBALS['CACHE'] .'/'. 'publisher.accept.log', "$domain: {$e->getMessage()}\n", FILE_APPEND);
+	}
 
 	// unflag
 	self::unflagRequested( $domain );
@@ -168,7 +195,7 @@
       $secret= NuFederatedStatic::generateToken( $nonce );
 
       // get domain identification
-      $domain_id = NuFederatedID::domain( $domain );
+      $domain_id = NuFederatedStatic::domain( $domain );
 
       // clean tokens
       $tok_v = safe_slash($token);
@@ -183,14 +210,30 @@
       $uri = "http://{$domain}/api/fps/publisher_token.json";
 
       $post_data = array(
-	"domain"=> urlencode($GLOBALS['APPLICATION_DOMAIN']),
+	"domain"=> urlencode($GLOBALS['DOMAIN']),
 	"nonce"=>  urlencode($nonce),
 	"consumer_key"=> $token,
 	"consumer_secret"=>$secret
       );
 
-      return NuFiles::curl( $uri, "post", $post_data );
+      $json_txt = NuFiles::curl( $uri, "post", $post_data );
 
+      // log request
+      file_put_contents($GLOBALS['CACHE'] .'/'. 'subscriber.requested.log', "$domain: $json_txt\n", FILE_APPEND);
+
+      $json = json_decode( $json_txt );
+
+      // remove domain if 
+      if( is_null( $json ) || $json->status == "error" )
+      {
+	WrapMySQL::void(
+	  "delete from nu_federated_subscriber_domain where domain={$domain_id} limit 1;"
+	);
+
+	return false;
+      }
+
+      return true;
     }
 
   }
@@ -254,7 +297,7 @@
 
     public static function addSubscriber( $user, $domain )
     {
-      $domain_id = NuFederatedID::domain( $domain );
+      $domain_id = NuFederatedStatic::domain( $domain );
 
       WrapMySQL::void(
 	"insert into nu_federated_user (domain, name) ".
@@ -287,7 +330,7 @@
 	  return $this->$f;
 	
 	case 'domainID':
-	  return NuFederatedID::domain( $this->domain );
+	  return NuFederatedStatic::domain( $this->domain );
 	
 	default:
 	  return parent::__get($f);
