@@ -10,7 +10,12 @@
 			to globals, and code flow
 
 	*/
-
+	
+	function isType($group, $type)
+	{
+		return strpos("-|{$group}|","|{$type}|");
+	}
+	
   function &nuXmlChars( &$str,$mode=0)
   {
     $rstr= $str;
