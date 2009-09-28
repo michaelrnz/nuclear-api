@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="/forms/api.xsl"?>
+<apicall op="login">
+	<field type="input" name="user" display="User" />
+	<field type="password" name="password" display="Password" />
+</apicall>

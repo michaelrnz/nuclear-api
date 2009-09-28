@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="/forms/api.xsl"?>
+<apicall op="changeUsername">
+	<field type="password" name="password" display="Password" />
+	<field type="input" name="username" display="Desired name" />
+</apicall>

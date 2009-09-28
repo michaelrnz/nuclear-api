@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="/forms/api.xsl"?>
+<apicall op="requestFriend">
+	<field type="input" name="user" display="Username" />
+	<field type="text" name="reason" display="Reason" />
+</apicall>

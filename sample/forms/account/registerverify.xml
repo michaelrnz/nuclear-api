@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="/forms/api.xsl"?>
+<apicall op="verify">
+	<field type="input" name="user" display="Username" />
+	<field type="input" name="hash" display="Verification Key" />
+</apicall>
