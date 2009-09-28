@@ -125,23 +125,22 @@
 	$uri = "http://{$domain}/api/fps/publisher_token.json?nonce={$nonce}&domain=" . urlencode($GLOBALS['DOMAIN']);
 
 	$json_txt = NuFiles::curl( $uri, "get" );
-
-	file_put_contents($GLOBALS['CACHE'] .'/'. 'publisher.request.log', "$domain: $json_txt\n", FILE_APPEND);
-
 	$json = json_decode( $json_txt );
 
 	// remove flag
-	if( is_null( $json ) || $json->status == "error" )
+	if( !is_object( $json ) || is_null($json->status) )
 	{
 	  self::unflagRequested( $domain );
-	  return false;
+	  return -1;
 	}
 
-	return true;
+	file_put_contents($GLOBALS['CACHE'] .'/'. 'publisher.request.log', "$domain: $json_txt\n", FILE_APPEND);
+
+	return 1;
       }
       else // another request is in progress
       {
-	return false;
+	return 0;
       }
     }
 
