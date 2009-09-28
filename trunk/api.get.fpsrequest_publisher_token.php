@@ -23,15 +23,20 @@
 
       $o = new JSON($this->call->time);
       
-      if( $req )
+      if( $req==1 )
       {
 	$o->status = "ok";
 	$o->message = "Requested Keys from {$domain}";
       }
-      else
+      else if( $req==0 )
       {
 	$o->status = "error";
 	$o->message = "Keys already in request for {$domain}";
+      }
+      else
+      {
+	$o->status = "error";
+	$o->message = "{$domain} did not respond properly";
       }
 
       return $o;
