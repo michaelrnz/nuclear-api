@@ -9,7 +9,6 @@
     /*
 	PARAMS
 	domain
-	nonce
     */
 
     protected function initJSON()

@@ -33,7 +33,7 @@
 	throw new Exception("Missing publisher", 4);
 
       // create federated user
-      $publisher_id   = NuFederatedUsers::id( $publisher, $req_data['domain'], $domain_id );
+      $publisher_id   = NuFederatedUsers::id( $publisher, $req_data['domain'], $domain_id, true );
 
       // create tokens
       $token          = NuFederatedStatic::generateToken( $publisher_id );

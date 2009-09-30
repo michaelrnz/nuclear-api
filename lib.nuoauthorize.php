@@ -31,7 +31,7 @@
     }
 
 
-    public static function user( $resource, $method, &$request, $param_filter='op|output|format' )
+    public static function user( $resource, $method, &$request, $param_filter='' )
     {
 
       $auth         = self::parameters( $request );
@@ -88,7 +88,7 @@
     //
     // Authorize a Publisher
     //
-    public static function publisher( $resource, $method, &$request, $param_filter='op|output|format' )
+    public static function publisher( $resource, $method, &$request, $param_filter='' )
     {
 
       $auth         = self::parameters( $request );
@@ -144,7 +144,7 @@
     //
     // Authorize a Federation
     //
-    public static function federation( $resource, $method, &$request, $param_filter='op|output|format' )
+    public static function federation( $resource, $method, &$request, $param_filter='' )
     {
 
       $auth         = self::parameters( $request );
@@ -162,11 +162,11 @@
       //
       // get consumer-request relation
       $auth_data = WrapMySQL::single(
-		    "select D.*, C.token as consumer_key, C.secret as consumer_secret, T.token as token, T.secret as secret ".
+		    "select T.subscriber, T.publisher, D.*, C.token as consumer_key, C.secret as consumer_secret, T.token as token, T.secret as secret ".
 		    "from {$consumer_table} as C ".
 		    "left join {$token_table} as T on T.domain=C.domain ".
 		    "left join {$domain_table} as D on D.id=C.domain ".
-		    "where C.token='{$consumer_token}' && T.token='{$token}' limit 1;",
+		    "where C.token='{$consumer_key}' && T.token='{$token}' limit 1;",
 		    "Error fetching Tokens");
       
       if( !$auth_data )
@@ -183,8 +183,8 @@
 			    $token, 
 			    $auth_data['secret'],
 			    $auth['oauth_signature_method'],
-			    $auth['timestamp'],
-			    $auth['nonce']);
+			    $auth['oauth_timestamp'],
+			    $auth['oauth_nonce']);
 
       //
       // check signature

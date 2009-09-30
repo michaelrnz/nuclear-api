@@ -23,13 +23,14 @@
 
     // Generate signature based on a set of OAuth parameters
     //
-    public function signature( $oauth_params, $resource, $rest_method, &$request_params=null, $param_filter='op|output|format' )
+    public function signature( $oauth_params, $resource, $rest_method, &$request_params=null, $param_filter='' )
     {
       // open data
       $data = strtoupper($rest_method) . "&" . urlencode($resource) . "&";
 
       // build request params
       $sig_params = $oauth_params->signature_parameters();
+      //print_r($sig_params);
 
       // append params, no overwrite
       if( $request_params != null && is_array($request_params) )
@@ -37,19 +38,24 @@
 	foreach( $request_params as $k=>$v )
 	{
 	  $uk = urlencode($k);
-	  if( !isset($sig_params[$uk]) && strpos('oauth', $k)!==0 )
+	  if( !isset($sig_params[$uk]) && 
+	      !isType($param_filter, $k) && 
+	      !isType('oauth_signature|oauth_token_secret', $k))
 	    $sig_params[ $uk ] = urlencode($v);
 	}
       }
 
       // sort
       ksort( $sig_params, SORT_STRING );
+      //print_r($sig_params);
 
       // key=value
       array_walk( $sig_params, create_function('&$i,$k', '$i = "{$k}={$i}";') );
 
       // delimit &
       $data .= implode( "&", $sig_params );
+
+      //echo '<br />' . $data . '<br />';
 
       // sign with params
       return $oauth_params->sign( $data );
@@ -122,7 +128,7 @@
 
     public function signature_parameters()
     {
-      return $this->_parameters( array("consumer_key", "nonce", "signature_method", "timestamp", "token", "token_secret", "version") );
+      return $this->_parameters( array("consumer_key", "nonce", "signature_method", "timestamp", "token", "version") );
     }
 
     public function sign( $data )
@@ -198,6 +204,9 @@
 	    $method_params[ $uk ] = urlencode($v);
 	}
       }
+
+      //echo "REQUEST PARAMS: ";
+      //print_r($method_params);
 
       // make call using RES, METH, PARAMS
       $data = NuFiles::curl( $resource, $rest_method, $method_params );
