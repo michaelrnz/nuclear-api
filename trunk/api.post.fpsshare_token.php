@@ -16,7 +16,7 @@
 
     protected function initJSON()
     {
-      $publisherID = NuFederatedUsers::publisherID( $this->call->publisher );
+      $publisher = NuFederatedUsers::publisherID( $this->call->publisher );
 
       if( !$publisher )
 	throw new Exception("Invalid publisher", 5);
@@ -33,13 +33,13 @@
       if( !$r_token || !$r_secret )
 	throw new Exception("Invalid request tokens", 5);
 
-
       // OAuth request for access_tokens usering request
-      $consumer = new NuFederatedPublisher( $subscriber_domain );
+      $consumer = new NuFederatedSubscriber( $subscriber_domain );
+
       $oauth_params = new NuOAuthParameters( $consumer->token, $consumer->secret, $r_token, $r_secret );
 
       // make request, get data
-      $access_data = NuOAuthRequest::text( $oauth_params, "http://{$domain}/api/fps/access_token.json", "POST" );
+      $access_data = NuOAuthRequest::text( $oauth_params, "http://{$subscriber_domain}/api/fps/access_token.json", "POST" );
 
       // get json
       $resp = json_decode( $access_data );
@@ -53,18 +53,14 @@
       if( !($oauth_token_secret = $resp->oauth_token_secret) )
 	throw new Exception("Token secret was not returned", 4);
 
-
       // good, downmix subscriber
-      $subscriberID = NuFederatedUsers::subscriberID( $this->call->subscriber, true );
+      $subscriber_id = NuFederatedUsers::subscriber( $this->call->subscriber, true );
 
-      // create subscription relation
-      WrapMySQL::void(
-       "insert into nu_federated_subscriber_auth (user, federated_user, token, secret) ".
-       "values ({$publisherID}, {$subscriberID}, '". safe_slash($oauth_token) . "', '". safe_slash($oauth_token_secret) . "');",
-       "Error creating subscription");
+      // insert federated relation
+      NuFederatedIdentity::addSubscriberAuth( $subscriber_id, $publisher, safe_slash($oauth_token), safe_slash($oauth_token_secret));
 
       // now have access to publish to subscriber's inbox
-      $o = new JSON($this->call->time);
+      $o = new JSON($this->time);
       $o->status = "ok";
       $o->message = "Relation created";
 

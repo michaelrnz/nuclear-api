@@ -8,7 +8,7 @@
   //
   class NuFederatedStatic
   {
-    public static function domain( $domain )
+    public static function domain( $domain, $auto=true )
     {
       $domain_t = "nu_federated_domain";
 
@@ -17,20 +17,20 @@
              "select id from {$domain_t} where domain='{$d}' limit 1;",
 	     "Error selecting domain id");
       
-      if( !$id )
+      if( $id )
+	return $id[0];
+      
+      if( $auto )
       {
 	WrapMySQL::void(
 	     "insert into {$domain_t} (domain) values ('{$d}');",
 	     "Error inserting domain");
 	
 	$id = mysql_insert_id();
-      }
-      else
-      {
-	$id = $id[0];
+	return $id;
       }
 
-      return $id;
+      return false;
     }
 
     //
@@ -66,10 +66,14 @@
       $d = safe_slash($domain);
 
       $q = "select K.* from nu_federated_domain as D ".
-           "right join nu_federated_{$type}_domain as K on K.domain=D.id".
-	   "where D.domain='{$d}' limit 1";
+           "right join nu_federated_{$type}_domain as K on K.domain=D.id ".
+	   "where D.domain='{$d}' limit 1;";
       
-      return WrapMySQL::single($q, "Error selecting Consumer tokens");
+      //echo $q;
+      
+      $r = WrapMySQL::single($q, "Error selecting Consumer tokens");
+      //print_r($r);
+      return $r;
     }
 
   }
@@ -128,7 +132,7 @@
 	$json = json_decode( $json_txt );
 
 	// remove flag
-	if( !is_object( $json ) || is_null($json->status) )
+	if( !is_object( $json ) || is_null($json->status) || $json->status == "error" )
 	{
 	  self::unflagRequested( $domain );
 	  return -1;
@@ -237,6 +241,35 @@
 
   }
 
+  class NuFederatedIdentity
+  {
+    //
+    // create Publisher relation
+    // Publisher is a Federated User
+    // Subscriber is local
+    //
+    public static function addPublisherAuth( $subscriber, $publisher, $token, $secret )
+    {
+      WrapMySQL::void(
+        "insert into nu_federated_publisher_auth (user, federated_user, token, secret) ".
+	"values ($subscriber, $publisher, '{$token}', '{$secret}');",
+	"Error adding publisher auth");
+    }
+
+    //
+    // create Subscription relation
+    // Subscriber is a Federated User
+    // Publisher is local
+    //
+    public static function addSubscriberAuth( $publisher, $subscriber, $token, $secret )
+    {
+      WrapMySQL::void(
+        "insert into nu_federated_subscriber_auth (user, federated_user, token, secret) ".
+	"values ($publisher, $subscriber, '{$token}', '{$secret}');",
+	"Error adding subscriber auth");
+    }
+  }
+
   class NuFederatedUsers
   {
     //
@@ -244,7 +277,7 @@
     public static function user( $user )
     {
       if( ($i = strpos($user, '@')) )
-	$name = substr($user,0,$i-1);
+	$name = substr($user,0,$i);
       else
 	$name = $user;
       
@@ -256,7 +289,7 @@
     public static function domain( $domain )
     {
       if( ($i = strpos($domain, '@')) )
-	$name = substr($domain,$i);
+	$name = substr($domain,$i+1);
       else
 	$name = $user;
       
@@ -269,34 +302,52 @@
       $r = WrapMySQL::single(
 	    "select id from nuclear_username where name='{$name}';",
 	    "Error fetching publisherID");
-      return $r;
+      return $r ? $r[0] : false;
     }
 
     public static function subscriber( $federated_user, $auto=false )
     {
       $user = self::user($federated_user);
-      $domain = self::user($federated_user);
+      $domain = self::domain($federated_user);
 
       if( !$domain )
 	throw new Exception("Federated user must have domain");
 
       $r = WrapMySQL::single(
 	    "select U.id from nu_federated_user as U ".
-	    "right_join nu_federated_domain as D on D.id=U.domain ".
-	    "where U.name='{$name}' && D.domain='{$domain}';",
+	    "right join nu_federated_domain as D on D.id=U.domain ".
+	    "where U.name='{$user}' && D.domain='{$domain}';",
 	    "Error fetching subscriberID");
       
       if( !$r && $auto )
       {
-	$id = self::addSubscriber( $user, $domain );
+	$id = self::addFederatedUser( $user, $domain );
+	return $id;
       }
 
-      return $r;
+      return $r ? $r[0] : false;
     }
 
-    public static function addSubscriber( $user, $domain )
+    public static function id( $user, $domain, $domain_id, $auto=false )
     {
-      $domain_id = NuFederatedStatic::domain( $domain );
+      $r = WrapMySQL::single(
+	    "select U.id from nu_federated_user as U ".
+	    "where U.name='{$user}' && U.domain={$domain_id};",
+	    "Error fetching federated user");
+
+      if( !$r && $auto )
+      {
+	$id = self::addFederatedUser( $user, $domain, $domain_id );
+	return $id;
+      }
+
+      return $r ? $r[0] : false;
+    }
+
+    public static function addFederatedUser( $user, $domain, $domain_id=false )
+    {
+      if( !$domain_id )
+	$domain_id = NuFederatedStatic::domain( $domain );
 
       WrapMySQL::void(
 	"insert into nu_federated_user (domain, name) ".
@@ -329,6 +380,8 @@
 	  return $this->$f;
 	
 	case 'domainID':
+	  if( $this->domain_id )
+	    return $this->domain_id;
 	  return NuFederatedStatic::domain( $this->domain );
 	
 	default:
@@ -350,7 +403,9 @@
       if( !($tokens = NuFederatedStatic::publisherDomain( $auth_domain )) && $request )
       {
 	// no local tokens, request
-	NuFederatedExternal::requestPublisherKeys( $auth_domain );
+	if( NuFederatedExternal::requestPublisherKeys( $auth_domain ) < 1 )
+	  throw new Exception("Unable to request Publisher keys");
+
 	$tokens = NuFederatedStatic::publisherDomain( $auth_domain );
       }
 
@@ -358,6 +413,8 @@
 	throw new Exception("Invalid NuFederatedPublisher missing token/secret");
 
       parent::__construct( $auth_domain, $tokens['token'], $tokens['secret'] );
+
+      $this->domain_id = $tokens['domain'];
     }
   }
 

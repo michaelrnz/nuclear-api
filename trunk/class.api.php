@@ -208,6 +208,8 @@
 			}
 			else if( isset($this->resource['oauth_version']) )
 			{
+				include('lib.nuoauthorize.php');
+
 				// Attempt to validate oauth?
 				//
 				$op_auth = $this->operationType( $this->opText() );
@@ -221,6 +223,18 @@
 
 				  case 'federation_auth':
 				    // PUBLISHER OAUTH
+				    $auth_resp = NuOAuthorize::federation( 
+						   "http://{$GLOBALS['DOMAIN']}/api/fps/access_token.{$GLOBALS['API_FORMAT']}", 
+						   $this->getMethod(), 
+						   $this->resource,
+						   "format|op|output" );
+
+				    // CHECK VALID
+				    if( !$auth_resp[0] )
+				      throw new Exception("Unauthorized fps request", 2);
+				    
+				    $GLOBALS['FPS_REQUEST_AUTH'] = $auth_resp;
+				    return true;
 
 				    break;
 
