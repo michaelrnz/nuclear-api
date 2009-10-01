@@ -261,13 +261,128 @@
     // Subscriber is a Federated User
     // Publisher is local
     //
-    public static function addSubscriberAuth( $publisher, $subscriber, $token, $secret )
+    public static function addSubscriberAuth( $subscriber, $publisher, $token, $secret )
     {
       WrapMySQL::void(
         "insert into nu_federated_subscriber_auth (user, federated_user, token, secret) ".
 	"values ($publisher, $subscriber, '{$token}', '{$secret}');",
 	"Error adding subscriber auth");
     }
+  }
+
+  class NuFederatedRelation
+  {
+    //
+    // query the list of subscribers from db
+    //
+    public static function subscribers( $publisher )
+    {
+      if( !$publisher ) return null;
+
+      return WrapMySQL::q(
+	      "select T.user ".
+	      "from nu_federated_publisher_auth as T ".
+	      "where T.federated_user={$publisher};",
+	      "Error querying subscribers");
+    }
+
+    //
+    // query the list of subscribers from db
+    //
+    public static function federatedSubscribers( $publisher )
+    {
+      if( !$publisher ) return null;
+
+      return WrapMySQL::q(
+	      "select F.name, D.domain, T.token, T.secret as token_secret, C.token as consumer_key, C.secret as consumer_secret ".
+	      "from nu_federated_subscriber_auth as T ".
+	      "left join nu_federated_user as F on F.id=T.federated_user ".
+	      "left join nu_federated_subscriber_domain as C on C.domain=F.domain ".
+	      "left join nu_federated_domain as D on D.id=F.domain ".
+	      "where T.user={$publisher};",
+	      "Error querying subscribers");
+    }
+  }
+
+  class NuFederatedPacket
+  {
+    private static function namespace( $ns, $auto=true )
+    {
+      $ns_t = "nu_federated_namespace";
+
+      $v = safe_slash($ns);
+      $id = WrapMySQL::single(
+             "select id from {$ns_t} where namespace='{$v}' limit 1;",
+	     "Error selecting namespace id");
+      
+      if( $id )
+	return $id[0];
+      
+      if( $auto )
+      {
+	WrapMySQL::void(
+	     "insert into {$ns_t} (namespace) values ('{$v}');",
+	     "Error inserting namespace");
+	
+	$id = mysql_insert_id();
+	return $id;
+      }
+
+      return false;
+    }
+
+    public static function insertHash( $publisher, $hash )
+    {
+      try
+      {
+	WrapMySQL::void(
+	"insert into nu_federated_packet_hash (federated_user, hash) ".
+	"values ($publisher, '{$hash}');",
+	"Packet hash error", 15);
+      }
+      catch( Exception $e )
+      {
+	if( $e->getCode() == 15 )
+	  return -1;
+	else
+	  throw $e;
+      }
+
+      return 1;
+    }
+
+
+    public static function insertIndex( $federated_id, $federated_user )
+    {
+      return WrapMySQL::id(
+		"insert into nu_federated_packet_index (federated_id, federated_user) ".
+		"values ({$federated_id}, {$federated_user});",
+		"Error inserting packet");
+    }
+
+
+    public static function publish(  $federated_user, $packet_id )
+    {
+      return WrapMySQL::affected(
+	       "insert ignore into nu_federated_inbox (".
+	       "select user, {$packet_id} as packet from nu_federated_publisher_auth where federated_user={$federated_user}".
+	       ");",
+	       "Error dispatching to inbox");
+    }
+
+    public static function linkNamespace( $packet_id, $namespace )
+    {
+      $ns_id	  = array();
+
+      foreach( $namespace as $NS )
+	$ns_id[]  = self::namespace( trim($NS) );
+
+      WrapMySQL::void(
+	"insert ignore into nu_federated_packet_namespace (packet,namespace) ".
+	"values ({$packet_id}," . implode("), ({$packet_id},", $ns_id) . ");",
+	"Error linking packet-namespace");
+    }
+
   }
 
   class NuFederatedUsers

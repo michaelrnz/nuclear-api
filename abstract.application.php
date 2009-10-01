@@ -67,10 +67,9 @@
 		//
 		protected function loadBase()
 		{
+			parent::loadBase();
 			includer(
 				array(
-					"class.mysqlconnection.php",
-					"wrap.mysql.php",
 					"class.localapi.php"
 				)
 			);
