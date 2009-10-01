@@ -24,6 +24,7 @@
 				// basic application starts
 				$this->loadGlobals();
 				$this->loadBase();
+				$this->loadHandlers();
 				$this->startDatabase();
 				$this->startSession();
 
@@ -59,7 +60,38 @@
 		//
 		protected function loadBase()
 		{
-			includer( array("class.mysqlconnection.php","wrap.mysql.php") );
+			includer( array("class.mysqlconnection.php","wrap.mysql.php","lib.nuevent.php") );
+		}
+
+		//
+		// external Handlers includes
+		//
+		private function loadHandlers()
+		{
+			if( isset( $GLOBALS['HANDLERS'] ) && is_dir( $GLOBALS['HANDLERS'] ) )
+			{
+				$handler_dir = $GLOBALS['HANDLERS'];
+				$handlers    = scandir( $handler_dir );
+
+				if( count($handlers)>1 )
+				{
+				  // start buffering for handler.log
+				  ob_start();
+
+				  // load handlers
+				  for($a=2; $a<count($handlers); $a++)
+				  {
+					if( substr( $handlers[$a], -4 ) == '.php' )
+						@include( "{$handler_dir}/{$handlers[$a]}" );
+				  }
+
+				  // log handler loads
+				  @file_put_contents( $GLOBALS['CACHE'] . '/handlers.loaded.log', ob_get_contents() );
+
+				  // flush buffer
+				  ob_end_clean();
+				}
+			}
 		}
 
 		//
@@ -68,7 +100,6 @@
 		protected function startDatabase()
 		{
 			@include("application.database.php");
-			//@include("startdb.php");
 		}
 
 		//

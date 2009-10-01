@@ -23,7 +23,7 @@
 
     // Generate signature based on a set of OAuth parameters
     //
-    public function signature( $oauth_params, $resource, $rest_method, &$request_params=null, $param_filter='' )
+    public function signature( $oauth_params, $resource, $rest_method, &$request_params=null, $param_filter='', $encode=true )
     {
       // open data
       $data = strtoupper($rest_method) . "&" . urlencode($resource) . "&";
@@ -41,7 +41,7 @@
 	  if( !isset($sig_params[$uk]) && 
 	      !isType($param_filter, $k) && 
 	      !isType('oauth_signature|oauth_token_secret', $k))
-	    $sig_params[ $uk ] = urlencode($v);
+	    $sig_params[ $uk ] = $encode ? urlencode($v) : $v;
 	}
       }
 
@@ -199,9 +199,8 @@
       {
 	foreach( $request_params as $k=>$v )
 	{
-	  $uk = urlencode($k);
-	  if( !isset($method_params[$uk]) )
-	    $method_params[ $uk ] = urlencode($v);
+	  if( !isset($method_params[$k]) )
+	    $method_params[ $k ] = $v;
 	}
       }
 

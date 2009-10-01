@@ -112,9 +112,9 @@
 		    "left join {$user_table} as U on U.domain=C.domain ".
 		    "left join {$token_table} as T on T.federated_user=U.id ".
 		    "left join {$domain_table} as D on D.id=C.domain ".
-		    "where C.token='{$consumer_token} && T.token='{$token}' limit 1;",
+		    "where C.token='{$consumer_key}' && T.token='{$token}' limit 1;",
 		    "Error fetching Tokens");
-      
+
       if( !$auth_data )
 	return array(false, "Unauthorized Consumer");
 
@@ -129,8 +129,8 @@
 			    $token, 
 			    $auth_data['secret'],
 			    $auth['oauth_signature_method'],
-			    $auth['timestamp'],
-			    $auth['nonce']);
+			    $auth['oauth_timestamp'],
+			    $auth['oauth_nonce']);
 
       //
       // check signature
