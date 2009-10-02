@@ -241,10 +241,12 @@
 				  case 'publisher_auth':
 				    // PUBLISHER OAUTH
 				    $auth_resp = NuOAuthorize::publisher( 
-						   "http://{$GLOBALS['DOMAIN']}/api/fps/publish.{$GLOBALS['API_FORMAT']}", 
+						   "http://{$GLOBALS['DOMAIN']}/api/fps/". str_replace('fps', '', $this->opText()) .".{$GLOBALS['API_FORMAT']}", 
 						   $this->getMethod(), 
 						   $this->resource,
 						   "format|op|output" );
+
+				    print_r($auth_resp);
 
 				    // CHECK VALID
 				    if( !$auth_resp[0] )
@@ -335,8 +337,11 @@
 		  if( $op == "fpsaccess_token" )
 		    return "federation_auth";
 
-		  if( strpos($op, "fpspublish")===0 )
+		  if( isType("fpspublish|fpsrepublish|fpsunpublish", $op) )
 		    return 'publisher_auth';
+
+		  if( isType("fpsunshare_token", $op) )
+		    return 'reverse_publisher_auth';
 
 		  if( $op == "oauthaccess_token" )
 		    return 'access_auth';

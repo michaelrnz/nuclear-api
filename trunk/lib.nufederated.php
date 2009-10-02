@@ -370,6 +370,33 @@
 	       "Error dispatching to inbox");
     }
 
+    public static function unpublish( $packet_id )
+    {
+      if( !$packet_id ) return;
+
+      WrapMySQL::void(
+	"delete from nu_federated_packet_index where id={$packet_id} limit 1;",
+	"Error unpublishing from index"
+      );
+
+      WrapMySQL::void(
+	"delete from nu_federated_inbox where packet={$packet_id};",
+	"Error unpublishing from inbox"
+      );
+
+      self::flushNamespace( $packet_id );
+    }
+
+    public static function localId( $federated_id, $federated_user )
+    {
+      $id = WrapMySQL::single(
+	      "select id from nu_federated_packet_index ".
+	      "where federated_id={$federated_id} && federated_user={$federated_user} limit 1;",
+	      "Error getting local packet ID");
+
+      return $id ? $id[0] : false;
+    }
+
     public static function linkNamespace( $packet_id, $namespace )
     {
       $ns_id	  = array();
@@ -381,6 +408,13 @@
 	"insert ignore into nu_federated_packet_namespace (packet,namespace) ".
 	"values ({$packet_id}," . implode("), ({$packet_id},", $ns_id) . ");",
 	"Error linking packet-namespace");
+    }
+
+    public static function flushNamespace( $packet_id )
+    {
+      WrapMySQL::void(
+        "delete from nu_federated_packet_namespace where packet={$packet_id};",
+	"Error flushing packet-namespace");
     }
 
   }
