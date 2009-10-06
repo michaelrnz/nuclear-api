@@ -1,15 +1,16 @@
 <?php
 
   require_once("abstract.callwrapper.php");
+  require_once("class.domdocumentexceptor.php");
   require_once("lib.nufederated.php");
 
   class postFederatedPublish extends CallWrapper
   {
     /*
 	PARAMS
-	packet    // <fps packet
+	id	  // remote identification of packet
 	publisher // should be known from FPS_AUTH 
-	[id]	  // remote identification of packet
+	packet    // <fps packet
 	[ns]	  // namespace of the packet
     */
 
@@ -30,8 +31,16 @@
       if( !strlen($packet_data) )
 	throw new Exception("Missing packet", 4);
 
-      if( $this->call->ns )
-	$packet_ns = $this->call->ns;
+      // check packet as valid XML
+      try
+      {
+	$packet_xml = new DOMDocumentExceptor("1.0","utf-8");
+	$packet_xml->loadXML( $packet_data );
+      }
+      catch( Exception $e )
+      {
+	throw new Exception("Packet is not valid XML", 5);
+      }
 
       // check packet data hash for duplication
       if( NuFederatedPacket::insertHash( $publisher, sha1( $packet_data ) )==-1 )
@@ -40,12 +49,28 @@
       // create packet index from federated user
       $id = NuFederatedPacket::insertIndex( $packet_id, $publisher );
 
+      //
+      // insert namespaces
+      // namespace prefixes should be included in the POST
+      //
+      if( preg_match_all('/xmlns:(\w+)="(http:\/\/[^"]+?)"/', substr( $packet_data, 0, strpos($packet_data,'>') ), $xmlns ) )
+      {
+	$ns_count   = count($xmlns[0]);
+
+	$namespaces = array();
+	for( $a=0; $a<$ns_count; $a++ )
+	{
+	  $prefix = $xmlns[1][$a];
+	  $uri    = $xmlns[2][$a];
+	  $namespaces[$prefix] = $ns_uri;
+	}
+
+	if( count($namespaces)>0 )
+	  NuFederatedPacket::linkNamespace( $id, $namespaces );
+      }
+
       // using id, insert packet id into subscriber boxes
       $a  = NuFederatedPacket::publish( $publisher, $id );
-
-      // insert namespace
-      if( $packet_ns )
-	NuFederatedPacket::linkNamespace( $id, explode(',', $packet_ns) );
 
       // hash storage, these should be retreivable
       $f_dir = "{$GLOBALS['CACHE']}fps/". ($id % 47) . '/' . ($id % 43) . '/';
