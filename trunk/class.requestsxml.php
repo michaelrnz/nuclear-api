@@ -39,8 +39,9 @@
 			$stats_q = ($status = $this->request->status) ? " && status='$status'" : false;
 			$user_id = $this->request->user_id;
 
-			$q = "SELECT user_from AS id,name AS user,status,reason,ts FROM nuclear_view_requests ".
-				"WHERE user_to={$user_id}{$stats_q} ORDER BY ts DESC LIMIT 10 OFFSET $offset;";
+			$q = "select user_from AS id, name AS user, status, reason, ts from nuclear_request as R ".
+			     "left join nuclear_username as U on U.id=R.user_from "
+			     "where user_to={$user_id}{$stats_q} order by R.ts desc limit 10 offset $offset;";
 
 			return WrapMySQL::q( $q, "Error fetching friend requests" );
 		}

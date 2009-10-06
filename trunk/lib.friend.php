@@ -196,8 +196,9 @@
 			$offset = $page * 10;
 			$stats_q = $status ? " && status='$status'" : false;
 
-			$q = "SELECT * FROM nuclear_view_requests ".
-				"WHERE user_to={$user_id}{$stats_q} ORDER BY ts DESC LIMIT 10 OFFSET $offset;";
+			$q = "select U.id, user_from, name AS user, status, reason, ts from nuclear_request as R ".
+			     "left join nuclear_username as U on U.id=R.user_from "
+			     "where user_to={$user_id}{$stats_q} order by R.ts desc limit 10 offset $offset;";
 
 			return WrapMySQL::q( $q, "Error fetching friend requests" );
 		}
