@@ -44,6 +44,81 @@ CREATE TABLE `nu_federated_domain` (
 SET character_set_client = @saved_cs_client;
 
 --
+-- Table structure for table `nu_federated_inbox`
+--
+
+DROP TABLE IF EXISTS `nu_federated_inbox`;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+CREATE TABLE `nu_federated_inbox` (
+  `user` int(10) unsigned NOT NULL,
+  `packet` int(10) unsigned NOT NULL,
+  PRIMARY KEY  (`user`,`packet`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `nu_federated_namespace`
+--
+
+DROP TABLE IF EXISTS `nu_federated_namespace`;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+CREATE TABLE `nu_federated_namespace` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `prefix` varchar(32) default NULL,
+  `uri` varchar(255) default NULL,
+  PRIMARY KEY  (`id`),
+  KEY `prefix` (`prefix`)
+) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `nu_federated_packet_hash`
+--
+
+DROP TABLE IF EXISTS `nu_federated_packet_hash`;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+CREATE TABLE `nu_federated_packet_hash` (
+  `federated_user` int(10) unsigned NOT NULL,
+  `hash` char(40) NOT NULL default '',
+  PRIMARY KEY  (`federated_user`,`hash`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `nu_federated_packet_index`
+--
+
+DROP TABLE IF EXISTS `nu_federated_packet_index`;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+CREATE TABLE `nu_federated_packet_index` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `federated_id` int(10) unsigned NOT NULL,
+  `federated_user` int(10) unsigned NOT NULL,
+  `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `federated_id` (`federated_id`,`federated_user`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `nu_federated_packet_namespace`
+--
+
+DROP TABLE IF EXISTS `nu_federated_packet_namespace`;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+CREATE TABLE `nu_federated_packet_namespace` (
+  `packet` int(10) unsigned NOT NULL,
+  `namespace` int(10) unsigned NOT NULL,
+  PRIMARY KEY  (`packet`,`namespace`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+SET character_set_client = @saved_cs_client;
+
+--
 -- Table structure for table `nu_federated_publisher_auth`
 --
 
@@ -120,7 +195,7 @@ CREATE TABLE `nu_federated_user` (
   `name` varchar(128) NOT NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `domain` (`domain`,`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -340,20 +415,18 @@ CREATE TABLE `nuclear_user` (
 SET character_set_client = @saved_cs_client;
 
 --
--- Table structure for table `nuclear_userapi`
+-- Table structure for table `nuclear_user_name`
 --
 
-DROP TABLE IF EXISTS `nuclear_userapi`;
+DROP TABLE IF EXISTS `nuclear_user_name`;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
-CREATE TABLE `nuclear_userapi` (
-  `id` int(10) unsigned NOT NULL,
-  `key0` char(22) default NULL,
-  `key1` char(22) default NULL,
-  UNIQUE KEY `id` (`id`),
-  KEY `key0` (`key0`),
-  KEY `key1` (`key1`)
-) ENGINE=MyISAM DEFAULT CHARSET=ascii;
+CREATE TABLE `nuclear_user_name` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `name` varchar(64) NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -404,38 +477,6 @@ CREATE TABLE `nuclear_verify` (
   `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   UNIQUE KEY `user` (`user`),
   KEY `hash` (`hash`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-SET character_set_client = @saved_cs_client;
-
---
--- Table structure for table `nuclear_view_friends`
---
-
-DROP TABLE IF EXISTS `nuclear_view_friends`;
-SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
-CREATE TABLE `nuclear_view_friends` (
-  `user` int(10) unsigned default NULL,
-  `id` int(10) unsigned default NULL,
-  `name` varchar(64) default NULL,
-  `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-SET character_set_client = @saved_cs_client;
-
---
--- Table structure for table `nuclear_view_requests`
---
-
-DROP TABLE IF EXISTS `nuclear_view_requests`;
-SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
-CREATE TABLE `nuclear_view_requests` (
-  `user_to` int(10) unsigned default NULL,
-  `user_from` int(10) unsigned default NULL,
-  `status` enum('new','read','approved','denied','ignored') default NULL,
-  `name` varchar(64) default NULL,
-  `reason` varchar(500) default NULL,
-  `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
