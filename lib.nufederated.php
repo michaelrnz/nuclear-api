@@ -306,13 +306,14 @@
 
   class NuFederatedPacket
   {
-    private static function namespace( $ns, $auto=true )
+    private static function namespace( $prefix, $uri=false, $auto=true )
     {
       $ns_t = "nu_federated_namespace";
 
-      $v = safe_slash($ns);
+      $v = safe_slash($prefix);
+      $u = safe_slash($uri);
       $id = WrapMySQL::single(
-             "select id from {$ns_t} where namespace='{$v}' limit 1;",
+             "select id from {$ns_t} where prefix='{$v}' limit 1;",
 	     "Error selecting namespace id");
       
       if( $id )
@@ -321,7 +322,7 @@
       if( $auto )
       {
 	WrapMySQL::void(
-	     "insert into {$ns_t} (namespace) values ('{$v}');",
+	     "insert into {$ns_t} (prefix,uri) values ('{$v}', '{$u}');",
 	     "Error inserting namespace");
 	
 	$id = mysql_insert_id();
@@ -401,8 +402,8 @@
     {
       $ns_id	  = array();
 
-      foreach( $namespace as $NS )
-	$ns_id[]  = self::namespace( trim($NS) );
+      foreach( $namespace as $prefix=>$uri )
+	$ns_id[]  = self::namespace( trim($prefix), trim($uri) );
 
       WrapMySQL::void(
 	"insert ignore into nu_federated_packet_namespace (packet,namespace) ".
