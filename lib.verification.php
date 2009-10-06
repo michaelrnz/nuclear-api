@@ -67,6 +67,7 @@
 					$q = "INSERT INTO nuclear_userkey (id, pass, verify) VALUES ($id, '". $verified['pass'] ."', '". $verified['hash'] ."');";
 					WrapMySQL::affected( $q, "Unabled to insert userkey" . mysql_error(), 11 );
 
+					// NOTICE userapi has been removed, user tokens
 					//$q = "INSERT INTO nuclear_userapi (id, key0, key1) VALUES ($id, '" . implode("','", $api_key) . "');";
 					//WrapMySQL::affected( $q, "Unabled to insert userapi" . mysql_error(), 12 );
 

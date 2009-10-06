@@ -71,6 +71,7 @@
 			return $key;
 		}
 
+		/*
 		public static function regenerate( $id, $user, $phrase )
 		{
 			require('lib.fields.php');
@@ -87,5 +88,6 @@
 			}
 			return false;
 		}
+		*/
 	}
 ?>
