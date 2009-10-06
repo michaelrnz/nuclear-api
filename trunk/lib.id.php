@@ -77,8 +77,10 @@
 		  return WrapMySQL::single( $q, "Unabled to query user auth key" );
 		}
 
+		// NOTICE userapi has been removed, use tokens
 		//
 		// get user authorization by API key
+		/*
 		public static function userByAPI( $k )
 		{
 			// check and split key
@@ -94,6 +96,7 @@
 
 			return WrapMySQL::single( $q, "Unable to query user api key" );
 		}
+		*/
 
 		//
 		// get user authorizaton by Login u-p
