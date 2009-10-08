@@ -40,7 +40,7 @@
 			$user_id = $this->request->user_id;
 
 			$q = "select user_from AS id, name AS user, status, reason, ts from nuclear_request as R ".
-			     "left join nuclear_username as U on U.id=R.user_from "
+			     "left join nuclear_username as U on U.id=R.user_from ".
 			     "where user_to={$user_id}{$stats_q} order by R.ts desc limit 10 offset $offset;";
 
 			return WrapMySQL::q( $q, "Error fetching friend requests" );

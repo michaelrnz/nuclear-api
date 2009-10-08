@@ -10,7 +10,7 @@
 	*/
 
 	require_once('lib.text.php');
-	require_once('wrap.mysql.php');
+	require_once('lib.nuuser.php');
 
 	class Register
 	{
@@ -24,7 +24,6 @@
 			$u=$reg->user;
 			$p=$reg->password;
 			$e=$reg->email;
-			$s=$reg->site;
 
 			//
 			// check for available user
@@ -35,7 +34,7 @@
 
 			//
 			// insert for verification
-			$verify = self::insert( $u, $p, $e, $s );
+			$verify = self::insert( $u, $p, $e );
 
 			//
 			// email verification
@@ -54,7 +53,7 @@
 		//
 		// insert into verification
 		//
-		public static function insert( $u, $p, $e, $s )
+		public static function insert( $u, $p, $e )
 		{
 			require_once('lib.keys.php');
 
@@ -68,7 +67,7 @@
 
 			//
 			// compose query
-			$q= "INSERT INTO nuclear_verify (user, pass, email, domain, hash) VALUES ('$u', '$pass', '$e', '$s', '$verify');";
+			$q= "INSERT INTO nuclear_verify (user, pass, email, hash) VALUES ('$u', '$pass', '$e', '$verify');";
 
 			//
 			// wrap insert affected
@@ -85,26 +84,27 @@
 		//
 		public static function isAvailableUser($user,$email)
 		{
-			$q= "SELECT IF(name='$user',1,0) AS name, IF(email='$email',1,0) AS email FROM nuclear_user WHERE name='$user' || email='$email';";
-			$r = WrapMySQL::q( $q, "Unable to check user availability");
 
-			if( $r && mysql_num_rows( $r )>0 )
+			// check GLOBAL user, TODO DOMAIN_ID global, generated
+			$id = NuUser::userID( $user, $GLOBALS['DOMAIN'], 0 );
+			if( $id>0 )
 			{
-				$row = mysql_fetch_row($r);
-				if( $row[0] == 1 )
-				{
-					$GLOBALS['post_error'] = array('user'=>"User exists");
-				}
-				else
-				{
-					$GLOBALS['post_error'] = array('email'=>'Email exists');
-				}
+				$GLOBALS['post_error'] = array('user'=>"User exists");
 				return false;
 			}
-			else
+
+			// check email
+			$ct = WrapMySQL::single(
+				"select id from nuclear_user where email='$email' limit 1;", 
+				"Unable to check user email");
+
+			if( $ct && $ct[0] )
 			{
-				return true;
+				$GLOBALS['post_error'] = array('email'=>'Email exists');
+				return false;
 			}
+
+			return true;
 		}
 
 		//
