@@ -484,7 +484,21 @@
 		//
 		// leaving to subclass
 		// not necessary for action
-		protected function parse() { }
+		protected function parse()
+		{
+		  if( isset($this->resource['user']) )
+		  {
+		    // globalize USER_ID
+		    $user_data = ID::userByName( $this->resource['user'] );
+
+		    if( $user_data )
+		    {
+		      $GLOBALS['USER_ID'] = $user_data['id'];
+		      $GLOBALS['USER_NAME'] = $user_data['name'];
+		      $GLOBALS['USER_EMAIL'] = $user_data['email'];
+		    }
+		  }
+		}
 
 
 		//

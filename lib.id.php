@@ -67,11 +67,13 @@
 		  if( !Keys::checkAuth( $u, $k ) )
 		    return false;
 
-		  $q = "select nuclear_user.name, nuclear_user.email, nuclear_user.domain, nuclear_system.*, (nuclear_system.level+0) as level_id ".
-		       "from nuclear_username ".
-		       "left join nuclear_system ON nuclear_system.id=nuclear_username.id ".
-		       "left join nuclear_user ON nuclear_user.id=nuclear_username.id ".
-		       "where nuclear_username.hash=SHA1(LOWER('{$u}')) limit 1;";
+		  $q = "select N.name, U.email, S.*, (S.level+0) as level_id ".
+		       "from nu_user ".
+		       "inner join nuclear_user as U on U.id=nu_user.id ".
+		       "left join nu_name as N on N.id=nu_user.name ".
+		       "left join nuclear_system as S ON S.id=U.id ".
+		       "where N.name='{$u}' limit 1;";
+
 		       // second condition needed to make sure key is valid, although generating a random key is unlikely
 		  
 		  return WrapMySQL::single( $q, "Unabled to query user auth key" );
@@ -104,12 +106,13 @@
 		{
 			$user = safe_slash($u);
 
-			$q =   "SELECT nuclear_username.*, nuclear_user.email, nuclear_user.domain, nuclear_system.*, (nuclear_system.level+0) AS level_id 
-				FROM nuclear_username
-				LEFT JOIN nuclear_userkey ON nuclear_userkey.id=nuclear_username.id
-				LEFT JOIN nuclear_user ON nuclear_user.id=nuclear_username.id
-				LEFT JOIN nuclear_system ON nuclear_system.id=nuclear_username.id
-				WHERE nuclear_username.name='$user' && nuclear_userkey.pass='$p';";
+		  $q = "select N.name, U.email, S.*, (S.level+0) as level_id ".
+		       "from nu_user ".
+		       "inner join nuclear_userkey as K on K.id=nu_user.id ".
+		       "left join nuclear_user as U on U.id=K.id ".
+		       "left join nu_name as N on N.id=nu_user.name ".
+		       "left join nuclear_system as S ON S.id=K.id ".
+		       "where N.name='{$user}' && K.pass='{$p}' limit 1;";
 
 			return WrapMySQL::single( $q, "Unable to authenticate user by password" );
 		}
@@ -131,7 +134,16 @@
 		// get user id by name
 		public static function userByName( $n )
 		{
-			return self::_idByName( $n, 'username' );
+
+		  $q = "select nu_user.id, N.name, D.name as domain, U.email, S.level, (S.level+0) as level_id ".
+		       "from nu_user ".
+		       "left join nu_domain as D on D.id=nu_user.domain ".
+		       "left join nu_name as N on N.id=nu_user.name ".
+		       "inner join nuclear_user as U on U.id=nu_user.id ".
+		       "left join nuclear_system as S ON S.id=U.id ".
+		       "where D.name='{$GLOBALS['DOMAIN']}' && N.name='{$n}' limit 1;";
+
+		  return WrapMySQL::single( $q, "Unable to query user" );
 		}
 
 		//
@@ -144,7 +156,13 @@
 		public static function userControlById( $id )
 		{
 			if( !is_numeric($id) ) return false;
-			return  WrapMySQL::single( "SELECT nuclear_user.name, nuclear_user.email, nuclear_user.domain, nuclear_system.*, (nuclear_system.level+0) AS level_id FROM nuclear_system LEFT JOIN nuclear_user ON nuclear_user.id=nuclear_system.id WHERE nuclear_system.id=$id LIMIT 1;", "Unable to get user control");
+			return  WrapMySQL::single( 
+				  "SELECT N.name, U.email, S.*, (S.level+0) AS level_id ".
+				  "FROM nu_user ".
+				  "LEFT JOIN nu_name as N on N.id=nu_user.name ".
+				  "LEFT JOIN nuclear_system as S on S.id=nu_user.id ".
+				  "LEFT JOIN nuclear_user as U ON U.id=nu_user.id ".
+				  "WHERE nu_user.id=$id LIMIT 1;", "Unable to get user control");
 		}
 
 	}

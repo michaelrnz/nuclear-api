@@ -10,16 +10,11 @@
 	*/
 
 	require_once( 'class.eventlibrary.php' );
+	require_once( 'lib.nurelation.php' );
 
 	class NuclearFriend extends EventLibrary
 	{
 		protected static $driver;
-
-		private static function checkRelation( $user0, $user1 )
-		{
-			return WrapMySQL::single( "SELECT 'user1',model FROM nuclear_friendship WHERE user0=$user0 && user1=$user1 LIMIT 1;",
-				"Unable to check relation");
-		}
 
 		private static function checkRequested( $user_to, $user_from )
 		{
@@ -69,7 +64,7 @@
 			if( $to>0 && $from>0 )
 			{
 				// check for prior relation between ids
-				if( self::checkRelation( $to, $from )!=null )
+				if( NuRelation::check( $from, $to )!=null )
 					throw new Exception("Relationship exists");
 
 				// check for bi request
@@ -93,8 +88,13 @@
 					$o = new Object();
 					$o->to = $to;
 					$o->from=$from;
+					$o->user = $from;
+					$o->party= $to;
 					$o->reason=$reason;
 					self::fire( 'Request', $o );
+
+					// new events
+					NuEvent::raise('friend_requested', $o);
 				}
 
 				return $c;
@@ -108,17 +108,21 @@
 			{
 				if( self::removeRequest( $to, $from )==1 )
 				{
-					$ct = WrapMySQL::affected("INSERT INTO nuclear_friendship (user0,user1,model) VALUES ($to,$from,0),($from,$to,0) ".
-								  "ON DUPLICATE KEY UPDATE model=0;",
-								  "Unable to insert friendship");
-
+				    $c = NuRelation::update( $to, $from, 0 );
+				    $c += NuRelation::update( $from, $to, 0 );
+				    
 					if( $ct>0 )
 					{
 						// need event
 						$o = new Object();
 						$o->to = $to;
 						$o->from=$from;
+						$o->user = $from;
+						$o->party= $to;
 						self::fire( 'Accept', $o );
+
+						// new events
+						NuEvent::raise('friend_accepted', $o );
 
 						return true;
 					}
@@ -137,58 +141,44 @@
 			  else
 			    $o = $e;
 
-			  $o->to = $to;
-			  $o->from=$from;
+			  $o->to   = $to;
+			  $o->from = $from;
+			  $o->user = $from;
+			  $o->party= $to;
 
 			  // BeforeFollow Event
 			  self::fire( 'BeforeFollow', $o );
 
-			  // check for prior relation between ids
-			  $rel = self::checkRelation( $to, $from );
+			  // new events
+			  NuEvent::raise('pre_follow', $o);
 
-			  if( $rel != null && $rel[1] == 1 )
+			  // is followee following new follower
+			  $mutual = NuRelation::check( $to, $from );
+
+			  if( $mutual )
 			  {
-			    // user being followed
-			    $ct = WrapMySQL::affected("INSERT INTO nuclear_friendship (user0,user1,model) VALUES ($to,$from,0),($from,$to,0) ".
-						      "ON DUPLICATE KEY UPDATE model=0;",
-						      "Unable to insert friendship");
-			    return array($ct,"Followee existed, model changed to friend");
+			    if( $mutual[0] == 0 )
+			      return false;
+
+			    NuRelation::update( $to, $from, 0 );
+			    $o->mutual = true;
+			    $model = 0;
+			  }
+			  else
+			  {
+			    $model = 1;
 			  }
 
-			  // do Follow
-			  $q = "INSERT INTO nuclear_friendship (user0, user1, model)
-				VALUES ($from, $to, 1);";
+			  // update
+			  $c = NuRelation::update( $from, $to, $model );
 
-			  $c = WrapMySQL::affected($q, "Unable to follow");
-
-			  if( $c>0 )
-			  {
-			    self::fire( 'Follow', $o );
-			  }
+			  // new events
+			  NuEvent::raise('post_follow', $o);
 
 			  return $c;
 			}
+
 			return false;
-		}
-
-		// friend removal is one way
-		public static function remove( $user0, $user1 )
-		{
-			if( $user0>0 && $user1>0 )
-			{
-				return WrapMySQL::affected("DELETE FROM nuclear_friendship WHERE user0=$user0 && user1=$user1;",
-								"Error removing friendship");
-			}
-			return false;
-		}
-
-		public static function deleteFriend( $uid, $friendID )
-		{
-			$dQ = "DELETE FROM friend WHERE (uid1=$uid && uid2=$friendID) || (uid1=$friendID && uid2=$uid) LIMIT 2;";
-
-			if( !($dR = mysql_query( $dQ )) ) throw new Exception("Unable to delete friendship");
-
-			return true;
 		}
 
 		public static function requests( $user_id, $status='new', $page=0 )
@@ -197,7 +187,7 @@
 			$stats_q = $status ? " && status='$status'" : false;
 
 			$q = "select U.id, user_from, name AS user, status, reason, ts from nuclear_request as R ".
-			     "left join nuclear_username as U on U.id=R.user_from "
+			     "left join nuclear_username as U on U.id=R.user_from ".
 			     "where user_to={$user_id}{$stats_q} order by R.ts desc limit 10 offset $offset;";
 
 			return WrapMySQL::q( $q, "Error fetching friend requests" );
@@ -220,73 +210,27 @@
 
 				$offset = $page * $limit;
 
-				// do fields
-				$order = strpos('-|asc|desc|', '|'.strtolower($order).'|' ) ? strtolower($order) : 'DESC';
-				$order_field = strtolower($order_field);
-				$order_field = strpos("-|ts|name|", "|".$order_field."|")>0 ? $order_field : "ts";
-
-		  $q = "SELECT Friends.user1 AS id, Users.name, Friends.ts FROM nuclear_friendship AS Friends ".
-		       "left join nuclear_username AS Users On Users.id=Friends.user1 ".
-		       "where Friends.user0={$id} && Friends.model=0 order by ts {$order} limit {$limit} offset {$offset};";
-
-				return WrapMySQL::q( $q, "Error fetching friends" );
+				return NuRelation::userlist( $id, 'user', 0, array('limit'=>$limit, 'offset'=>$offset) );
 			}
 			return false;
 		}
 
+		public static function friends( $user )
+		{
+		  return NuRelation::userlist( $user, 'user', 0 );
+		}
+
 		public static function following( $user )
 		{
-		  $limit = 50;
-		  if( $user>0 )
-		  {
-		    if( !is_numeric($page) )
-		    {
-		      $page = 0;
-		    }
-		    else if( $page>0 )
-		    {
-		      $page = floor($page-1);
-		    }
-
-		    $offset = $page * $limit;
-
-		  $q = "SELECT Friends.user1 AS id, Users.name, Friends.ts FROM nuclear_friendship AS Friends ".
-		       "left join nuclear_username AS Users On Users.id=Friends.user1 ".
-		       "where Friends.user0={$user} && Friends.model=1 limit {$limit} offset {$offset};";
-
-		  return WrapMySQL::q( $q, "Error fetching followers" );
-		  }
-
-		  return false;
+		  return NuRelation::userlist( $user, 'user', 1 );
 		}
 
 		public static function followers( $user )
 		{
-		  $limit = 50;
-		  if( $user>0 )
-		  {
-		    if( !is_numeric($page) )
-		    {
-		      $page = 0;
-		    }
-		    else if( $page>0 )
-		    {
-		      $page = floor($page-1);
-		    }
-
-		    $offset = $page * $limit;
-
-		  $q = "SELECT Friends.user0 AS id, Users.name, Friends.ts FROM nuclear_friendship AS Friends ".
-		       "left join nuclear_username AS Users On Users.id=Friends.user0 ".
-		       "where Friends.user1={$user} && Friends.model=1 limit {$limit} offset {$offset};";
-
-		  return WrapMySQL::q( $q, "Error fetching followers" );
-		  }
-
-		  return false;
+		  return NuRelation::userlist( $user, 'party', 1 );
 		}
 	}
 
-	//NuclearFriend::init();
+	NuclearFriend::init();
 
 ?>
