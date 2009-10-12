@@ -1,38 +1,17 @@
 <?php
 
+  require_once('lib.nuuser.php');
   require_once('lib.nuoauth.php');
   require_once('lib.nufiles.php');
+
+
+
 
   //
   // Identification and Generation lib
   //
   class NuFederatedStatic
   {
-    public static function domain( $domain, $auto=true )
-    {
-      $domain_t = "nu_federated_domain";
-
-      $d = safe_slash($domain);
-      $id = WrapMySQL::single(
-             "select id from {$domain_t} where domain='{$d}' limit 1;",
-	     "Error selecting domain id");
-      
-      if( $id )
-	return $id[0];
-      
-      if( $auto )
-      {
-	WrapMySQL::void(
-	     "insert into {$domain_t} (domain) values ('{$d}');",
-	     "Error inserting domain");
-	
-	$id = mysql_insert_id();
-	return $id;
-      }
-
-      return false;
-    }
-
     //
     // Generate HASH token for Consumer
     //
@@ -65,18 +44,20 @@
     {
       $d = safe_slash($domain);
 
-      $q = "select K.* from nu_federated_domain as D ".
+      $q = "select K.* from nu_domain as D ".
            "right join nu_federated_{$type}_domain as K on K.domain=D.id ".
-	   "where D.domain='{$d}' limit 1;";
-      
-      //echo $q;
+	   "where D.name='{$d}' limit 1;";
       
       $r = WrapMySQL::single($q, "Error selecting Consumer tokens");
-      //print_r($r);
       return $r;
     }
 
   }
+
+
+
+
+
 
   //
   // External for local-remote exchanges
@@ -157,7 +138,7 @@
       if( $nonce == self::isFlagged( $domain ) )
       {
 	// get domain identification
-	$domain_id = NuFederatedStatic::domain( $domain );
+	$domain_id = NuUser::domainID( $domain );
 
 	// clean tokens
 	$tok_v = safe_slash($token);
@@ -198,7 +179,7 @@
       $secret= NuFederatedStatic::generateToken( $nonce );
 
       // get domain identification
-      $domain_id = NuFederatedStatic::domain( $domain );
+      $domain_id = NuUser::domainID( $domain );
 
       // clean tokens
       $tok_v = safe_slash($token);
@@ -241,6 +222,16 @@
 
   }
 
+
+
+
+
+
+
+
+
+
+
   class NuFederatedIdentity
   {
     //
@@ -269,6 +260,12 @@
 	"Error adding subscriber auth");
     }
   }
+
+
+
+
+
+
 
   class NuFederatedRelation
   {
@@ -303,6 +300,14 @@
 	      "Error querying subscribers");
     }
   }
+
+
+
+
+
+
+
+
 
   class NuFederatedPacket
   {
@@ -420,6 +425,26 @@
 
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   class NuFederatedUsers
   {
     //
@@ -448,7 +473,7 @@
 
     public static function publisherID( $local_user )
     {
-      $name = self::user($local_user);
+      $name = NuUser::filterUser($local_user);
       $r = WrapMySQL::single(
 	    "select id from nuclear_username where name='{$name}';",
 	    "Error fetching publisherID");
@@ -457,8 +482,8 @@
 
     public static function subscriber( $federated_user, $auto=false )
     {
-      $user = self::user($federated_user);
-      $domain = self::domain($federated_user);
+      $user = NuUser::filterUser($federated_user);
+      $domain = NuUser::filterDomain($federated_user);
 
       if( !$domain )
 	throw new Exception("Federated user must have domain");
@@ -497,7 +522,7 @@
     public static function addFederatedUser( $user, $domain, $domain_id=false )
     {
       if( !$domain_id )
-	$domain_id = NuFederatedStatic::domain( $domain );
+	$domain_id = NuUser::domainID( $domain );
 
       WrapMySQL::void(
 	"insert into nu_federated_user (domain, name) ".
@@ -508,6 +533,18 @@
     }
 
   }
+
+
+
+
+
+
+
+
+
+
+
+
 
   //
   // FederatedConsumer
@@ -530,9 +567,9 @@
 	  return $this->$f;
 	
 	case 'domainID':
-	  if( $this->domain_id )
-	    return $this->domain_id;
-	  return NuFederatedStatic::domain( $this->domain );
+	  if( !$this->domain_id )
+	    $this->domain_id = NuUser::domainID( $this->domain );
+	  return $this->domain_id;
 	
 	default:
 	  return parent::__get($f);
@@ -540,6 +577,17 @@
     }
 
   }
+
+
+
+
+
+
+
+
+
+
+
 
   //
   // Publisher 
@@ -567,6 +615,16 @@
       $this->domain_id = $tokens['domain'];
     }
   }
+
+
+
+
+
+
+
+
+
+
 
 
   //

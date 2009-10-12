@@ -93,7 +93,7 @@
 		  if( !isType("user|party", $select) )
 		    return null;
 
-		  $join   = $field == 'user' ? 'party' : 'user';
+		  $join   = $select == 'user' ? 'party' : 'user';
 
 		  $limit  = isset($paging['limit']) ? $paging['limit'] : 50;
 		  $offset = isset($paging['offset']) ? $paging['offset'] : 0;
