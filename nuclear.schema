@@ -10,6 +10,21 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `nu_domain`
+--
+
+DROP TABLE IF EXISTS `nu_domain`;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+CREATE TABLE `nu_domain` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `name` varchar(255) default NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+SET character_set_client = @saved_cs_client;
+
+--
 -- Table structure for table `nu_federated_auth_request`
 --
 
@@ -40,7 +55,7 @@ CREATE TABLE `nu_federated_domain` (
   `domain` varchar(255) NOT NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `domain` (`domain`)
-) ENGINE=MyISAM AUTO_INCREMENT=47 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -70,7 +85,7 @@ CREATE TABLE `nu_federated_namespace` (
   `uri` varchar(255) default NULL,
   PRIMARY KEY  (`id`),
   KEY `prefix` (`prefix`)
-) ENGINE=MyISAM AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -101,7 +116,7 @@ CREATE TABLE `nu_federated_packet_index` (
   `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `federated_id` (`federated_id`,`federated_user`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -195,7 +210,22 @@ CREATE TABLE `nu_federated_user` (
   `name` varchar(128) NOT NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `domain` (`domain`,`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `nu_name`
+--
+
+DROP TABLE IF EXISTS `nu_name`;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+CREATE TABLE `nu_name` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `name` varchar(64) NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -232,6 +262,41 @@ CREATE TABLE `nu_oauth_consumer` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `token` (`token`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `nu_relation`
+--
+
+DROP TABLE IF EXISTS `nu_relation`;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+CREATE TABLE `nu_relation` (
+  `user` int(10) unsigned NOT NULL,
+  `party` int(10) unsigned NOT NULL,
+  `model` tinyint(3) unsigned NOT NULL default '0',
+  `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  PRIMARY KEY  (`user`,`party`),
+  KEY `user` (`user`,`model`),
+  KEY `party` (`party`,`model`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `nu_user`
+--
+
+DROP TABLE IF EXISTS `nu_user`;
+SET @saved_cs_client     = @@character_set_client;
+SET character_set_client = utf8;
+CREATE TABLE `nu_user` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `domain` int(10) unsigned NOT NULL,
+  `name` int(10) unsigned NOT NULL,
+  `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `domain` (`domain`,`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -415,21 +480,6 @@ CREATE TABLE `nuclear_user` (
 SET character_set_client = @saved_cs_client;
 
 --
--- Table structure for table `nuclear_user_name`
---
-
-DROP TABLE IF EXISTS `nuclear_user_name`;
-SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
-CREATE TABLE `nuclear_user_name` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `name` varchar(64) NOT NULL,
-  PRIMARY KEY  (`id`),
-  UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-SET character_set_client = @saved_cs_client;
-
---
 -- Table structure for table `nuclear_userkey`
 --
 
@@ -458,7 +508,7 @@ CREATE TABLE `nuclear_username` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `hash` (`hash`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
 --
