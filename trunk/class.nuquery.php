@@ -171,7 +171,7 @@
       $this->limit = 1;
       $this->select();
       if( $this->result )
-        return $this->array();
+        return $this->hash();
 
       return null;
     }
