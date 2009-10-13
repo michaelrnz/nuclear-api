@@ -106,15 +106,15 @@
 
 			//
 			// remove session from db
-			//$sq = "DELETE FROM nuclear_logged WHERE session = '$session' LIMIT 1;";
-			//$r = WrapMySQL::affected( $sq );
+			$sq = "DELETE FROM nuclear_logged WHERE session = '$session' LIMIT 1;";
+			$r = WrapMySQL::affected( $sq );
 
 			if( $r>0 )
 			{
 				self::fire( 'LogoutSuccess', $session_data );
 			}
 
-			return $r;
+			return true;
 
 		}
 

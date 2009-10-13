@@ -14,29 +14,36 @@
 
 	class postLogin extends CallWrapper
 	{
+	  
+		private function login()
+		{
+			// check for already logged
+			if( isset($_SESSION['USER_CONTROL']) && $_SESSION['USER_CONTROL']['id']>0 ) throw new Exception("User already logged in", 0);
+
+			// include the lib
+			require_once( 'lib.userlog.php' );
+			return UserLog::in( $this->call );
+		}
 
 		protected function initJSON()
 		{
-			// check for already logged
-			if( isset($_SESSION['USER_CONTROL']) && $_SESSION['USER_CONTROL']['id']>0 ) throw new Exception("User already logged in", 3);
-
-			//
-			// include the lib
-			require_once( 'lib.userlog.php' );
+			$logged = $this->login();
 
 			// make return object
 			$o = new JSON( $this->time );
 
-			if( $ver = UserLog::in( $this->call ) )
+			if( $logged )
 			{
-				$o->valid = 1;
-				$o->msg = "You are now logged in.";
-				$o->session = $ver;
+				$o->status  = "ok";
+				$o->valid   = 1;
+				$o->message = "You are now logged in.";
+				$o->session = $logged;
 			}
 			else
 			{
-				$o->valid = 0;
-				$o->msg = "Please check your credentials.";
+				$o->status  = "error";
+				$o->valid   = 0;
+				$o->message = "Please check your credentials.";
 			}
 
 			return $o;
@@ -45,7 +52,33 @@
 
 		protected function initXML()
 		{
-			return $this->initJSON();
+			$logged = $this->login();
+
+			require_once('class.xmlcontainer.php');
+
+			$resp = new XMLContainer("1.0","utf-8",$this->time);
+
+			$root = $resp->createElement("response");
+
+			if( $logged )
+			{
+				$status = "ok";
+				$message = "You are now logged in.";
+			}
+			else
+			{
+				$status = "error";
+				$message = "Please check your credentials";
+			}
+
+			$root->setAttribute("status", $status);
+
+			if( $logged )
+			  $root->setAttribute("session", $logged);
+
+			$root->appendChild( $resp->createElement("message", $message) );
+			$resp->appendChild($root);
+			return $resp;
 		}
 	}
 
