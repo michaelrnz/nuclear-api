@@ -60,7 +60,7 @@
 		//
 		protected function loadBase()
 		{
-			includer( array("class.mysqlconnection.php","wrap.mysql.php","lib.nuevent.php") );
+			includer( array("class.mysqlconnection.php","wrap.mysql.php","lib.nuevent.php","class.nuquery.php") );
 		}
 
 		//

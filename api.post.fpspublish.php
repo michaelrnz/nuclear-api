@@ -62,7 +62,7 @@
 	{
 	  $prefix = $xmlns[1][$a];
 	  $uri    = $xmlns[2][$a];
-	  $namespaces[$prefix] = $ns_uri;
+	  $namespaces[$prefix] = $uri;
 	}
 
 	if( count($namespaces)>0 )

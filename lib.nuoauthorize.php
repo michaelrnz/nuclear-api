@@ -101,19 +101,30 @@
 
       $consumer_table = 'nu_federated_publisher_domain';
       $token_table    = 'nu_federated_publisher_auth';
-      $user_table     = 'nu_federated_user';
-      $domain_table   = 'nu_federated_domain';
+      $user_table     = 'nu_user';
+      $domain_table   = 'nu_domain';
 
       //
       // get consumer-request relation
-      $auth_data = WrapMySQL::single(
-		    "select D.*, T.user, T.federated_user, U.name, C.token as consumer_key, C.secret as consumer_secret, T.token as token, T.secret as secret ".
-		    "from {$consumer_table} as C ".
-		    "left join {$user_table} as U on U.domain=C.domain ".
-		    "left join {$token_table} as T on T.federated_user=U.id ".
-		    "left join {$domain_table} as D on D.id=C.domain ".
-		    "where C.token='{$consumer_key}' && T.token='{$token}' limit 1;",
-		    "Error fetching Tokens");
+      $quth = new NuQuery("{$consumer_table} as C");
+      $quth->field(
+	      array(
+		'D.id', 'D.name as domain',
+		'T.user', 'T.federated_user', 
+		'N.name', 
+		'C.token as consumer_key', 'C.secret as consumer_secret', 
+		'T.token as token', 'T.secret as secret'
+	      ));
+
+      $quth->join("nu_user as U",		      "U.domain=C.domain");
+      $quth->join("nu_name as N",		      "N.id=U.name");
+      $quth->join("nu_federated_publisher_auth as T", "T.federated_user=U.id");
+      $quth->join("nu_domain as D",		      "D.id=C.domain");
+
+      $quth->where("C.token='{$consumer_key}'");
+      $quth->where("T.token='{$token}'");
+
+      $auth_data = $quth->single("Error fetching tokens");
 
       if( !$auth_data )
 	return array(false, "Unauthorized Consumer");
@@ -157,17 +168,26 @@
 
       $consumer_table = 'nu_federated_publisher_domain';
       $token_table    = 'nu_federated_auth_request';
-      $domain_table   = 'nu_federated_domain';
+      $domain_table   = 'nu_domain';
 
       //
       // get consumer-request relation
-      $auth_data = WrapMySQL::single(
-		    "select T.subscriber, T.publisher, D.*, C.token as consumer_key, C.secret as consumer_secret, T.token as token, T.secret as secret ".
-		    "from {$consumer_table} as C ".
-		    "left join {$token_table} as T on T.domain=C.domain ".
-		    "left join {$domain_table} as D on D.id=C.domain ".
-		    "where C.token='{$consumer_key}' && T.token='{$token}' limit 1;",
-		    "Error fetching Tokens");
+      $quth = new NuQuery("{$consumer_table} as C");
+      $quth->field(
+	      array(
+		'T.subscriber', 'T.publisher',
+		'D.id', 'D.name as domain',
+		'C.token as consumer_key', 'C.secret as consumer_secret', 
+		'T.token as token', 'T.secret as secret'
+	      ));
+
+      $quth->join("nu_federated_auth_request as T",   "T.domain=C.domain");
+      $quth->join("nu_domain as D",		      "D.id=C.domain");
+
+      $quth->where("C.token='{$consumer_key}'");
+      $quth->where("T.token='{$token}'");
+
+      $auth_data = $quth->single("Error fetching Tokens");
       
       if( !$auth_data )
 	return array(false, "Unauthorized Consumer");

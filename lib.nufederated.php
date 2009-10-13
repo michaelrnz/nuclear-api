@@ -290,14 +290,23 @@
     {
       if( !$publisher ) return null;
 
-      return WrapMySQL::q(
-	      "select F.name, D.domain, T.token, T.secret as token_secret, C.token as consumer_key, C.secret as consumer_secret ".
-	      "from nu_federated_subscriber_auth as T ".
-	      "left join nu_federated_user as F on F.id=T.federated_user ".
-	      "left join nu_federated_subscriber_domain as C on C.domain=F.domain ".
-	      "left join nu_federated_domain as D on D.id=F.domain ".
-	      "where T.user={$publisher};",
-	      "Error querying subscribers");
+      $q = new NuQuery('nu_federated_subscriber_auth as T');
+      $q->field(
+	    array(
+	      'N.name', 'D.name as domain', 
+	      'T.token', 'T.secret as token_secret', 
+	      'C.token as consumer_key', 'C.secret as consumer_secret'
+	    )
+	  );
+
+      $q->join('nu_user as F', 'F.id=T.federated_user');
+      $q->join('nu_name as N', 'N.id=F.name');
+      $q->join('nu_federated_subscriber_domain as C', 'C.domain=F.domain');
+      $q->join('nu_domain as D', 'D.id=F.domain');
+
+      $q->where("T.user={$publisher}");
+
+      return $q->select("Error querying subscribers");
     }
   }
 
@@ -474,10 +483,7 @@
     public static function publisherID( $local_user )
     {
       $name = NuUser::filterUser($local_user);
-      $r = WrapMySQL::single(
-	    "select id from nuclear_username where name='{$name}';",
-	    "Error fetching publisherID");
-      return $r ? $r[0] : false;
+      return NuUser::userID( $name, $GLOBALS['DOMAIN'], false );
     }
 
     public static function subscriber( $federated_user, $auto=false )
@@ -488,48 +494,12 @@
       if( !$domain )
 	throw new Exception("Federated user must have domain");
 
-      $r = WrapMySQL::single(
-	    "select U.id from nu_federated_user as U ".
-	    "right join nu_federated_domain as D on D.id=U.domain ".
-	    "where U.name='{$user}' && D.domain='{$domain}';",
-	    "Error fetching subscriberID");
-      
-      if( !$r && $auto )
-      {
-	$id = self::addFederatedUser( $user, $domain );
-	return $id;
-      }
-
-      return $r ? $r[0] : false;
+      return NuUser::userID( $user, $domain, false, true );
     }
 
     public static function id( $user, $domain, $domain_id, $auto=false )
     {
-      $r = WrapMySQL::single(
-	    "select U.id from nu_federated_user as U ".
-	    "where U.name='{$user}' && U.domain={$domain_id};",
-	    "Error fetching federated user");
-
-      if( !$r && $auto )
-      {
-	$id = self::addFederatedUser( $user, $domain, $domain_id );
-	return $id;
-      }
-
-      return $r ? $r[0] : false;
-    }
-
-    public static function addFederatedUser( $user, $domain, $domain_id=false )
-    {
-      if( !$domain_id )
-	$domain_id = NuUser::domainID( $domain );
-
-      WrapMySQL::void(
-	"insert into nu_federated_user (domain, name) ".
-	"values ({$domain_id}, '{$user}');",
-	"Error adding subscriber");
-
-      return mysql_insert_id();
+      return NuUser::userID( $user, $domain, $domain_id, $auto );
     }
 
   }
