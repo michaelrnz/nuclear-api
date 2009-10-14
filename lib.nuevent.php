@@ -61,6 +61,38 @@
 				call_user_func( $H, $o );
 			}
 		}
+
+		public function action( $aspect, &$o=null )
+		{
+			$aspect = strtolower( $aspect );
+
+			if( !isset( self::$handlers[$aspect] ) || count(self::$handlers[$aspect])==0 )
+				return;
+
+			foreach( self::$handlers[$aspect] as $H )
+			{
+				call_user_func( $H, $o );
+			}
+		}
+
+		public function filter( $aspect, &$o=null )
+		{
+			$aspect = strtolower( $aspect );
+
+			if( !isset( self::$handlers[$aspect] ) || count(self::$handlers[$aspect])==0 )
+				return;
+
+			foreach( self::$handlers[$aspect] as $H )
+			{
+				// pass by reference for 5.2.x and lower
+				if( !is_object($o) && version_compare( PHP_VERSION, '5.3.0', '<' ) )
+				  $o = call_user_func( $H, array(&$o) );
+				else
+				  $o = call_user_func( $H, $o );
+			}
+
+			return $o;
+		}
 	}
 
 	NuEvent::init();

@@ -2,6 +2,7 @@
 
   require_once("abstract.callwrapper.php");
   require_once("lib.nufederated.php");
+  require_once("lib.nurelation.php");
 
   class postFederatedShare_Token extends CallWrapper
   {
@@ -59,6 +60,7 @@
       $subscriber_id = NuFederatedUsers::subscriber( $this->call->subscriber, true );
 
       // insert federated relation
+      NuRelation::update( $subscriber_id, $publisher );
       NuFederatedIdentity::addSubscriberAuth( $subscriber_id, $publisher, safe_slash($oauth_token), safe_slash($oauth_token_secret));
 
       // now have access to publish to subscriber's inbox

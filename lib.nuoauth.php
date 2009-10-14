@@ -204,9 +204,6 @@
 	}
       }
 
-      //echo "REQUEST PARAMS: ";
-      //print_r($method_params);
-
       // make call using RES, METH, PARAMS
       $data = NuFiles::curl( $resource, $rest_method, $method_params );
 

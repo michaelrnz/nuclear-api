@@ -283,14 +283,26 @@
 	      "Error querying subscribers");
     }
 
+  }
+
+  class NuFederatedPublishing
+  {
+
     //
     // query the list of subscribers from db
     //
-    public static function federatedSubscribers( $publisher )
+    private static function subscribers( $publisher )
     {
       if( !$publisher ) return null;
 
+      $tq = new NuQuery('_void_');
+      $tq = NuEvent::filter('subscriber_query', $q);
+
       $q = new NuQuery('nu_federated_subscriber_auth as T');
+      $q->fields      = $tq->fields;
+      $q->joins	      = $tq->joins;
+      $q->conditions  = $tq->conditions;
+
       $q->field(
 	    array(
 	      'N.name', 'D.name as domain', 
@@ -305,142 +317,90 @@
       $q->join('nu_domain as D', 'D.id=F.domain');
 
       $q->where("T.user={$publisher}");
+      $q->where("D.name!='{$GLOBALS['DOMAIN']}'");
 
-      return $q->select("Error querying subscribers");
+      return $q;
     }
-  }
 
-
-
-
-
-
-
-
-
-  class NuFederatedPacket
-  {
-    private static function namespace( $prefix, $uri=false, $auto=true )
+    //
+    // dispatch to federated /publish method
+    //
+    public static function dispatch( $publisher, $packet_id, $packet_data, $republish=false )
     {
-      $ns_t = "nu_federated_namespace";
+      if( $republish ) $prefix = 're';
 
-      $v = safe_slash($prefix);
-      $u = safe_slash($uri);
-      $id = WrapMySQL::single(
-             "select id from {$ns_t} where prefix='{$v}' limit 1;",
-	     "Error selecting namespace id");
-      
-      if( $id )
-	return $id[0];
-      
-      if( $auto )
+      if( !$publisher || !is_numeric($publisher) )
+	throw new Exception("Invalid publisher", 5);
+
+      if( !$packet_id || !is_numeric($packet_id) )
+	throw new Exception("Invalid packet id", 5);
+
+      if( !strlen($packet_data) )
+	throw new Exception("Missing packet data", 4);
+
+      $fps_params  = array(
+		      "id"    => $packet_id,
+		      "packet"=> $packet_data
+		     );
+
+      $subscribers  = self::subscribers( $publisher );
+
+      self::postSubscribers( '/api/fps/'. $prefix .'publish.json', $subscribers, $fps_params, $GLOBALS['CACHE'] . '/'. $prefix .'publishing.log' );
+    }
+
+    //
+    // undispatch to federated /publish method
+    //
+    public static function undispatch( $publisher, $packet_id )
+    {
+
+      if( !$publisher || !is_numeric($publisher) )
+	throw new Exception("Invalid publisher", 5);
+
+      if( !$packet_id || !is_numeric($packet_id) )
+	throw new Exception("Invalid packet id", 5);
+
+      $fps_params  = array(
+		      "id"    => $packet_id,
+		     );
+
+      $subscribers  = self::subscribers( $publisher );
+
+      self::postSubscribers( '/api/fps/unpublish.json', $subscribers, $fps_params, $GLOBALS['CACHE'] . '/unpublishing.log' );
+    }
+
+    private static function postSubscribers( $api_method, &$subscribers, &$params, $log_file=false )
+    {
+      $domain = false;
+
+      if( $subscribers->select() )
       {
-	WrapMySQL::void(
-	     "insert into {$ns_t} (prefix,uri) values ('{$v}', '{$u}');",
-	     "Error inserting namespace");
-	
-	$id = mysql_insert_id();
-	return $id;
+        while( $subscriber = $subscribers->hash() )
+	{
+	  // publish once per domain
+	  if( $domain == $subscriber['domain'] ) continue;
+	  
+	  // assign domain
+	  $domain = $subscriber['domain'];
+
+	  // create OAuth
+	  $oauth_params = new NuOAuthParameters(
+				$subscriber['consumer_key'],
+				$subscriber['consumer_secret'],
+				$subscriber['token'],
+				$subscriber['token_secret']);
+	  
+	  // publish to domain
+	  $access_resp  = NuOAuthRequest::text( $oauth_params, "http://{$domain}{$api_method}", "POST", $params );
+
+	  // log resp
+	  if( $log_file )
+	    file_put_contents( $log_file, time() . ": {$access_resp}\n", FILE_APPEND );
+	}
       }
-
-      return false;
-    }
-
-    public static function insertHash( $publisher, $hash )
-    {
-      try
-      {
-	WrapMySQL::void(
-	"insert into nu_federated_packet_hash (federated_user, hash) ".
-	"values ($publisher, '{$hash}');",
-	"Packet hash error", 15);
-      }
-      catch( Exception $e )
-      {
-	if( $e->getCode() == 15 )
-	  return -1;
-	else
-	  throw $e;
-      }
-
-      return 1;
-    }
-
-
-    public static function insertIndex( $federated_id, $federated_user )
-    {
-      return WrapMySQL::id(
-		"insert into nu_federated_packet_index (federated_id, federated_user) ".
-		"values ({$federated_id}, {$federated_user});",
-		"Error inserting packet");
-    }
-
-
-    public static function publish(  $federated_user, $packet_id )
-    {
-      return WrapMySQL::affected(
-	       "insert ignore into nu_federated_inbox (".
-	       "select user, {$packet_id} as packet from nu_federated_publisher_auth where federated_user={$federated_user}".
-	       ");",
-	       "Error dispatching to inbox");
-    }
-
-    public static function unpublish( $packet_id )
-    {
-      if( !$packet_id ) return;
-
-      WrapMySQL::void(
-	"delete from nu_federated_packet_index where id={$packet_id} limit 1;",
-	"Error unpublishing from index"
-      );
-
-      WrapMySQL::void(
-	"delete from nu_federated_inbox where packet={$packet_id};",
-	"Error unpublishing from inbox"
-      );
-
-      self::flushNamespace( $packet_id );
-    }
-
-    public static function localId( $federated_id, $federated_user )
-    {
-      $id = WrapMySQL::single(
-	      "select id from nu_federated_packet_index ".
-	      "where federated_id={$federated_id} && federated_user={$federated_user} limit 1;",
-	      "Error getting local packet ID");
-
-      return $id ? $id[0] : false;
-    }
-
-    public static function linkNamespace( $packet_id, $namespace )
-    {
-      $ns_id	  = array();
-
-      foreach( $namespace as $prefix=>$uri )
-	$ns_id[]  = self::namespace( trim($prefix), trim($uri) );
-
-      WrapMySQL::void(
-	"insert ignore into nu_federated_packet_namespace (packet,namespace) ".
-	"values ({$packet_id}," . implode("), ({$packet_id},", $ns_id) . ");",
-	"Error linking packet-namespace");
-    }
-
-    public static function flushNamespace( $packet_id )
-    {
-      WrapMySQL::void(
-        "delete from nu_federated_packet_namespace where packet={$packet_id};",
-	"Error flushing packet-namespace");
     }
 
   }
-
-
-
-
-
-
-
-
 
 
 

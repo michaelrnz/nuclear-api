@@ -1,6 +1,7 @@
 <?php
 
   require_once("abstract.callwrapper.php");
+  require_once("lib.nurelation.php");
   require_once("lib.nufederated.php");
 
   class postFPSAccess_Token extends CallWrapper
@@ -40,6 +41,7 @@
       $token_secret   = NuFederatedStatic::generateToken( $token );
 
       // insert federated relation
+      NuRelation::update( $subscriber_id, $publisher_id );
       NuFederatedIdentity::addPublisherAuth( $subscriber_id, $publisher_id, $token, $token_secret );
       
       // remove request auth
