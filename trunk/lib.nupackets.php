@@ -40,7 +40,7 @@
       $ns_id      = array();
 
       foreach( $namespace as $prefix=>$uri )
-        $ns_id[]  = self::namespace( trim($prefix), trim($uri) );
+        $ns_id[]  = NuPacketNamespace::id( trim($prefix), trim($uri) );
 
       WrapMySQL::void(
         "insert ignore into nu_federated_packet_namespace (packet,namespace) ".
@@ -55,7 +55,7 @@
     {
       WrapMySQL::void(
         "delete from nu_federated_packet_namespace where packet={$packet_id};",
-        "nu_federated_packet_namespace (flush)");
+        "nu_federated_packet_namespace (unlink)");
     }
 
   }
@@ -90,14 +90,38 @@
     //
     // NEW ID
     //
-    public static function index( $publisher, $timestamp='NULL' )
+    public static function index( $publisher, $timestamp='NULL', $local=false )
     {
       $ts = $timestamp ? $timestamp : time();
-      return WrapMySQL::id(
+      $id = WrapMySQL::id(
         "insert into nu_packet_index (publisher, ts) ".
         "values ({$publisher}, {$ts});",
         "nu_packet_index error");
+
+      if( $local )
+      {
+	WrapMySQL::void(
+	  "insert into nu_packet_inbox (subscriber, packet, ts) ".
+	  "values ({$publisher}, {$id}, {$ts});"
+        );
+      }
+
+      return $id;
     }
+
+    //
+    // REMOVE ID
+    //
+    public static function unindex( $publisher, $packet_id )
+    {
+      if( !$packet_id ) return;
+
+      return WrapMySQL::affected(
+              "delete from nu_packet_index where id={$packet_id} && publisher={$publisher} limit 1;",
+              "nu_packet_index error (unpublish)"
+             );
+    }
+
 
     //
     // FEDERATE PACKET
@@ -110,6 +134,15 @@
         "nu_federated_packet error");
     }
 
+    public static function unfederate( $publisher, $federated_id )
+    {
+      return WrapMySQL::affected(
+        "delete from nu_federated_packet ".
+        "where id={$federated_id} && publisher={$publisher} ".
+	"limit 1;",
+        "nu_federated_packet (unfederate)");
+    }
+
     //
     // PUBLISH
     //
@@ -120,7 +153,9 @@
         "insert ignore into nu_packet_inbox (".
           "select user as subscriber, {$packet_id} as packet, {$ts} as ts ".
 	  "from nu_relation as R ".
-	  "where R.party={$publisher}".
+	  "left join nu_user as U on U.id=R.user ".
+	  "where R.party={$publisher} && ".
+	  "U.domain=(select id from nu_domain where name='{$GLOBALS['DOMAIN']}')".
         ");",
         "nu_packet_inbox error (publish)");
     }
@@ -133,11 +168,6 @@
       if( !$packet_id ) return;
 
       WrapMySQL::void(
-        "delete from nu_packet_index where id={$packet_id} limit 1;",
-        "nu_packet_index error (unpublish)"
-      );
-
-      WrapMySQL::void(
         "delete from nu_packet_inbox where packet={$packet_id};",
         "nu_packet_inbox error (unpublish)"
       );
@@ -146,16 +176,30 @@
     }
 
     //
-    // LOCAL ID, FOR RE/UN
+    // ASSERT OWNERSHIP
     //
-    public static function localID( $publisher, $federated_id )
+    public static function localID( $publisher, $packet_id, $local=true )
     {
-      $id = WrapMySQL::single(
-          "select id from nu_federated_packet ".
-          "where id={$federated_id} && publisher={$publisher} limit 1;",
-          "nu_federated_packet error (localID)");
+      if( $local )
+      {
+	$table = 'nu_packet_index';
+	$field = 'id';
+      }
+      else
+      {
+        $table = 'nu_federated_packet';
+	$field = 'packet';
+      }
 
-      return $id ? $id[0] : false;
+      $idq = new NuQuery( $table );
+      $idq->field( $field );
+
+      $idq->where("id={$packet_id}");
+      $idq->where("publisher={$publisher}");
+
+      $rid = $idq->single();
+
+      return $rid ? $rid[0] : false;
     }
 
   }

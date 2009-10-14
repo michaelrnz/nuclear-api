@@ -1,51 +1,131 @@
 <?php
 
   require_once("abstract.callwrapper.php");
+  require_once("lib.nupackets.php");
   require_once("lib.nufederated.php");
 
   class postFederatedUnpublish extends CallWrapper
   {
     /*
 	PARAMS
-	publisher // should be known from FPS_AUTH 
-	[id]	  // remote identification of packet
+	id	  // remote identification of packet
+	publisher // should be known from FPS_AUTH or LOCAL
     */
 
-    protected function initJSON()
+    private function publisherID()
     {
-      $publisher    = $GLOBALS['FPS_AUTHORIZED']['federated_user'];
+      if( isset( $GLOBALS['FPS_AUTHORIZED'] ) )
+      {
+        $this->local = false;
+        return $GLOBALS['FPS_AUTHORIZED']['federated_user'];
+      }
+      else if( isset( $GLOBALS['USER_CONTROL'] ) )
+      {
+        $this->local = true;
+        return $GLOBALS['USER_CONTROL']['id'];
+      }
+      else
+      {
+        throw new Exception("Unauthorized publisher", 2);
+      }
+    }
 
-      if( !$publisher || !is_numeric($publisher) )
-	throw new Exception("Invalid publisher", 5);
-
+    private function packetID( $publisher )
+    {
       $packet_id  = intval($this->call->id);
 
       if( !$packet_id )
-	throw new Exception("Invalid packet_id", 5);
+        throw new Exception("Invalid packet_id", 5);
 
-      // get local packet id
-      $id = NuFederatedPacket::localId( $packet_id, $publisher );
+      if( $this->local )
+	return $packet_id;
 
-      // must have local id
+      // get packet id by federation
+      $id = NuPackets::localID( $publisher, $packet_id, $this->local );
+
       if( !$id )
-	throw new Exception("Packet does not exist on node", 11);
+	throw new Exception("Unidentified publisher packet");
 
-      // flush index
-      NuFederatedPacket::unpublish( $id );
+      return $id;
+    }
 
-      // hash storage, these should be retreivable
-      $f_dir = "{$GLOBALS['CACHE']}fps/". ($id % 47) . '/' . ($id % 43) . '/';
 
-      // remove hard file
-      @unlink( $f_dir . "{$id}.xml" );
+    private function unpublish()
+    {
+      //
+      // GET PUBLISHER
+      //
+      $publisher = $this->publisherID();
+
+      if( !$publisher || !is_numeric($publisher) )
+        throw new Exception("Invalid publisher", 5);
+
+      //
+      // GET PACKET ID (local)
+      //
+      $packet_id = $this->packetID( $publisher );
+
+      //
+      // TEST FOR REMOVING ONLY FEDERATED
+      //
+      if( $this->local && $this->call->federated_only )
+      {
+	NuFederatedPublishing::undispatch( $publisher, $packet_id );
+	return $packet_id;
+      }
+
+      //
+      // REMOVE INDEX
+      //
+      $a = NuPackets::unindex( $publisher, $packet_id );
+
+      if( !$a )
+	throw new Exception("Unidentified publisher packet");
+
+      //
+      // UNFEDERATE
+      //
+      if( !$this->local )
+	NuPackets::unfederate( $publisher, $this->call->id );
+
+      //
+      // UNPUBLISH
+      //
+      NuPackets::unpublish( $packet_id );
+
+
+      //
+      // REMOVE STORAGE
+      //
+      $f_dir = "{$GLOBALS['CACHE']}fps/". ($packet_id % 47) . '/' . ($packet_id % 43) . '/';
+      @unlink( $f_dir . "{$packet_id}.xml" );
+
+
+      //
+      // UNPUBLISH TO SUBSCRIBERS
+      //
+      if( $this->local )
+      {
+	NuFederatedPublishing::undispatch( $publisher, $packet_id );
+      }
+
+      return $packet_id;
+    }
+
+
+    protected function initJSON()
+    {
+      $result = $this->unpublish();
 
       // dispatching complete
       $o = new JSON($this->time);
       $o->status = "ok";
       $o->message = "Packet unpublished";
+      $o->id = $result;
 
       return $o;
     }
+
   }
 
   return postFederatedUnpublish;

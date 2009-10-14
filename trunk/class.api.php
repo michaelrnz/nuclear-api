@@ -246,8 +246,6 @@
 						   $this->resource,
 						   "format|op|output" );
 
-				    print_r($auth_resp);
-
 				    // CHECK VALID
 				    if( !$auth_resp[0] )
 				      throw new Exception("Unauthorized fps request", 2);

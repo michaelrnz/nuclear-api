@@ -3,6 +3,7 @@
   require_once("abstract.callwrapper.php");
   require_once("class.domdocumentexceptor.php");
   require_once("lib.nupackets.php");
+  require_once("lib.nufederated.php");
 
   class postFederatedPublish extends CallWrapper
   {
@@ -67,6 +68,8 @@
       try
       {
         $packet_xml = new DOMDocumentExceptor("1.0","utf-8");
+	$packet_xml->preserveWhiteSpace = false;
+	$packet_xml->formatOutput = true;
         $packet_xml->loadXML( $this->call->packet );
       }
       catch( Exception $e )
@@ -97,7 +100,7 @@
       //
       $packet_data  = $this->packetData();
       $packet_xml   = $this->packetXML();
-      $packet_head  = substr( $packet_data, 0, strpos($packet_data,'>') );
+      $packet_head  = substr( $packet_data, strpos($packet_data,'<fp'), strpos($packet_data,'>')+1 );
 
       //
       // CHECK FOR DUPLICATE DATA
@@ -108,18 +111,23 @@
       //
       // CHECK FOR TIMESTAMP IN PACKET
       //
-      if( preg_match('/ timestamp="(\d+)"/', $packet_head, $ts ) )
+      if( preg_match('/ timestamp="(\d+)/', $packet_head, $ts ) )
       {
 	$timestamp = $ts[1];
       }
       else
       {
 	$timestamp = time();
+
+	// append created_at
+	$ts_node   = $packet_xml->createElement('created_at', gmdate('r',$timestamp));
+	$packet_xml->documentElement->insertBefore( $ts_node, $packet_xml->documentElement->firstChild );
 	$packet_xml->documentElement->setAttribute('timestamp', $timestamp);
+
       }
 
       // create local packet identification
-      $id = NuPackets::index( $publisher, $timestamp );
+      $id = NuPackets::index( $publisher, $timestamp, $this->local );
 
       //
       // HANDLE FEDERATED
@@ -129,7 +137,22 @@
 	// log as a federated packet
 	NuPackets::federate( $publisher, $packet_id, $id );
       }
+      else
+      {
+	// append ID
+	$id_node   = $packet_xml->createElement('id', $id);
+	$packet_xml->documentElement->insertBefore( $id_node, $packet_xml->documentElement->firstChild );
 
+	// append USER
+	$user_node = $packet_xml->createElement('user');
+	$user_node->appendChild($packet_xml->createElement('id', $publisher));
+	$user_node->appendChild($packet_xml->createElement('name', $GLOBALS['USER_CONTROL']['name']));
+	$user_node->appendChild($packet_xml->createElement('domain', $GLOBALS['DOMAIN']));
+
+	NuEvent::action('local_packet_user_xml', $user_node);
+
+	$packet_xml->documentElement->appendChild($user_node);
+      }
 
       //
       // LINK NAMESPACES 
@@ -160,6 +183,12 @@
 
 
       //
+      // PACKET XML->DATA
+      //
+      $packet_data = str_replace('<?xml version="1.0"?>'."\n", '', $packet_xml->saveXML());
+
+
+      //
       // STORAGE
       // hash storage, these should be retreivable
       // TODO possibly hook for storage?
@@ -168,6 +197,14 @@
       mk_cache_dir($f_dir);
       file_put_contents( $f_dir . "{$id}.xml", $packet_data );
 
+
+      //
+      // PUBLISH TO SUBSCRIBERS
+      //
+      if( $this->local )
+      {
+	NuFederatedPublishing::dispatch( $publisher, $id, $packet_data );
+      }
 
       //
       // RETURN

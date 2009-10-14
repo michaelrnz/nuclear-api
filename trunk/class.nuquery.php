@@ -35,6 +35,34 @@
       $this->order = array();
     }
 
+    function __get($f)
+    {
+      switch($f)
+      {
+        case 'fields':
+	case 'joins':
+	case 'conditions':
+	  return $this->$f;
+      }
+
+      return null;
+    }
+
+    function __set($f,$v)
+    {
+      if( !is_array($v) ) return null;
+
+      switch($f)
+      {
+        case 'fields':
+	case 'joins':
+	case 'conditions':
+	  $this->$f = $v;
+      }
+
+      return $this;
+    }
+
     function __toString()
     {
       $f = count($this->fields)>0 ? implode(', ', $this->fields) : "*";
