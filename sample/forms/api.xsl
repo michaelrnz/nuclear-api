@@ -4,7 +4,7 @@
         <xsl:template match="/">
         <html xmlns="http://www.w3.org/1999/xhtml" version="-//W3C//DTD XHTML 1.1//EN" xml:lang="en">
         <head>
-		<link rel="stylesheet" type="text/css" href="api.css" />
+		<link rel="stylesheet" type="text/css" href="/forms/api.css" />
 		<title>Nuclear API</title>
         </head>
           <body>
@@ -46,7 +46,7 @@
 		
 		<h3>Other Methods</h3>
 		<xsl:call-template name="method">
-			<xsl:with-param name="str">account/login|account/logout|account/register|account/registerverify|account/username|password/reset|password/verify|social/request|social/accept</xsl:with-param>
+			<xsl:with-param name="str">account/login|account/logout|account/register|account/registerverify|account/username|password/reset|password/verify|social/request|social/accept|social/follow|fmp/publish|fmp/unpublish|fmp/republish|fmp/subscribe</xsl:with-param>
 		</xsl:call-template>
 
         </xsl:template>
