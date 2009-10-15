@@ -29,7 +29,12 @@
           return $id;
       }
 
-      return false;
+      return 0;
+    }
+
+    public static function lookup( $prefix )
+    {
+      return self::id( $prefix, false, false );
     }
 
     //
@@ -202,6 +207,40 @@
       return $rid ? $rid[0] : false;
     }
 
+  }
+
+  class NuPacketStorage
+  {
+    public static function directory($id)
+    {
+      return "{$GLOBALS['CACHE']}fps/". ($id % 47) . '/' . ($id % 43) . '/';
+    }
+
+    public static function &read($id)
+    {
+      $f_dir = self::directory($id);
+
+      $data = file_get_contents( $f_dir . "{$id}.xml" );
+      return $data;
+    }
+
+    public static function save($id, &$data)
+    {
+      $f_dir = self::directory($id);
+      mk_cache_dir($f_dir);
+
+      $fn = $f_dir . "{$id}.xml";
+      $tmp = $fn . "." . microtime(true);
+
+      file_put_contents( $tmp, $data );
+      rename( $tmp, $fn );
+    }
+
+    public static function unlink($id)
+    {
+      $f_dir = self::directory($id);
+      @unlink($f_dir);
+    }
   }
 
 ?>

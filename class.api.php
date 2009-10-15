@@ -491,6 +491,12 @@
 
 		    if( $user_data )
 		    {
+		      $user_obj		= new Object();
+		      $user_obj->id	= $user_data['id'];
+		      $user_obj->name	= $user_data['name'];
+		      $user_obj->email	= $user_data['email'];
+
+		      $GLOBALS['USER'] = $user_obj;
 		      $GLOBALS['USER_ID'] = $user_data['id'];
 		      $GLOBALS['USER_NAME'] = $user_data['name'];
 		      $GLOBALS['USER_EMAIL'] = $user_data['email'];

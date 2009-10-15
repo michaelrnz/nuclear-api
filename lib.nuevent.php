@@ -80,7 +80,7 @@
 			$aspect = strtolower( $aspect );
 
 			if( !isset( self::$handlers[$aspect] ) || count(self::$handlers[$aspect])==0 )
-				return;
+				return $o;
 
 			foreach( self::$handlers[$aspect] as $H )
 			{
