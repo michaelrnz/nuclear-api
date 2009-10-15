@@ -74,6 +74,9 @@
 				case LIBXML_ERR_FATAL:
 					$rv .= "Fatal Error $error->code: ";
 					break;
+				default:
+					$rv .= "Unknown Error $error->code: ";
+					break;
 			}
 
 			$rv .= ", Line: $error->line, Column: $error->column";

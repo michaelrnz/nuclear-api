@@ -97,8 +97,7 @@
       //
       // REMOVE STORAGE
       //
-      $f_dir = "{$GLOBALS['CACHE']}fps/". ($packet_id % 47) . '/' . ($packet_id % 43) . '/';
-      @unlink( $f_dir . "{$packet_id}.xml" );
+      NuPacketStorage::unlink( $packet_id );
 
 
       //

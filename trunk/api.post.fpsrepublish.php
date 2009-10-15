@@ -186,9 +186,7 @@
       // hash storage, these should be retreivable
       // TODO possibly hook for storage?
       //
-      $f_dir = "{$GLOBALS['CACHE']}fps/". ($packet_id % 47) . '/' . ($packet_id % 43) . '/';
-      mk_cache_dir($f_dir);
-      file_put_contents( $f_dir . "{$packet_id}.xml", $packet_data );
+      NuPacketStorage::save($packet_id, $packet_data);
 
       //
       // PUBLISH TO SUBSCRIBERS
