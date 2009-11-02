@@ -16,7 +16,7 @@
 
 			require( 'lib.friend.php' );
 
-			$result = NuclearFriend::get( $GLOBALS['USER_CONTROL']['id'], $this->call->page, $this->call->order, $this->call->order_field );
+			$result = NuclearFriend::following( $GLOBALS['USER_CONTROL']['id'] );
 
 			if( $result )
 			{

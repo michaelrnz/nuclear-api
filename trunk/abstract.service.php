@@ -22,8 +22,8 @@
 			{
 				//
 				// basic application starts
-				$this->loadGlobals();
 				$this->loadBase();
+				$this->loadGlobals();
 				$this->loadHandlers();
 				$this->startDatabase();
 				$this->startSession();
@@ -52,7 +52,6 @@
 		private function loadGlobals()
 		{
 			require( "application.globals.php" );
-			require( "var.global.php" );
 		}
 
 		//
@@ -60,6 +59,7 @@
 		//
 		protected function loadBase()
 		{
+			require("var.global.php");
 			includer( array("class.mysqlconnection.php","wrap.mysql.php","lib.nuevent.php","class.nuquery.php") );
 		}
 

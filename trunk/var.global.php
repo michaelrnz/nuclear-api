@@ -163,13 +163,6 @@
 	// setup global directories
 	//
 
-	// home defined in application.globals
-	$home = $GLOBALS['HOME'];
-
-	// assigns nuclear director, but not used
-	$GLOBALS['NUCLEAR']=$home. '/nuclear/';
-	$GLOBALS['XSL']=$home. '/xsl/';
-	$GLOBALS['CACHE']=$home. '/cache/';
 	$GLOBALS['ATIME']= microtime(true);
 
 ?>

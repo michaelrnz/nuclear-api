@@ -17,7 +17,6 @@
       parent::__construct('nu_packet_index as P force index(publisher)');
       $this->field( array('P.id as packet','P.ts') );
       $this->where("P.publisher={$publisher}");
-      $this->order( 'P.ts', 'desc' );
       $this->order( 'P.ts', isType('asc|desc', $order)? $order : 'desc' );
       $this->page( $page, $limit, 20, 10, 100 );
     }
