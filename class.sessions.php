@@ -114,6 +114,10 @@
 			setcookie($n, false, time()-3600, '/', $GLOBALS['APPLICATION_DOMAIN'], 1);
 			session_destroy();
 		      }
+		      else
+		      {
+		        $GLOBALS['USER_CONTROL'] = $_SESSION['USER_CONTROL'];
+		      }
 		    }
 		    else
 		    {
