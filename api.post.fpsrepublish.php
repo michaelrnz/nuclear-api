@@ -108,14 +108,15 @@
       //if( NuPackets::hash( $publisher, sha1( $packet_data ) )==-1 )
         //throw new Exception("Duplicate packet detected", 11);
 
-      $f_dir = "{$GLOBALS['CACHE']}fps/". ($packet_id % 47) . '/' . ($packet_id % 43) . '/';
-      $old_packet = file_get_contents( $f_dir . "{$packet_id}.xml" );
+      //
+      // get old packet
+      //
+      $old_packet = NuPacketStorage::read($packet_id);
       $old_packet_head = substr( $old_packet, 0, strpos($old_packet,'>')+1);
 
       //
       // CHECK FOR TIMESTAMP IN PACKET
       //
-      /*
       if( preg_match('/ timestamp="(\d+)/', $packet_head, $ts ) )
       {
 	$timestamp = $ts[1];
@@ -133,13 +134,13 @@
 	$packet_xml->documentElement->insertBefore( $ts_node, $packet_xml->documentElement->firstChild );
 	$packet_xml->documentElement->setAttribute('timestamp', $timestamp);
       }
-      */
+      /**/
 
       if( $this->local )
       {
 	// append ID
-	//$id_node   = $packet_xml->createElement('id', $packet_id);
-	//$packet_xml->documentElement->insertBefore( $id_node, $packet_xml->documentElement->firstChild );
+	$id_node   = $packet_xml->createElement('id', $packet_id);
+	$packet_xml->documentElement->insertBefore( $id_node, $packet_xml->documentElement->firstChild );
 
 	// append USER
 	$user_node = $packet_xml->createElement('user');
@@ -200,7 +201,6 @@
       // RETURN
       // 
       return $packet_id;
-
     }
 
     protected function initJSON()
