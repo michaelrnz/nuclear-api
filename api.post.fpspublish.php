@@ -205,7 +205,7 @@
 	// store packet for dispatch
 
 	// ping dispatch
-	NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$id}" );
+	// NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$id}" );
       }
 
       //
