@@ -109,6 +109,11 @@
       //
       NuPacketStorage::unlink( $packet_id );
 
+      //
+      // HOOK ACTION
+      //
+      NuEvent::action('nu_fmp_unpublished', $packet_id);
+
 
       //
       // UNPUBLISH TO SUBSCRIBERS

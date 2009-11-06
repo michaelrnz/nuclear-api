@@ -184,6 +184,10 @@
       NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$id}" );
 
       //
+      // HOOK
+      NuEvent::action( 'nu_fmp_published', $packet_xml, $id );
+
+      //
       // RETURN
       return array($id, $a);
     }
@@ -318,6 +322,10 @@
       // PUBLISH
       // using id, insert packet id into subscriber boxes
       $a = NuPackets::publish( $publisher_id, $id );
+
+      //
+      // HOOK
+      NuEvent::action( 'nu_fmp_published', $packet_xml, $id );
 
       //
       // RETURN
