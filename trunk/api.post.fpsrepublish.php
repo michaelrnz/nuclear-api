@@ -39,9 +39,6 @@
       if( !$packet_id )
         throw new Exception("Invalid packet_id", 5);
 
-      if( $this->local )
-	return $packet_id;
-
       // get packet id by federation
       $id = NuPackets::localID( $publisher, $packet_id, $this->local );
 
