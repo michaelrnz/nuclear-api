@@ -181,6 +181,22 @@
     }
 
     //
+    // TIMESTAMP
+    //
+    public static function timestamp( $packet_id, $timestamp )
+    {
+      if( !$packet_id || !$timestamp ) return;
+
+      //
+      // update index
+      WrapMySQL::void(
+        "update nu_packet_index ".
+	"set ts=$timestamp ".
+	"where id={$packet_id} ".
+	"limit 1;");
+    }
+
+    //
     // ASSERT OWNERSHIP
     //
     public static function localID( $publisher, $packet_id, $local=true )
