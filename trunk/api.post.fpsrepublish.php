@@ -125,16 +125,15 @@
       else
       {
 	$timestamp = time();
+      }
 
+      if( $this->local )
+      {
 	// append created_at
 	$ts_node   = $packet_xml->createElement('created_at', gmdate('r',$timestamp));
 	$packet_xml->documentElement->insertBefore( $ts_node, $packet_xml->documentElement->firstChild );
 	$packet_xml->documentElement->setAttribute('timestamp', $timestamp);
-      }
-      /**/
 
-      if( $this->local )
-      {
 	// append ID
 	$id_node   = $packet_xml->createElement('id', $packet_id);
 	$packet_xml->documentElement->insertBefore( $id_node, $packet_xml->documentElement->firstChild );
