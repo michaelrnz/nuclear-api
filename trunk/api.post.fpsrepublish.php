@@ -42,6 +42,15 @@
       // get packet id by federation
       $id = NuPackets::localID( $publisher, $packet_id, $this->local );
 
+      // try proxied packet
+      if( !$this->local && !$id )
+      {
+	$id = NuPackets::proxyID( $publisher, $packet_id );
+
+	if( $id )
+	  $this->proxy = true;
+      }
+
       if( !$id )
 	throw new Exception("Unidentified publisher packet");
 

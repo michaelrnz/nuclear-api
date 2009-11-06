@@ -89,6 +89,14 @@
 	  throw $e;
       }
 
+      // do GC on hash 1%
+      if( (rand() % 1000) <= (10) )
+      {
+        WrapMySQL::void(
+	  "delete from nu_packet_hash ".
+	  "where ts<DATE_SUB(NOW(),INTERVAL 5 MINUTE);");
+      }
+
       return 1;
     }
 
@@ -223,6 +231,22 @@
       return $rid ? $rid[0] : false;
     }
 
+    //
+    // PROXY ID
+    //
+    public static function proxyID( $publisher, $packet_id )
+    {
+      $idq = new NuQuery( 'nu_federated_packet as FP' );
+      $idq->field( "FP.packet" );
+      $idq->join( "nu_packet_proxy as PX", "PX.id=FP.packet", "inner" );
+      $idq->where( "FP.id={$packet_id}" );
+      $idq->where( "PX.publisher={$publisher}" );
+
+      $rid = $idq->single();
+
+      return $rid ? $rid[0] : false;
+    }
+
   }
 
   class NuPacketStorage
@@ -248,7 +272,7 @@
       $fn = $f_dir . "{$id}.xml";
       $tmp = $fn . "." . microtime(true);
 
-      file_put_contents( $tmp, $data );
+      file_put_contents( $tmp, trim(preg_replace('/<\?xml.+?\?>/', '', $data)) );
       rename( $tmp, $fn );
     }
 

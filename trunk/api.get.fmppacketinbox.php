@@ -111,6 +111,8 @@
 	      $user->appendChild($packet_xml->createElement('name', $packet['name']));
 	      $user->appendChild($packet_xml->createElement('domain', $packet['domain']));
 
+	      //
+	      // replace user packet
 	      $pre_user = $packet_xml->getElementsByTagName('user');
 	      if( $pre_user->length>0 )
 	      {
@@ -121,6 +123,8 @@
 	        $packet_xml->documentElement->appendChild($user);
 	      }
 
+	      //
+	      // filter
 	      $packet_xml = NuEvent::filter('nu_fmp_inbox_packet_xml', $packet_xml, $packet);
 
 	      $packet_node = $resp->importNode( $packet_xml->firstChild, true );
