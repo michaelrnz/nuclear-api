@@ -12,6 +12,7 @@
 	{
 		private static $processor = null;
 		private $xsl;
+		private $loaded;
 		private $time;
 		private $root;
 

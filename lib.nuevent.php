@@ -75,7 +75,7 @@
 			}
 		}
 
-		public function filter( $aspect, &$o=null )
+		public function &filter( $aspect, &$o=null )
 		{
 			$aspect = strtolower( $aspect );
 

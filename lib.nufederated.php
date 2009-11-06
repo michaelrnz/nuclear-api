@@ -459,6 +459,9 @@
 
     public static function id( $user, $domain, $domain_id, $auto=false )
     {
+      $user   = str_replace("'","",$user);
+      $domain = str_replace("'","",$domain);
+
       return NuUser::userID( $user, $domain, $domain_id, $auto );
     }
 

@@ -201,6 +201,11 @@
       if( $this->local )
       {
 	NuFederatedPublishing::dispatch( $publisher, $id, $packet_data );
+
+	// store packet for dispatch
+
+	// ping dispatch
+	NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$id}" );
       }
 
       //
