@@ -108,6 +108,15 @@
       if( NuPackets::hash( $publisher, sha1( $packet_data ) )==-1 )
         throw new Exception("Duplicate packet detected", 11);
 
+
+      //
+      // HOOK FOR STORAGE
+      //
+      if( $this->local )
+      {
+        $packet_xml  = NuEvent::filter('nu_fmp_packet_storage', $packet_xml);
+      }
+
       //
       // CHECK FOR TIMESTAMP IN PACKET
       //
@@ -119,8 +128,8 @@
       {
 	$timestamp = time();
 
-	// append created_at
-	$ts_node   = $packet_xml->createElement('created_at', gmdate('r',$timestamp));
+	// append timestamp
+	$ts_node   = $packet_xml->createElement('timestamp', $timestamp);
 	$packet_xml->documentElement->insertBefore( $ts_node, $packet_xml->documentElement->firstChild );
 	$packet_xml->documentElement->setAttribute('timestamp', $timestamp);
 
