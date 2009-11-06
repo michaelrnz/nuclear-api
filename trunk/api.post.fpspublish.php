@@ -174,12 +174,19 @@
 	  NuPacketNamespace::link( $id, $namespaces );
       }
 
+      //
+      // FILTER XML-DATA
+      //
+      if( $this->local )
+      {
+	$hook = 'nu_fmp_publish_local';
+      }
+      else
+      {
+	$hook = 'nu_fmp_publish_remote';
+      }
 
-      //
-      // PUBLISH
-      // using id, insert packet id into subscriber boxes
-      //
-      $a = NuPackets::publish( $publisher, $id );
+      $packet_xml = NuEvent::filter($hook, $packet_xml);
 
 
       //
@@ -194,6 +201,14 @@
       // TODO possibly hook for storage?
       //
       NuPacketStorage::save($id, $packet_data);
+
+
+      //
+      // PUBLISH
+      // using id, insert packet id into subscriber boxes
+      //
+      $a = NuPackets::publish( $publisher, $id );
+
 
       //
       // PUBLISH TO SUBSCRIBERS
