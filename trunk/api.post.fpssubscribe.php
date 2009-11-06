@@ -24,6 +24,9 @@
       if( !$domain )
 	throw new Exception("Missing domain", 4);
 
+      if( !NuUser::isValidName( $publisher ) )
+        throw new Exception("Invalid publisher name", 5);
+
       // build Publisher/Consumer
       $consumer	  = new NuFederatedPublisher( $domain, true );
       $domain_id  = $consumer->domainID;

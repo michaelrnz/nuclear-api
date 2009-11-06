@@ -80,6 +80,13 @@
     }
 
 
+    //
+    // is valid
+    public static function isValidName( $name )
+    {
+      return preg_match('/^[a-zA-Z0-9_\-]{3,64}$/', $name);
+    }
+
 
     //
     // identify user
@@ -97,6 +104,9 @@
 	return self::add( $user, $domain, 0 );
       }
       */
+
+      if( !self::isValidName($user) )
+        throw new Exception("Invalid federated username");
 
       //
       // try possible query

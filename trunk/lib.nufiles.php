@@ -55,6 +55,55 @@
     }
 
     //
+    // Non-blocking url retrieval
+    //
+    public static function ping( $url, $port=false, $sleep=false )
+    {
+      $url = str_replace('http://','',$url);
+
+      //
+      // generate domain/req/headers
+      $slash  = strpos($url,'/');
+      if( $slash )
+      {
+        $domain = substr($url,0, $slash);
+	$request= substr($url,$slash);
+      }
+      else
+      {
+        $domain  = $url;
+	$request = '/';
+      }
+
+      //
+      // header write
+      $header = "GET {$request} HTTP/1.1\r\n";
+      $header.= "Host: {$domain}\r\n";
+      $header.= "Connection: Close\r\n\r\n";
+
+      //
+      // create resource
+      $fp = fsockopen("tcp://" . $domain, $port ? $port : 80, $errno, $errstr, 10);
+
+      //
+      // unblock
+      stream_set_blocking($fp,0);
+
+      if( !$fp )
+      {
+        return false;
+      }
+      else
+      {
+        fwrite( $fp, $header );
+	fgets( $fp, 16 );
+      }
+
+      return true;
+
+    }
+
+    //
     // File retrieval via curl
     //
     public function curl( $resource, $method="get", $fields=null, $auth=false )
