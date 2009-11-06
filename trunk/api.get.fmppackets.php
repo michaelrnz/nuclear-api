@@ -49,6 +49,9 @@
 	      throw new Exception("Unknown namespace", 5);
 	  }
 
+	  $filter_query = new NuQuery('_void_');
+	  $filter_query = NuEvent::filter('nu_fmp_packet_query', $filter_query);
+
 	  if( isset($ns_id) )
 	  {
 	    $packets = new NuPacketNSQuery($user->id, $ns_id, $this->call->page, $this->call->limit);
@@ -57,6 +60,15 @@
 	  {
 	    $packets = new NuPacketQuery($user->id, $this->call->page, $this->call->limit);
 	  }
+
+	  if( $filter_fields = $filter_query->fields )
+	    $packets->premerge( 'fields', $filter_fields );
+
+	  if( $filter_joins  = $filter_query->joins )
+	    $packets->postmerge( 'joins', $filter_joins );
+
+	  if( $filter_conds  = $filter_query->conditions )
+	    $packets->postmerge( 'conditions', $filter_conds );
 
 	  return $packets;
 	}
@@ -84,11 +96,26 @@
 	      $packet_xml->formatOutput = true;
 	      $packet_xml->loadXML( $data );
 
-	      $packet_xml = NuEvent::filter('fmp_user_packet_xml', $packet_xml);
+	      //
+	      // append id/time data
+	      $ts = $packet['ts'];
+	      $id = $packet['packet'];
+	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('created_at', gmdate('r',$ts)), $packet_xml->documentElement->firstChild );
+	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('timestamp', $ts), $packet_xml->documentElement->firstChild );
+	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('id', $id), $packet_xml->documentElement->firstChild );
+
+	      //
+	      // append user/data
+	      $user = $packet_xml->createElement('user');
+	      $user->appendChild($packet_xml->createElement('id', $packet['publisher']));
+	      $user->appendChild($packet_xml->createElement('name', $packet['name']));
+	      $user->appendChild($packet_xml->createElement('domain', $packet['domain']));
+
+	      $packet_xml->documentElement->appendChild($user);
+	      $packet_xml = NuEvent::filter('nu_fmp_user_packet_xml', $packet_xml, $packet);
 
 	      $packet_node = $resp->importNode( $packet_xml->firstChild, true );
 	      $root->appendChild($packet_node);
-
 	    }
 	  }
 

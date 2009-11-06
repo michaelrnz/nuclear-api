@@ -98,6 +98,42 @@
       return $str . ';';
     }
 
+    public function premerge( $field, $values )
+    {
+      switch( $field )
+      {
+        case 'fields':
+	  $this->fields = array_merge( $values, $this->fields );
+	  break;
+	
+	case 'joins':
+	  $this->joins  = array_merge( $values, $this->joins );
+	  break;
+
+	case 'conditions':
+	  $this->conditions = array_merge( $values, $this->conditions );
+	  break;
+      }
+    }
+
+    public function postmerge( $field, $values )
+    {
+      switch( $field )
+      {
+        case 'fields':
+	  $this->fields = array_merge( $this->fields, $values );
+	  break;
+	
+	case 'joins':
+	  $this->joins  = array_merge( $this->joins, $values );
+	  break;
+
+	case 'conditions':
+	  $this->conditions = array_merge( $this->conditions, $values );
+	  break;
+      }
+    }
+
     public function field( $f )
     {
       if( !is_array($f) )
