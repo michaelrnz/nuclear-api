@@ -62,7 +62,7 @@
 			}
 		}
 
-		public function action( $aspect, &$o=null )
+		public function action( $aspect, &$o=null, &$src=null )
 		{
 			$aspect = strtolower( $aspect );
 
@@ -71,7 +71,14 @@
 
 			foreach( self::$handlers[$aspect] as $H )
 			{
-				call_user_func( $H, $o );
+				if( $src )
+				{
+				  call_user_func_array( $H, array($o, $src) );
+				}
+				else
+				{
+				  call_user_func( $H, $o );
+				}
 			}
 		}
 
