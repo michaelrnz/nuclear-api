@@ -37,11 +37,17 @@
       if( !$packet_id )
         throw new Exception("Invalid packet_id", 5);
 
-      if( $this->local )
-	return $packet_id;
-
       // get packet id by federation
       $id = NuPackets::localID( $publisher, $packet_id, $this->local );
+
+      if( !$this->local && !$id )
+      {
+        // test for proxied
+	$id = NuPackets::proxyID( $publisher, $packet_id );
+
+	if( $id )
+	  $this->proxy = true;
+      }
 
       if( !$id )
 	throw new Exception("Unidentified publisher packet");
@@ -53,7 +59,7 @@
     private function unpublish()
     {
       //
-      // GET PUBLISHER
+      // GET PUBLISHER, what about proxy?
       //
       $publisher = $this->publisherID();
 
@@ -68,11 +74,13 @@
       //
       // TEST FOR REMOVING ONLY FEDERATED
       //
+      /*
       if( $this->local && $this->call->federated_only )
       {
 	NuFederatedPublishing::undispatch( $publisher, $packet_id );
 	return $packet_id;
       }
+      */
 
       //
       // REMOVE INDEX
@@ -86,7 +94,9 @@
       // UNFEDERATE
       //
       if( !$this->local )
+      {
 	NuPackets::unfederate( $publisher, $this->call->id );
+      }
 
       //
       // UNPUBLISH
@@ -105,7 +115,11 @@
       //
       if( $this->local )
       {
-	NuFederatedPublishing::undispatch( $publisher, $packet_id );
+	// queue for dispatch
+	NuFederatedPublishing::queue( $packet_id, $publisher, "_void_", "unpublish" );
+
+        // ping dispatch
+        NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$id}" );
       }
 
       return $packet_id;

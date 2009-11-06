@@ -111,7 +111,20 @@
 	      $user->appendChild($packet_xml->createElement('name', $packet['name']));
 	      $user->appendChild($packet_xml->createElement('domain', $packet['domain']));
 
-	      $packet_xml->documentElement->appendChild($user);
+	      //
+	      // replace user packet
+	      $pre_user = $packet_xml->getElementsByTagName('user');
+	      if( $pre_user->length>0 )
+	      {
+	        $packet_xml->documentElement->replaceChild( $user, $pre_user->item(0) );
+	      }
+	      else
+	      {
+	        $packet_xml->documentElement->appendChild($user);
+	      }
+
+	      //
+	      // filter xml
 	      $packet_xml = NuEvent::filter('nu_fmp_user_packet_xml', $packet_xml, $packet);
 
 	      $packet_node = $resp->importNode( $packet_xml->firstChild, true );

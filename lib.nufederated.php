@@ -323,6 +323,37 @@
     }
 
     //
+    // queue a packet for dispatch
+    //
+    public static function queue( $packet_id, $publisher, $packet_data, $dmode='publish' )
+    {
+      $mode = isType('unpublish|republish|publish', $dmode) ? $dmode : 'publish';
+      $data = safe_slash($packet_data);
+
+      WrapMySQL::void(
+        "insert into nu_packet_queue (id, publisher, mode, data) ".
+	"values ({$packet_id}, {$publisher}, '{$mode}', '{$data}');"
+      );
+    }
+
+    //
+    // unqueue a packet for dispatch
+    //
+    public static function unqueue( $packet_id )
+    {
+      $q = new NuQuery('nu_packet_queue Q');
+      $q->field('*');
+      $q->where("id={$packet_id}");
+
+      $data = $q->single();
+
+      if( $data )
+       WrapMySQL::void("delete from nu_packet_queue where id={$packet_id} limit 1;");
+
+      return $data;
+    }
+
+    //
     // dispatch to federated /publish method
     //
     public static function dispatch( $publisher, $packet_id, $packet_data, $republish=false )
