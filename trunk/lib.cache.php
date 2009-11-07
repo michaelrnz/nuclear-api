@@ -94,6 +94,10 @@
 			file_put_contents( $t, $d );
 
 			//
+			// check dir
+			mk_cache_dir( $dir );
+
+			//
 			// rename to cache
 			rename( $t, $dir . $f );
 
@@ -188,6 +192,9 @@
 		{
 			if( is_object( $o ) && strlen( $n )>0 )
 			{
+			        // make dir
+				mk_cache_dir( self::$control->objects );
+
 				// make tmp and cache names
 				$tf = self::$control->tmp . $n . time();
 				$cf = self::$control->objects . $n;
@@ -242,6 +249,7 @@
 		{
 			if( is_object($doc) && is_a( $doc, 'DOMDocument' ) )
 			{
+				mk_cache_dir(self::$control->xml);
 				$tf = self::$control->tmp . $n . time();
 				$cf = self::$control->xml . $n;
 

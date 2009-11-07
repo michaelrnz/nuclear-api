@@ -282,9 +282,9 @@
       foreach( array('id','timestamp') as $nn )
       {
         $node = $packet_xml->getElementsByTagName($nn);
-	if( $node->length )
+	foreach( $node as $N )
 	{
-	  $packet_xml->documentElement->removeChild( $node->item(0) );
+	  $packet_xml->documentElement->removeChild( $N );
 	}
       }
 
@@ -296,9 +296,9 @@
       foreach( array('id','name','domain') as $nn )
       {
         $node = $user_node->item(0)->getElementsByTagName($nn);
-	if( $node->length )
+	foreach( $node as $N )
 	{
-	  $user_node->item(0)->removeChild( $node->item(0) );
+	  $user_node->item(0)->removeChild( $N );
 	}
       }
       }

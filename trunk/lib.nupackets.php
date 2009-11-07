@@ -279,7 +279,8 @@
     public static function unlink($id)
     {
       $f_dir = self::directory($id);
-      @unlink($f_dir);
+      $fn = $f_dir . "{$id}.xml";
+      @unlink($fn);
     }
   }
 
