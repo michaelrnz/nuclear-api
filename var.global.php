@@ -39,7 +39,7 @@
 	  if( is_dir( $dir ) ) return;
 	  mkdir( $dir, $mode, true );
 	}
-	
+
   function &nuXmlChars( &$str,$mode=0)
   {
     $rstr= $str;

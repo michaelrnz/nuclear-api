@@ -34,6 +34,7 @@
 		{
 		  global $sess_save_path;
 
+		  mk_cache_dir( $save_patch );
 		  $sess_save_path = $save_path;
 		  return(true);
 		}

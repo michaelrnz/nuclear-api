@@ -95,7 +95,7 @@
       //
       if( !$this->local )
       {
-	NuPackets::unfederate( $publisher, $this->call->id );
+	NuPackets::unfederate( $publisher, $packet_id );
       }
 
       //
@@ -124,7 +124,7 @@
 	NuFederatedPublishing::queue( $packet_id, $publisher, "_void_", "unpublish" );
 
         // ping dispatch
-        NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$id}" );
+        NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$packet_id}" );
       }
 
       return $packet_id;
