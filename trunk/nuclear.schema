@@ -497,6 +497,23 @@ CREATE TABLE `nuclear_verify` (
   KEY `hash` (`hash`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
+
+
+create table nu_packet_proxy (
+  id int unsigned not null, 
+  publisher int unsigned not null, 
+  primary key (id)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
+
+
+create table nu_packet_queue (
+  id int unsigned not null, 
+  publisher int unsigned not null, 
+  mode enum('publish','unpublish','republish') default 'publish', 
+  data blob, 
+  primary key(id)
+);
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
