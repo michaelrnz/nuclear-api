@@ -325,14 +325,14 @@
     //
     // queue a packet for dispatch
     //
-    public static function queue( $packet_id, $publisher, $packet_data, $dmode='publish' )
+    public static function queue( $packet_id, $publisher, $packet_global, $packet_data, $dmode='publish' )
     {
       $mode = isType('unpublish|republish|publish', $dmode) ? $dmode : 'publish';
       $data = safe_slash($packet_data);
 
       WrapMySQL::void(
-        "insert into nu_packet_queue (id, publisher, mode, data) ".
-	"values ({$packet_id}, {$publisher}, '{$mode}', '{$data}');"
+        "insert into nu_packet_queue (id, publisher, global_id, mode, data) ".
+	"values ({$packet_id}, {$publisher}, {$packet_global}, '{$mode}', '{$data}');"
       );
     }
 

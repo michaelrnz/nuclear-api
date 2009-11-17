@@ -105,6 +105,8 @@
       //
       // GET PACKET ID
       $packet_id    = $this->packetID( $publisher );
+      $local_id     = $packet_id['id'];
+      $global_id    = $packet_id['global_id'];
 
       //
       // PACKET
@@ -121,16 +123,12 @@
       $packet_xml = NuEvent::filter('nu_fmp_publish_local', $packet_xml);
 
       //
-      // create local packet identification
-      $id = $packet_id;
-
-      //
       // STORAGE LOCAL
-      NuPacketStorage::save($id, $packet_xml->saveXML());
+      NuPacketStorage::save($local_id, $packet_xml->saveXML());
 
       //
       // ID
-      $id_node   = $packet_xml->createElement('id', $id);
+      $id_node   = $packet_xml->createElement('id', $global_id);
       $packet_xml->documentElement->insertBefore( $id_node, $packet_xml->documentElement->firstChild );
 
       //
@@ -162,19 +160,19 @@
 
       //
       // QUEUE
-      NuFederatedPublishing::queue( $id, $publisher, $packet_data, 'republish' );
+      NuFederatedPublishing::queue( $local_id, $publisher, $global_id, $packet_data, 'republish' );
 
       //
       // ping dispatch
-      NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$id}" );
+      NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$local_id}" );
 
       //
       // HOOK
-      NuEvent::action( 'nu_fmp_republished', $packet_xml, $id );
+      NuEvent::action( 'nu_fmp_republished', $packet_xml, $local_id );
 
       //
       // RETURN
-      return $id;
+      return $local_id;
     }
 
     private function republishRemote( $publisher_id )
@@ -182,6 +180,7 @@
       //
       // GET PACKET ID
       $packet_id    = $this->packetID( $publisher_id );
+      $local_id     = $packet_id['id'];
 
       //
       // PACKET
@@ -194,15 +193,13 @@
       //if( NuPackets::hash( $publisher_id, sha1( $packet_data ) )==-1 )
       //  throw new Exception("Duplicate packet detected", 11);
 
-      $id = $packet_id;
-
       //
       // LINK NAMESPACES 
       // namespace prefixes should be included in the POST
-      NuPacketNamespace::unlink( $id );
+      NuPacketNamespace::unlink( $local_id );
       if( preg_match_all('/xmlns:(\w+)="(http:\/\/[^"]+?)"/', substr( $packet_data, 0, strpos($packet_data,'>') ), $xmlns ) )
       {
-        $this->linkNS( $id, $xmlns );
+        $this->linkNS( $local_id, $xmlns );
       }
 
       //
@@ -244,15 +241,15 @@
 
       //
       // STORAGE REMOTE 
-      NuPacketStorage::save($id, $packet_xml->saveXML());
+      NuPacketStorage::save($local_id, $packet_xml->saveXML());
 
       //
       // HOOK
-      NuEvent::action( 'nu_fmp_republished', $packet_xml, $id );
+      NuEvent::action( 'nu_fmp_republished', $packet_xml, $local_id );
 
       //
       // RETURN
-      return $id;
+      return $local_id;
     }
 
 

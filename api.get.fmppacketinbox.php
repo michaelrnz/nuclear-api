@@ -102,6 +102,7 @@
 	      $id = $packet['packet'];
 	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('created_at', gmdate('r',$ts)), $packet_xml->documentElement->firstChild );
 	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('timestamp', $ts), $packet_xml->documentElement->firstChild );
+	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('global_id', $packet['global_id']), $packet_xml->documentElement->firstChild );
 	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('id', $id), $packet_xml->documentElement->firstChild );
 
 	      //

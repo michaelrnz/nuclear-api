@@ -128,11 +128,13 @@
 
       //
       // create local packet identification
-      $id = NuPackets::index( $publisher, $timestamp, $this->local );
+      $id_data   = NuPackets::index( $publisher, $timestamp );
+      $local_id  = $id_data['local_id'];
+      $global_id = $id_data['global_id'];
 
       //
       // STORAGE LOCAL
-      NuPacketStorage::save($id, $packet_xml->saveXML());
+      NuPacketStorage::save($local_id, $packet_xml->saveXML());
 
       //
       // TIMESTAMP
@@ -141,7 +143,7 @@
 
       //
       // ID
-      $id_node   = $packet_xml->createElement('id', $id);
+      $id_node   = $packet_xml->createElement('id', $global_id);
       $packet_xml->documentElement->insertBefore( $id_node, $packet_xml->documentElement->firstChild );
 
       //
@@ -173,30 +175,30 @@
       //
       // PUBLISH
       // using id, insert packet id into subscriber boxes
-      $a = NuPackets::publish( $publisher, $id );
+      $a = NuPackets::publish( $publisher, $local_id );
 
       //
       // QUEUE
-      NuFederatedPublishing::queue( $id, $publisher, $packet_data );
+      NuFederatedPublishing::queue( $local_id, $publisher, $global_id, $packet_data );
 
       //
       // ping dispatch
-      NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$id}" );
+      NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$local_id}" );
 
       //
       // HOOK
-      NuEvent::action( 'nu_fmp_published', $packet_xml, $id );
+      NuEvent::action( 'nu_fmp_published', $packet_xml, $local_id );
 
       //
       // RETURN
-      return array($id, $a);
+      return array($local_id, $a, $global_id);
     }
 
     private function publishRemote( $publisher_id )
     {
       //
       // GET PACKET ID
-      $packet_id    = $this->packetID();
+      $global_id    = $this->packetID();
 
       //
       // PACKET
@@ -256,25 +258,26 @@
 
       //
       // ID
-      $id = NuPackets::index( $publisher->id, $timestamp, $this->local );
+      $id_data = NuPackets::index( $publisher->id, $timestamp, $global_id );
+      $local_id = $id_data['local_id'];
 
       //
       // LOG PROXY AUTH
       if( $publisher->proxy )
       {
-	NuPackets::proxy( $publisher_id, $id );
+	NuPackets::proxy( $publisher_id, $global_id );
       }
 
       //
       // HANDLE FEDERATED, USE TRUE PUBLISHER
-      NuPackets::federate( $publisher->id, $packet_id, $id );
+      // NuPackets::federate( $publisher->id, $packet_id, $id );
 
       //
       // LINK NAMESPACES 
       // namespace prefixes should be included in the POST
       if( preg_match_all('/xmlns:(\w+)="(http:\/\/[^"]+?)"/', substr( $packet_data, 0, strpos($packet_data,'>') ), $xmlns ) )
       {
-        $this->linkNS( $id, $xmlns );
+        $this->linkNS( $local_id, $xmlns );
       }
 
       //
@@ -316,20 +319,20 @@
 
       //
       // STORAGE REMOTE 
-      NuPacketStorage::save($id, $packet_xml->saveXML());
+      NuPacketStorage::save($local_id, $packet_xml->saveXML());
 
       //
       // PUBLISH
       // using id, insert packet id into subscriber boxes
-      $a = NuPackets::publish( $publisher_id, $id );
+      $a = NuPackets::publish( $publisher_id, $local_id );
 
       //
       // HOOK
-      NuEvent::action( 'nu_fmp_published', $packet_xml, $id );
+      NuEvent::action( 'nu_fmp_published', $packet_xml, $local_id );
 
       //
       // RETURN
-      return array($id, $a);
+      return array($local_id, $a);
     }
 
     //
