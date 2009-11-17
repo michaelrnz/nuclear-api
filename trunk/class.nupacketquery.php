@@ -45,7 +45,7 @@
     {
       parent::__construct('nu_packet_inbox as P');
       $this->field( array(
-	  'P.packet','P.ts','I.publisher','N.name','D.name as domain'
+	  'P.packet','P.ts','I.publisher','I.global_id', 'N.name','D.name as domain'
       ));
 
       $this->join( "nu_packet_index as I",  "I.id=P.packet" );

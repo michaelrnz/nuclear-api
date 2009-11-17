@@ -70,6 +70,8 @@
       // GET PACKET ID (local)
       //
       $packet_id = $this->packetID( $publisher );
+      $local_id  = $packet_id['id'];
+      $global_id = $packet_id['global_id'];
 
       //
       // TEST FOR REMOVING ONLY FEDERATED
@@ -85,7 +87,7 @@
       //
       // REMOVE INDEX
       //
-      $a = NuPackets::unindex( $publisher, $packet_id );
+      $a = NuPackets::unindex( $publisher, $local_id );
 
       if( !$a )
 	throw new Exception("Unidentified publisher packet");
@@ -95,24 +97,24 @@
       //
       if( !$this->local )
       {
-	NuPackets::unfederate( $publisher, $packet_id );
+	//NuPackets::unfederate( $publisher, $packet_id );
       }
 
       //
       // UNPUBLISH
       //
-      NuPackets::unpublish( $packet_id );
+      NuPackets::unpublish( $local_id );
 
 
       //
       // REMOVE STORAGE
       //
-      NuPacketStorage::unlink( $packet_id );
+      NuPacketStorage::unlink( $local_id );
 
       //
       // HOOK ACTION
       //
-      NuEvent::action('nu_fmp_unpublished', $packet_id);
+      NuEvent::action('nu_fmp_unpublished', $local_id);
 
 
       //
@@ -121,13 +123,13 @@
       if( $this->local )
       {
 	// queue for dispatch
-	NuFederatedPublishing::queue( $packet_id, $publisher, "_void_", "unpublish" );
+	NuFederatedPublishing::queue( $local_id, $publisher, $global_id, "_void_", "unpublish" );
 
         // ping dispatch
-        NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$packet_id}" );
+        NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$local_id}" );
       }
 
-      return $packet_id;
+      return $local_id;
     }
 
 

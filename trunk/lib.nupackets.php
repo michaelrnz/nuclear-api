@@ -103,23 +103,41 @@
     //
     // NEW ID
     //
-    public static function index( $publisher, $timestamp='NULL', $local=false )
+    public static function index( $publisher, $timestamp='NULL', $global_id=-1 )
     {
       $ts = $timestamp ? $timestamp : time();
-      $id = WrapMySQL::id(
-        "insert into nu_packet_index (publisher, ts) ".
-        "values ({$publisher}, {$ts});",
-        "nu_packet_index error");
 
-      if( $local )
+      if( $global_id<0 )
       {
+        // local packet
+	$global_id = WrapMySQL::id(
+	              "insert into nu_publisher_packet_index (publisher) values ({$publisher});",
+		      "nu_publisher_packet_index error");
+
+        $id = WrapMySQL::id(
+               "insert into nu_packet_index (publisher, global_id, ts) ".
+	       "values ({$publisher}, {$global_id}, {$ts});",
+	       "nu_packet_index error");
+
+	// insert self-sub
 	WrapMySQL::void(
 	  "insert into nu_packet_inbox (subscriber, packet, ts) ".
 	  "values ({$publisher}, {$id}, {$ts});"
         );
       }
-
-      return $id;
+      else if( $global_id>0 )
+      {
+        $id = WrapMySQL::id(
+               "insert into nu_packet_index (publisher, global_id, ts) ".
+	       "values ({$publisher}, {$global_id}, {$ts});",
+	       "nu_packet_index error");
+      }
+      else
+      {
+	throw new Exception("Invalid global id");
+      }
+	
+      return array("local_id"=>$id, "global_id"=>$global_id);
     }
 
     //
@@ -139,6 +157,7 @@
     //
     // FEDERATE PACKET
     //
+    /*
     public static function federate( $publisher, $federated_id, $packet )
     {
       return WrapMySQL::id(
@@ -155,6 +174,7 @@
 	"limit 1;",
         "nu_federated_packet (unfederate)");
     }
+    */
 
     //
     // PUBLISH
@@ -209,26 +229,23 @@
     //
     public static function localID( $publisher, $packet_id, $local=true )
     {
+      $idq = new NuQuery( "nu_packet_index I" );
+      $idq->field( array('id','global_id') );
+      
       if( $local )
       {
-	$table = 'nu_packet_index';
-	$field = 'id';
+        $idq->where("id={$packet_id}");
+        $idq->where("publisher={$publisher}");
       }
       else
       {
-        $table = 'nu_federated_packet';
-	$field = 'packet';
+        $idq->where("publisher={$publisher}");
+        $idq->where("global_id={$packet_id}");
       }
-
-      $idq = new NuQuery( $table );
-      $idq->field( $field );
-
-      $idq->where("id={$packet_id}");
-      $idq->where("publisher={$publisher}");
 
       $rid = $idq->single();
 
-      return $rid ? $rid[0] : false;
+      return $rid ? $rid : false;
     }
 
     //
