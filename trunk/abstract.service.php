@@ -111,7 +111,7 @@
 
 			if( isset($_SESSION) )
 			{
-			  NuEvent::raise('nu_session_started', null);
+			  NuEvent::raise('nu_session_started');
 			}
 		}
 
