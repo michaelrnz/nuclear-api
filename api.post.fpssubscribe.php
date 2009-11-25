@@ -28,7 +28,7 @@
         throw new Exception("Invalid publisher name", 5);
 
       // build Publisher/Consumer
-      $consumer	  = new NuFederatedPublisher( $domain, true );
+      $consumer	  = new NuOpenConsumer( $domain );
       $domain_id  = $consumer->domainID;
 
       if( !$domain_id )
