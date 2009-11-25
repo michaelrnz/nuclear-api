@@ -21,210 +21,18 @@
     }
 
     //
-    // Select domain ID,TOKEN,SECRET for local Consumer
+    // domain as token/secret
     //
-    public static function subscriberDomain( $domain )
-    {
-      return self::consumerDomain($domain, 'subscriber');
-    }
-
-    //
-    // Select domain ID,TOKEN,SECRET for remote Consumer
-    //
-    public static function publisherDomain( $domain )
-    {
-      return self::consumerDomain($domain, 'publisher');
-    }
-
-    //
-    // Select domain ID,TOKEN,SECRET for Consumer
-    // Expects nu_federated schema
-    //
-    private static function consumerDomain( $domain, $type )
+    public static function domain( $domain )
     {
       $d = safe_slash($domain);
-
-      $q = "select K.* from nu_domain as D ".
-           "right join nu_federated_{$type}_domain as K on K.domain=D.id ".
-	   "where D.name='{$d}' limit 1;";
-      
-      $r = WrapMySQL::single($q, "Error selecting Consumer tokens");
-      return $r;
+      return array(
+        'domain'=>NuUser::domainID($domain), 
+	'token'=>$d, 
+	'secret'=>$d);
     }
 
   }
-
-
-
-
-
-
-  //
-  // External for local-remote exchanges
-  // 1) requesting publisher keys
-  // 2) sharing request tokens - NI
-  // 3) requesting access tokens - NI
-  //
-  class NuFederatedExternal
-  {
-    //
-    // IS FLAG REQUESTED
-    //
-    private static function isFlagged( $domain )
-    {
-      $flag = $GLOBALS['CACHE'] .'/'. $domain;
-      if( !file_exists( $flag ) )
-	return false;
-      return @file_get_contents( $flag );
-    }
-
-    //
-    // FLAG REQUESTED
-    //
-    private static function flagRequested( $domain, $nonce )
-    {
-      $flag = $GLOBALS['CACHE'] .'/'. $domain;
-      if( file_exists( $flag ) )
-	return false;
-      else
-	return @file_put_contents( $flag, $nonce );
-    }
-
-    //
-    // UNFLAG REQUESTED
-    //
-    private static function unflagRequested( $domain )
-    {
-      $flag = $GLOBALS['CACHE'] .'/'. $domain;
-      @unlink( $flag );
-    }
-
-    //
-    // REQUEST KEYS
-    //
-    public static function requestPublisherKeys( $domain )
-    {
-      $nonce = mt_rand();
-      if( self::flagRequested( $domain, $nonce ) )
-      {
-	$uri = "http://{$domain}/api/fps/publisher_token.json?nonce={$nonce}&domain=" . urlencode($GLOBALS['DOMAIN']);
-
-	$json_txt = NuFiles::curl( $uri, "get" );
-	$json = json_decode( $json_txt );
-
-	// remove flag
-	if( !is_object( $json ) || is_null($json->status) || $json->status == "error" )
-	{
-	  self::unflagRequested( $domain );
-	  return -1;
-	}
-
-	file_put_contents($GLOBALS['CACHE'] .'/'. 'publisher.request.log', "$domain: $json_txt\n", FILE_APPEND);
-
-	return 1;
-      }
-      else // another request is in progress
-      {
-	return 0;
-      }
-    }
-
-    //
-    // ACCEPT KEYS
-    // used by /api/fps/publisher_token
-    //
-    public static function acceptPublisherKeys( $domain, $nonce, $token, $secret )
-    {
-      if( $nonce == self::isFlagged( $domain ) )
-      {
-	// get domain identification
-	$domain_id = NuUser::domainID( $domain );
-
-	// clean tokens
-	$tok_v = safe_slash($token);
-	$sec_v = safe_slash($secret);
-
-	try
-	{
-	  // insert keys
-	  WrapMySQL::void(
-	    "insert into nu_federated_publisher_domain (domain, token, secret) ".
-	    "values ({$domain_id}, '{$tok_v}', '{$sec_v}');",
-	    "Error adding publisher keys");
-	}
-	catch( Exception $e )
-	{
-	  file_put_contents($GLOBALS['CACHE'] .'/'. 'publisher.accept.log', "$domain: {$e->getMessage()}\n", FILE_APPEND);
-	}
-
-	// unflag
-	self::unflagRequested( $domain );
-
-	return true;
-      }
-
-      return false;
-    }
-
-    //
-    // PROVIDE KEYS
-    // used by /api/fps/publisher_token
-    // NOTE: keys are generally random sha1
-    //
-    public static function providePublisherKeys( $domain, $nonce )
-    {
-
-      // generate new key
-      $token = NuFederatedStatic::generateToken( $domain );
-      $secret= NuFederatedStatic::generateToken( $nonce );
-
-      // get domain identification
-      $domain_id = NuUser::domainID( $domain );
-
-      // clean tokens
-      $tok_v = safe_slash($token);
-      $sec_v = safe_slash($secret);
-
-      // insert keys
-      WrapMySQL::void(
-	"insert into nu_federated_subscriber_domain (domain, token, secret) ".
-	 "values ({$domain_id}, '{$tok_v}', '{$sec_v}');",
-	 "Error adding subscriber keys");
-
-      $uri = "http://{$domain}/api/fps/publisher_token.json";
-
-      $post_data = array(
-	"domain"=> urlencode($GLOBALS['DOMAIN']),
-	"nonce"=>  urlencode($nonce),
-	"consumer_key"=> $token,
-	"consumer_secret"=>$secret
-      );
-
-      $json_txt = NuFiles::curl( $uri, "post", $post_data );
-
-      // log request
-      file_put_contents($GLOBALS['CACHE'] .'/'. 'subscriber.requested.log', "$domain: $json_txt\n", FILE_APPEND);
-
-      $json = json_decode( $json_txt );
-
-      // remove domain if 
-      if( is_null( $json ) || $json->status == "error" )
-      {
-	WrapMySQL::void(
-	  "delete from nu_federated_subscriber_domain where domain={$domain_id} limit 1;"
-	);
-
-	return false;
-      }
-
-      return true;
-    }
-
-  }
-
-
-
-
 
 
 
@@ -307,13 +115,13 @@
 	    array(
 	      'N.name', 'D.name as domain', 
 	      'T.token', 'T.secret as token_secret', 
-	      'C.token as consumer_key', 'C.secret as consumer_secret'
+	      "'{$GLOBALS['DOMAIN']}' as consumer_key",
+	      "'{$GLOBALS['DOMAIN']}' as consumer_secret"
 	    )
 	  );
 
       $q->join('nu_user as F', 'F.id=T.federated_user');
       $q->join('nu_name as N', 'N.id=F.name');
-      $q->join('nu_federated_subscriber_domain as C', 'C.domain=F.domain');
       $q->join('nu_domain as D', 'D.id=F.domain');
 
       $q->where("T.user={$publisher}");
@@ -444,7 +252,6 @@
 
 
 
-
   class NuFederatedUsers
   {
     //
@@ -547,60 +354,18 @@
 
 
 
-
-
-
-
-
-
   //
-  // Publisher 
-  // source of auth requests
+  // Open Consumer
+  // pub/sub of auth requests
+  // domain as keys
   //
-  class NuFederatedPublisher extends NuFederatedConsumer
-  {
-    function __construct( $auth_domain, $request=false )
-    {
-      // get publisher's tokens on local node
-      if( !($tokens = NuFederatedStatic::publisherDomain( $auth_domain )) && $request )
-      {
-	// no local tokens, request
-	if( NuFederatedExternal::requestPublisherKeys( $auth_domain ) < 1 )
-	  throw new Exception("Unable to request Publisher keys");
-
-	$tokens = NuFederatedStatic::publisherDomain( $auth_domain );
-      }
-
-      if( !$tokens )
-	throw new Exception("Invalid NuFederatedPublisher missing token/secret");
-
-      parent::__construct( $auth_domain, $tokens['token'], $tokens['secret'] );
-
-      $this->domain_id = $tokens['domain'];
-    }
-  }
-
-
-
-
-
-
-
-
-
-
-
-
-  //
-  // Subscriber 
-  // destination of auth requests
-  //
-  class NuFederatedSubscriber extends NuFederatedConsumer
+  class NuOpenConsumer extends NuFederatedConsumer
   {
     function __construct( $auth_domain )
     {
-      $tokens = NuFederatedStatic::subscriberDomain( $auth_domain );
+      $tokens = NuFederatedStatic::domain( $auth_domain );
       parent::__construct( $auth_domain, $tokens['token'], $tokens['secret'] );
+      $this->domain_id = $tokens['domain'];
     }
   }
 
