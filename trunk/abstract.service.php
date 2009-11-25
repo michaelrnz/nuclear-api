@@ -108,6 +108,11 @@
 		protected function startSession()
 		{
 			require( "class.sessions.php" );
+
+			if( isset($_SESSION) )
+			{
+			  NuEvent::raise('nu_session_started', null);
+			}
 		}
 
 	}
