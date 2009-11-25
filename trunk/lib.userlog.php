@@ -84,6 +84,10 @@
 			// allow user control
 			$_SESSION['USER_CONTROL']=$result;
 
+			//
+			// Hook on result
+			NuEvent::raise('nu_login_success', $result);
+
 			return session_id();
 		}
 

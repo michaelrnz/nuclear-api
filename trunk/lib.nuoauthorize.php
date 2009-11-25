@@ -91,38 +91,38 @@
     public static function publisher( $resource, $method, &$request, $param_filter='' )
     {
 
-      $auth         = self::parameters( $request );
-      $consumer_key = str_replace("'","",$auth['oauth_consumer_key']);
-      $token        = str_replace("'","",$auth['oauth_token']);
-      $signature    = $request['oauth_signature'];
+      $auth            = self::parameters( $request );
+      $consumer_key    = str_replace("'","",$auth['oauth_consumer_key']);
+      $consumer_secret = $consumer_key;
+      $token           = str_replace("'","",$auth['oauth_token']);
+      $signature       = $request['oauth_signature'];
 
       if( !$signature )
 	return array(false, "Missing signature from oauth parameters");
 
-      $consumer_table = 'nu_federated_publisher_domain';
       $token_table    = 'nu_federated_publisher_auth';
       $user_table     = 'nu_user';
       $domain_table   = 'nu_domain';
 
       //
       // get consumer-request relation
-      $quth = new NuQuery("{$consumer_table} as C");
+      $quth = new NuQuery("{$token_table} as T");
       $quth->field(
 	      array(
 		'D.id', 'D.name as domain',
 		'T.user', 'T.federated_user', 
 		'N.name', 
-		'C.token as consumer_key', 'C.secret as consumer_secret', 
 		'T.token as token', 'T.secret as secret'
 	      ));
 
-      $quth->join("nu_user as U",		      "U.domain=C.domain");
+      $quth->join("nu_user as U",		      "U.id=T.federated_user");
       $quth->join("nu_name as N",		      "N.id=U.name");
-      $quth->join("nu_federated_publisher_auth as T", "T.federated_user=U.id");
-      $quth->join("nu_domain as D",		      "D.id=C.domain");
+      $quth->join("nu_domain as D",		      "D.id=U.domain");
 
-      $quth->where("C.token='{$consumer_key}'");
       $quth->where("T.token='{$token}'");
+      $quth->where("D.name='{$consumer_key}'");
+
+      echo $quth;
 
       $auth_data = $quth->single("Error fetching tokens");
 
@@ -136,7 +136,7 @@
       // create Param object
       $oauth_params = new NuOAuthParameters( 
 			    $consumer_key, 
-			    $auth_data['consumer_secret'], 
+			    $consumer_secret, 
 			    $token, 
 			    $auth_data['secret'],
 			    $auth['oauth_signature_method'],
@@ -158,33 +158,30 @@
     public static function federation( $resource, $method, &$request, $param_filter='' )
     {
 
-      $auth         = self::parameters( $request );
-      $consumer_key = str_replace("'","",$auth['oauth_consumer_key']);
-      $token        = str_replace("'","",$auth['oauth_token']);
-      $signature    = $request['oauth_signature'];
+      $auth            = self::parameters( $request );
+      $consumer_key    = str_replace("'","",$auth['oauth_consumer_key']);
+      $consumer_secret = $consumer_key;
+      $token           = str_replace("'","",$auth['oauth_token']);
+      $signature       = $request['oauth_signature'];
 
       if( !$signature )
 	return array(false, "Missing signature from oauth parameters");
 
-      $consumer_table = 'nu_federated_publisher_domain';
       $token_table    = 'nu_federated_auth_request';
       $domain_table   = 'nu_domain';
 
       //
       // get consumer-request relation
-      $quth = new NuQuery("{$consumer_table} as C");
+      $quth = new NuQuery("{$token_table} as T");
       $quth->field(
 	      array(
 		'T.subscriber', 'T.publisher',
-		'D.id', 'D.name as domain',
-		'C.token as consumer_key', 'C.secret as consumer_secret', 
+		'T.domain as id', 'D.name as domain',
 		'T.token as token', 'T.secret as secret'
 	      ));
 
-      $quth->join("nu_federated_auth_request as T",   "T.domain=C.domain");
-      $quth->join("nu_domain as D",		      "D.id=C.domain");
+      $quth->join("nu_domain as D",		      "D.id=T.domain");
 
-      $quth->where("C.token='{$consumer_key}'");
       $quth->where("T.token='{$token}'");
 
       $auth_data = $quth->single("Error fetching Tokens");
@@ -199,7 +196,7 @@
       // create Param object
       $oauth_params = new NuOAuthParameters( 
 			    $consumer_key, 
-			    $auth_data['consumer_secret'], 
+			    $consumer_secret, 
 			    $token, 
 			    $auth_data['secret'],
 			    $auth['oauth_signature_method'],

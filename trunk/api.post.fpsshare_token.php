@@ -35,7 +35,7 @@
 	throw new Exception("Invalid request tokens", 5);
 
       // OAuth request for access_tokens usering request
-      $consumer = new NuFederatedSubscriber( $subscriber_domain );
+      $consumer = new NuOpenConsumer( $subscriber_domain );
 
       $oauth_params = new NuOAuthParameters( $consumer->token, $consumer->secret, $r_token, $r_secret );
 
