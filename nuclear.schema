@@ -106,21 +106,6 @@ CREATE TABLE `nu_federated_publisher_auth` (
 SET character_set_client = @saved_cs_client;
 
 --
--- Table structure for table `nu_federated_publisher_domain`
---
-
-DROP TABLE IF EXISTS `nu_federated_publisher_domain`;
-SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
-CREATE TABLE `nu_federated_publisher_domain` (
-  `domain` int(10) unsigned NOT NULL,
-  `token` varchar(255) NOT NULL,
-  `secret` varchar(255) NOT NULL,
-  PRIMARY KEY  (`domain`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
-SET character_set_client = @saved_cs_client;
-
---
 -- Table structure for table `nu_federated_subscriber_auth`
 --
 
@@ -135,21 +120,6 @@ CREATE TABLE `nu_federated_subscriber_auth` (
   `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   PRIMARY KEY  (`user`,`federated_user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
-SET character_set_client = @saved_cs_client;
-
---
--- Table structure for table `nu_federated_subscriber_domain`
---
-
-DROP TABLE IF EXISTS `nu_federated_subscriber_domain`;
-SET @saved_cs_client     = @@character_set_client;
-SET character_set_client = utf8;
-CREATE TABLE `nu_federated_subscriber_domain` (
-  `domain` int(10) unsigned NOT NULL,
-  `token` varchar(255) NOT NULL,
-  `secret` varchar(255) NOT NULL,
-  PRIMARY KEY  (`domain`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 SET character_set_client = @saved_cs_client;
 
 --
