@@ -477,9 +477,11 @@ create table nu_packet_proxy (
 
 
 create table nu_packet_queue (
-  id int unsigned not null, 
+  id int unsigned not null auto_increment, 
   publisher int unsigned not null, 
-  mode enum('publish','unpublish','republish') default 'publish', 
+  global_id int unsigned not null,
+  local_id int unsigned not null,
+  mode enum('notify','publish','unpublish','republish') default 'publish', 
   data blob, 
   primary key(id)
 );
