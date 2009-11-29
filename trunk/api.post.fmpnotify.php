@@ -5,12 +5,11 @@
   require_once("lib.nupackets.php");
   require_once("lib.nufederated.php");
 
-  class postFederatedPublish extends CallWrapper
+  class postFederatedNotify extends CallWrapper
   {
     /*
 
       PARAMS
-      id    // remote identification of packet
       packet    // <fps packet
 
     */
@@ -79,37 +78,12 @@
       return $packet_xml;
     }
 
-    private function linkNS( $id, $xmlns )
+    private function notifyLocal( $publisher_id )
     {
-      $ns_count   = count($xmlns[0]);
-
-      $namespaces = array();
-      for( $a=0; $a<$ns_count; $a++ )
-      {
-        $prefix = $xmlns[1][$a];
-	$uri    = $xmlns[2][$a];
-	$namespaces[$prefix] = $uri;
-      }
-
-      if( count($namespaces)>0 )
-        NuPacketNamespace::link( $id, $namespaces );
-    }
-
-    private function publishLocal( $publisher )
-    {
-      //
-      // GET PACKET ID
-      $packet_id    = $this->packetID();
-
       //
       // PACKET
       $packet_data  = $this->packetData();
       $packet_xml   = $this->packetXML();
-
-      //
-      // CHECK FOR DUPLICATE DATA
-      if( NuPackets::hash( $publisher, sha1( $packet_data ) )==-1 )
-        throw new Exception("Duplicate packet detected", 11);
 
       //
       // CHECK FOR TIMESTAMP IN PACKET
@@ -123,50 +97,20 @@
       }
 
       //
-      // FILTER XML-DATA
-      $packet_xml = NuEvent::filter('nu_fmp_publish_local', $packet_xml);
-
-      //
-      // create local packet identification
-      $id_data   = NuPackets::index( $publisher, $timestamp );
-      $local_id  = $id_data['local_id'];
-      $global_id = $id_data['global_id'];
-
-      //
-      // STORAGE LOCAL
-      NuPacketStorage::save($local_id, $packet_xml->saveXML());
-
-      //
       // TIMESTAMP
       $ts_node   = $packet_xml->createElement('timestamp', $timestamp);
       $packet_xml->documentElement->insertBefore( $ts_node, $packet_xml->documentElement->firstChild );
 
       //
-      // ID
-      $id_node   = $packet_xml->createElement('id', $global_id);
-      $packet_xml->documentElement->insertBefore( $id_node, $packet_xml->documentElement->firstChild );
-
-      //
       // USER
       $user_node = $packet_xml->createElement('user');
-      $user_node->appendChild($packet_xml->createElement('id', $publisher));
+      $user_node->appendChild($packet_xml->createElement('id', $publisher_id));
       $user_node->appendChild($packet_xml->createElement('name', $GLOBALS['USER_CONTROL']['name']));
       $user_node->appendChild($packet_xml->createElement('domain', $GLOBALS['DOMAIN']));
 
       //
-      // FILTER USER NODE
-      $user_node = NuEvent::filter('nu_fmp_publish_user_xml', $user_node);
-
-      //
       // APPEND
       $packet_xml->documentElement->appendChild($user_node);
-
-      //
-      // CHECK FOR NAMESPACES 
-      if( preg_match_all('/xmlns:(\w+)="(http:\/\/[^"]+?)"/', substr( $packet_data, 0, strpos($packet_data,'>') ), $xmlns ) )
-      {
-        $this->linkNS( $id, $xmlns );
-      }
 
       //
       // PACKET XML->DATA
@@ -175,41 +119,37 @@
       //
       // PUBLISH
       // using id, insert packet id into subscriber boxes
-      $a = NuPackets::publish( $publisher, $local_id );
+      // $a = NuPackets::publish( $publisher, $local_id );
+
+      $publisher = new Object();
+      $publisher->id    = $publisher_id;
+      $publisher->proxy = false;
+      $publisher->local = true;
+
+      //
+      // HOOK
+      NuEvent::action( 'nu_fmp_notify', $packet_xml, $publisher );
 
       //
       // QUEUE
-      $qid = NuFederatedPublishing::queue( $local_id, $publisher, $global_id, $packet_data );
+      $qid = NuFederatedPublishing::queue( 0, $publisher_id, 0, $packet_data, 'notify' );
 
       //
       // ping dispatch
       NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$qid}" );
 
       //
-      // HOOK
-      NuEvent::action( 'nu_fmp_published', $packet_xml, $local_id );
-
-      //
       // RETURN
-      return array($local_id, $a, $global_id);
+      return true;
     }
 
-    private function publishRemote( $publisher_id )
+    private function notifyRemote( $publisher_id )
     {
-      //
-      // GET PACKET ID
-      $global_id    = $this->packetID();
-
       //
       // PACKET
       $packet_data  = $this->packetData();
       $packet_xml   = $this->packetXML();
       $packet_head  = substr( $packet_data, strpos($packet_data,'<fp'), strpos($packet_data,'>')+1 );
-
-      //
-      // CHECK FOR DUPLICATE DATA
-      if( NuPackets::hash( $publisher_id, sha1( $packet_data ) )==-1 )
-        throw new Exception("Duplicate packet detected", 11);
 
       //
       // CHECK FOR TIMESTAMP IN PACKET
@@ -226,6 +166,7 @@
       // GET TRUE PUBLISHER
       $publisher = new Object();
       $publisher->proxy = false;
+      $publisher->remote = true;
 
       $user_node = $packet_xml->getElementsByTagName('user');
       if( $user_node->length )
@@ -257,88 +198,23 @@
       }
 
       //
-      // ID
-      $id_data = NuPackets::index( $publisher->id, $timestamp, $global_id );
-      $local_id = $id_data['local_id'];
-
-      //
-      // LOG PROXY AUTH
-      if( $publisher->proxy )
-      {
-	NuPackets::proxy( $publisher_id, $global_id );
-      }
-
-      //
-      // HANDLE FEDERATED, USE TRUE PUBLISHER
-      // NuPackets::federate( $publisher->id, $packet_id, $id );
-
-      //
-      // LINK NAMESPACES 
-      // namespace prefixes should be included in the POST
-      if( preg_match_all('/xmlns:(\w+)="(http:\/\/[^"]+?)"/', substr( $packet_data, 0, strpos($packet_data,'>') ), $xmlns ) )
-      {
-        $this->linkNS( $local_id, $xmlns );
-      }
-
-      //
-      // remove applicable fields
-      foreach( array('id','timestamp') as $nn )
-      {
-        $node = $packet_xml->getElementsByTagName($nn);
-	foreach( $node as $N )
-	{
-	  $packet_xml->documentElement->removeChild( $N );
-	}
-      }
-
-      //
-      // remove user
-      $user_node = $packet_xml->getElementsByTagName('user');
-      if( $user_node->length )
-      {
-      foreach( array('id','name','domain') as $nn )
-      {
-        $node = $user_node->item(0)->getElementsByTagName($nn);
-	foreach( $node as $N )
-	{
-	  $user_node->item(0)->removeChild( $N );
-	}
-      }
-      }
-
-      //
-      // FILTER XML-DATA
-      $packet_xml = NuEvent::filter('nu_fmp_publish_remote', $packet_xml);
-
-      //
-      // REMOVE REDUNDANT NODE
-      if( $user_node->length && !$user_node->item(0)->hasChildNodes() )
-      {
-        $packet_xml->documentElement->removeChild( $user_node->item(0) );
-      }
-
-      //
-      // STORAGE REMOTE 
-      NuPacketStorage::save($local_id, $packet_xml->saveXML());
+      // HOOK
+      NuEvent::action('nu_fmp_notify', $packet_xml, $publisher);
 
       //
       // PUBLISH
       // using id, insert packet id into subscriber boxes
-      $a = NuPackets::publish( $publisher_id, $local_id );
-
-      //
-      // HOOK
-      NuEvent::action( 'nu_fmp_published', $packet_xml, $local_id );
+      // $a = NuPackets::publish( $publisher_id, $local_id );
 
       //
       // RETURN
-      return array($local_id, $a);
+      return true;
     }
 
     //
     // PUBLISH - distinguish local/remote
     //
-    private function publish()
+    private function notify()
     {
       //
       // GET PUBLISHER
@@ -350,28 +226,27 @@
 
       if( $this->local )
       {
-        return $this->publishLocal( $publisher );
+        return $this->notifyLocal( $publisher );
       }
       else
       {
-        return $this->publishRemote( $publisher );
+        return $this->notifyRemote( $publisher );
       }
     }
 
     protected function initJSON()
     {
-      $result = $this->publish();
+      $result = $this->notify();
 
       $o = new JSON($this->time);
       $o->status    = "ok";
-      $o->id	    = $result[0];
-      $o->message   = "Packet published to {$result[1]} subscribers";
+      $o->message   = "Notification sent";
 
       return $o;
     }
 
   }
 
-  return postFederatedPublish;
+  return postFederatedNotify;
 
 ?>

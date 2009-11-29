@@ -160,11 +160,11 @@
 
       //
       // QUEUE
-      NuFederatedPublishing::queue( $local_id, $publisher, $global_id, $packet_data, 'republish' );
+      $qid = NuFederatedPublishing::queue( $local_id, $publisher, $global_id, $packet_data, 'republish' );
 
       //
       // ping dispatch
-      NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$local_id}" );
+      NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$qid}" );
 
       //
       // HOOK

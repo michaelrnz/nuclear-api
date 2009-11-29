@@ -17,21 +17,18 @@
 	  Notes:
 	  once the id is takeout of the db, is should be removed
 
-	  Temp Storage:
-	  (packet, user, data
-
 	*/
 
 	protected function initJSON()
 	{
-	  $packet_id = $this->call->id;
+	  $queue_id = $this->call->id;
 
-	  if( !is_numeric($packet_id) )
-	    throw new Exception("Invalid packet id",4);
+	  if( !is_numeric($queue_id) )
+	    throw new Exception("Invalid queue id",4);
 
 	  require_once('lib.nufederated.php');
 
-	  $packet = NuFederatedPublishing::unqueue( $packet_id );
+	  $packet = NuFederatedPublishing::unqueue( $queue_id );
 
 	  $o = new JSON($this->time);
 
@@ -41,6 +38,10 @@
 	    // dispatch packet
 	    switch( $packet['mode'] )
 	    {
+	      case 'notify':
+	        NuFederatedPublishing::dispatch( $packet['publisher'], $packet['data'] );
+		break;
+
 	      case 'publish':
 	        NuFederatedPublishing::dispatch( $packet['publisher'], $packet['global_id'], $packet['data'], false );
 		break;
@@ -54,7 +55,7 @@
 		break;
 	    }
 
-	    file_put_contents($GLOBALS['CACHE'] .'/dispatch.log', time() . ": {$packet_id} out for {$packet['mode']}\n", FILE_APPEND );
+	    file_put_contents($GLOBALS['CACHE'] .'/dispatch.log', time() . ": {$queue_id} out for {$packet['mode']}\n", FILE_APPEND );
 
 	    $o->status = "ok";
 	    $o->message = "Packet mode: {$packet['mode']}";

@@ -1,10 +1,14 @@
+alter table nu_packet_queue add column local_id int unsigned not null after global_id;
+alter table nu_packet_queue modify column id int unsigned not null auto_increment;
+alter table nu_packet_queue modify column mode enum('notify','publish','unpublish','republish') default 'publish';
+
+/*
 alter table nu_federated_publisher_auth add key(token);
 alter table nu_federated_subscriber_auth add key(token);
 
 drop table nu_federated_publisher_domain;
 drop table nu_federated_subscriber_domain;
 
-/*
 create table nu_packet_proxy (id int unsigned not null, publisher int unsigned not null, primary key (id));
 create table nu_packet_queue (id int unsigned not null, publisher int unsigned not null, mode enum('publish','unpublish','republish') default 'publish', data blob, primary key(id));
 
