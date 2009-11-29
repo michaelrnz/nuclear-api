@@ -133,33 +133,54 @@
     //
     // queue a packet for dispatch
     //
-    public static function queue( $packet_id, $publisher, $packet_global, $packet_data, $dmode='publish' )
+    public static function queue( $local_id, $publisher, $global_id, $packet_data, $dmode='publish' )
     {
-      $mode = isType('unpublish|republish|publish', $dmode) ? $dmode : 'publish';
+      $mode = isType('unpublish|republish|publish|notify', $dmode) ? $dmode : 'publish';
       $data = safe_slash($packet_data);
 
-      WrapMySQL::void(
-        "insert into nu_packet_queue (id, publisher, global_id, mode, data) ".
-	"values ({$packet_id}, {$publisher}, {$packet_global}, '{$mode}', '{$data}');"
+      return WrapMySQL::id(
+        "insert into nu_packet_queue (publisher, global_id, local_id, mode, data) ".
+	"values ({$publisher}, {$global_id}, {$local_id}, '{$mode}', '{$data}');"
       );
     }
 
     //
     // unqueue a packet for dispatch
     //
-    public static function unqueue( $packet_id )
+    public static function unqueue( $queue_id )
     {
       $q = new NuQuery('nu_packet_queue Q');
       $q->field('*');
-      $q->where("id={$packet_id}");
+      $q->where("id={$queue_id}");
 
       $data = $q->single();
 
       if( $data )
-       WrapMySQL::void("delete from nu_packet_queue where id={$packet_id} limit 1;");
+       WrapMySQL::void("delete from nu_packet_queue where id={$queue_id} limit 1;");
 
       return $data;
     }
+
+    //
+    // dispatch to federated /notify method
+    //
+    public static function notify( $publisher, $packet_data )
+    {
+      if( !$publisher || !is_numeric($publisher) )
+	throw new Exception("Invalid publisher", 5);
+
+      if( !strlen($packet_data) )
+	throw new Exception("Missing packet data", 4);
+
+      $fps_params  = array(
+		      "packet"=> $packet_data
+		     );
+
+      $subscribers  = self::subscribers( $publisher );
+
+      self::postSubscribers( '/api/fmp/notify.json', $subscribers, $fps_params, $GLOBALS['CACHE'] . '/notify.log' );
+    }
+
 
     //
     // dispatch to federated /publish method

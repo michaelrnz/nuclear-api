@@ -123,10 +123,10 @@
       if( $this->local )
       {
 	// queue for dispatch
-	NuFederatedPublishing::queue( $local_id, $publisher, $global_id, "_void_", "unpublish" );
+	$qid = NuFederatedPublishing::queue( $local_id, $publisher, $global_id, "_void_", "unpublish" );
 
         // ping dispatch
-        NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$local_id}" );
+        NuFiles::ping( "http://" . $GLOBALS['DOMAIN'] . "/api/fmp/dispatch.json?id={$qid}" );
       }
 
       return $local_id;
