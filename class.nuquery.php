@@ -259,6 +259,26 @@
 
       return null;
     }
+
+    public static function eventFilter($query, $filter_name, $attributes)
+    {
+      $filter_query = new NuQuery('_void_');
+      $filter_query = NuEvent::filter($filter_name, $filter_query);
+
+      foreach( $attributes as $att=>$type )
+      {
+	if( !isType('fields|joins|conditions', $att) ) continue;
+
+        if( $type == 'premerge' )
+	{
+	  $query->premerge( $att, $filter_query->$att );
+	}
+	else if( $type == 'postmerge' )
+	{
+	  $query->postmerge( $att, $filter_query->$att );
+	}
+      }
+    }
   }
 
   /*
