@@ -20,7 +20,7 @@
       $this->field( array(
        'U.id', 'U.name', 'U.domain') );
 
-      $this->where( "U.{$mode}=$user" );
+      $this->where( "R.{$mode}=$user" );
 
       // FILTER EVENT
       NuQuery::eventFilter( 
@@ -44,7 +44,7 @@
   {
     function __construct($user, $page=1)
     {
-      parent::__construct($user,'party');
+      parent::__construct($user,'user');
       $this->page(is_numeric($page) ? $page : 1, 100, 10, 100);
     }
   }
