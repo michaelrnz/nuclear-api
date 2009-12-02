@@ -49,9 +49,6 @@
 	      throw new Exception("Unknown namespace", 5);
 	  }
 
-	  $filter_query = new NuQuery('_void_');
-	  $filter_query = NuEvent::filter('nu_fmp_inbox_query', $filter_query);
-
 	  if( isset($ns_id) )
 	  {
 	    $packets = new NuPacketInboxNSQuery($user->id, $ns_id, $this->call->page, $this->call->limit);
@@ -61,14 +58,7 @@
 	    $packets = new NuPacketInboxQuery($user->id, $this->call->page, $this->call->limit);
 	  }
 
-	  if( $filter_fields = $filter_query->fields )
-	    $packets->premerge( 'fields', $filter_fields );
-
-	  if( $filter_joins  = $filter_query->joins )
-	    $packets->postmerge( 'joins', $filter_joins );
-
-	  if( $filter_conds  = $filter_query->conditions )
-	    $packets->postmerge( 'conditions', $filter_conds );
+	  NuQuery::eventFilter( $packets, 'nu_fmp_inbox_query', array("fields"=>"premerge", "joins"=>"postmerge", "conditions"=>"postmerge") );
 
 	  return $packets;
 	}
