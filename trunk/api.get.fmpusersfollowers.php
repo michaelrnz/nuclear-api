@@ -2,7 +2,7 @@
   
   require_once('api.class.usermethod.php');
 
-  class getFMPUsersFollowing extends apiUserMethod
+  class getFMPUsersFollowers extends apiUserMethod
   {
     protected function query()
     {
@@ -23,7 +23,7 @@
 
       $result = $this->query();
 
-      $root->setAttribute('request', 'fmp.user.following');
+      $root->setAttribute('request', 'fmp.user.followers');
       $root->setAttribute('status', 'ok');
 
       if( $result->select() )
@@ -55,6 +55,6 @@
     }
   }
 
-  return getFMPUsersFollowing;
+  return getFMPUsersFollowers;
 
 ?>
