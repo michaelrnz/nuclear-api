@@ -232,9 +232,7 @@ CREATE TABLE `nu_relation` (
   `party` int(10) unsigned NOT NULL,
   `model` tinyint(3) unsigned NOT NULL default '0',
   `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-  PRIMARY KEY  (`user`,`party`),
-  KEY `user` (`user`,`model`),
-  KEY `party` (`party`,`model`)
+  PRIMARY KEY  (`user`,`model`,`party`),
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 SET character_set_client = @saved_cs_client;
 
@@ -484,6 +482,11 @@ create table nu_packet_queue (
   mode enum('notify','publish','unpublish','republish') default 'publish', 
   data blob, 
   primary key(id)
+);
+
+CREATE VIEW `NuclearUser` AS (
+  select `U`.`id` AS `id`,`N`.`name` AS `name`,`D`.`name` AS `domain` 
+  from ((`nu_user` `U` left join `nu_domain` `D` on((`D`.`id` = `U`.`domain`))) left join `nu_name` `N` on((`N`.`id` = `U`.`name`)))
 );
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

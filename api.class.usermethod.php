@@ -9,12 +9,16 @@
 
   abstract class apiUserMethod extends CallWrapper
   {
-    function getUser()
+    function getUser( $force=true )
     {
       if( isset($GLOBALS['USER']) && is_object($GLOBALS['USER']) )
       {
         return $GLOBALS['USER'];
       }
+
+      if( $force )
+        throw new Exception("Missing identified user", 5);
+
       return null;
     }
   }

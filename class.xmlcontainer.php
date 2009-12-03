@@ -21,6 +21,7 @@
 			$this->time = $time;
 			parent::__construct($version,$encoding);
 			$this->root = null;
+			$this->formatOutput = true;
 		}
 
 		function __toString()

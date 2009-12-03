@@ -11,7 +11,7 @@
         throw new Exception("Missing valid user",4);
 
       require_once('class.relationquery.php');
-      $query = new FollowerQuery( $user->id, $this->call->page );
+      $query = new FollowersQuery( $user->id, $this->call->page );
       return $query;
     }
 
@@ -28,12 +28,19 @@
 
       if( $result->select() )
       {
+	$first = array('id','name','domain');
         while( $data = $result->hash() )
 	{
 	  $user = $resp->createElement('user');
+	  foreach( $first as $f )
+	  {
+	    $user->appendChild( $resp->createElement($f, $data[$f]) );
+	  }
+
 	  foreach( $data as $f=>$v )
 	  {
 	    if( is_numeric($f) ) continue;
+	    if( isType('id|name|domain', $f) ) continue;
 
 	    $user->appendChild( $resp->createElement($f, $v) );
 	  }
