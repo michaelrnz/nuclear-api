@@ -15,6 +15,14 @@
       {
         return $GLOBALS['USER'];
       }
+      else if( is_numeric($this->call->user_id) )
+      {
+        $user = new Object();
+	$user->id = intval($this->call->user_id);
+	$user->name = $this->call->user_name;
+
+	return $user;
+      }
 
       if( $force )
         throw new Exception("Missing identified user", 5);
