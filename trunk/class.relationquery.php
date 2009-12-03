@@ -2,25 +2,24 @@
   
   class RelationQuery extends NuQuery
   {
-    function __construct( $user, $mode='user' )
+    function __construct( $user, $model )
     {
       if( !is_numeric($user) )
         throw new Exception("Invalid relation user");
 
-      if( !isType('user|party', $mode) )
+      if( !is_numeric($model) )
         throw new Exception('Invalid relation model');
-
-      $join_user = $mode=='user' ? 'party' : 'user';
 
       parent::__construct('nu_relation R');
       $this->join(
        'NuclearUser U',
-       "U.id=R.{$join_user}");
+       "U.id=R.party");
 
       $this->field( array(
        'U.id', 'U.name', 'U.domain') );
 
-      $this->where( "R.{$mode}=$user" );
+      $this->where( "R.user=$user" );
+      $this->where( "R.model=$model" );
 
       // FILTER EVENT
       NuQuery::eventFilter( 
@@ -31,11 +30,11 @@
     }
   }
 
-  class FollowerQuery extends RelationQuery
+  class FollowersQuery extends RelationQuery
   {
     function __construct($user, $page=1)
     {
-      parent::__construct($user,'party');
+      parent::__construct($user,1);
       $this->page(is_numeric($page) ? $page : 1, 100, 10, 100);
     }
   }
@@ -44,7 +43,7 @@
   {
     function __construct($user, $page=1)
     {
-      parent::__construct($user,'user');
+      parent::__construct($user,0);
       $this->page(is_numeric($page) ? $page : 1, 100, 10, 100);
     }
   }

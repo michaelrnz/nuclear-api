@@ -59,8 +59,8 @@
       // good, downmix subscriber
       $subscriber_id = NuFederatedUsers::subscriber( $this->call->subscriber, true );
 
-      // insert federated relation
-      NuRelation::update( $subscriber_id, $publisher );
+      // insert federated relation (user, party, model, remote)
+      NuRelation::update( $publisher, $subscriber_id, 'publisher', true );
       NuFederatedIdentity::addSubscriberAuth( $subscriber_id, $publisher, safe_slash($oauth_token), safe_slash($oauth_token_secret));
 
       // now have access to publish to subscriber's inbox

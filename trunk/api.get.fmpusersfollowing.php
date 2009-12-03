@@ -28,12 +28,19 @@
 
       if( $result->select() )
       {
+	$first = array('id','name','domain');
         while( $data = $result->hash() )
 	{
 	  $user = $resp->createElement('user');
-	  foreach( $data as $f=>$v )
+	  foreach( $first as $f )
+	  {
+	    $user->appendChild( $resp->createElement($f, $data[$f]) );
+	  }
+
+          foreach( $data as $f=>$v )
 	  {
 	    if( is_numeric($f) ) continue;
+	    if( isType('id|name|domain', $f) ) continue;
 
 	    $user->appendChild( $resp->createElement($f, $v) );
 	  }

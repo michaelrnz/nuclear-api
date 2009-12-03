@@ -40,8 +40,8 @@
       $token          = NuFederatedStatic::generateToken( $publisher_id );
       $token_secret   = NuFederatedStatic::generateToken( $token );
 
-      // insert federated relation
-      NuRelation::update( $subscriber_id, $publisher_id );
+      // insert federated relation (user, party, model, remote)
+      NuRelation::update( $subscriber_id, $publisher_id, 'subscriber', true );
       NuFederatedIdentity::addPublisherAuth( $subscriber_id, $publisher_id, $token, $token_secret );
       
       // remove request auth

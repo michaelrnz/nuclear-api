@@ -1,8 +1,13 @@
+alter table nu_relation drop key user;
+alter table nu_relation drop key party;
+alter table nu_relation drop primary key;
+alter table nu_relation add primary key(user,model,party);
+
+/*
 alter table nu_packet_queue add column local_id int unsigned not null after global_id;
 alter table nu_packet_queue modify column id int unsigned not null auto_increment;
 alter table nu_packet_queue modify column mode enum('notify','publish','unpublish','republish') default 'publish';
 
-/*
 alter table nu_federated_publisher_auth add key(token);
 alter table nu_federated_subscriber_auth add key(token);
 

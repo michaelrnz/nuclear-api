@@ -8,6 +8,12 @@
 		===========================
 		simple social user handling
 		local and federated
+
+		Default 'models'
+		===========================
+		0 - subscriber
+		1 - publisher
+		2 - block
 	*/
 
 	require_once( 'lib.nuevent.php' );
@@ -23,7 +29,47 @@
 				"Unable to check relation");
 		}
 
-		public static function update( $user, $party, $model=0, $e=null )
+		public static function model( $m )
+		{
+		  switch($m)
+		  {
+		    case 'subscriber': return 0;
+		    case 'publisher':  return 1;
+		    case 'block':     return 2;
+		    default: return 0;
+		  }
+		}
+
+		private static function __update( $user, $party, $model, $binary=true )
+		{
+			//
+			// determine relationship model
+		        $user_model  = $model;
+			$party_model = $model == 0 ? 1 : 0;
+
+			//
+			// basic user-party relation
+			$values = array("({$user}, {$party}, {$user_model})");
+
+			//
+			// check binary relation, for local
+			if( $binary )
+			{
+			  $values[] = "({$party}, {$user}, {$party_model})";
+			}
+
+			//
+			// query affected
+			$c = WrapMySQL::affected( 
+			      "insert into nu_relation (user, party, model) ".
+			      "values ". implode(',', $values) .
+			      "on duplicate key update model=values(model);",
+			      "Unable to update relation");
+
+			return $c;
+		}
+
+		public static function update( $user, $party, $model='subscriber', $remote=false, $e=null )
 		{
 			if( is_null( $e ) )
 			  $o = new Object();
@@ -34,7 +80,7 @@
 			$o->party  = $party;
 
 			// raise pre event
-			NuEvent::raise( 'pre_nu_relation_update', $o );
+			NuEvent::raise( 'nu_pre_relation_update', $o );
 
 			// halt, unset user/party
 			if( $o->user<1 || $o->party<1 ) return false;
@@ -42,24 +88,22 @@
 			// model
 			if( !is_null($o->model) )
 			  $model = $o->model;
+			else
+			  $model = self::model($model);
 
-			// query affected
-			$c = WrapMySQL::affected( 
-			      "insert into nu_relation (user, party, model) ".
-			      "values ({$o->user}, {$o->party}, {$model}) ".
-			      "on duplicate key update model=values(model);",
-			      "Unable to update relation");
-
-			$o->success = $c>0;
+			$o->success = self::__update( $user, $party, $model, $remote ? false : true );
 
 			// raise post event
-			NuEvent::raise( 'post_nu_relation_update', $o );
+			NuEvent::raise( 'nu_post_relation_update', $o );
 
-			return $c;
+			return $o->success;
 		}
 
-		// friend removal is one way
-		public static function destroy( $user, $party, $e=null )
+		//
+		// relation removal defaults to unsubscribing
+		// - removing user-party relation model=0
+		// - blocking can be achieved by removing model=1
+		public static function destroy( $user, $party, $model=0, $e=null )
 		{
 			if( is_null( $e ) )
 			  $o = new Object();
@@ -70,43 +114,22 @@
 			$o->party  = $party;
 
 			// raise pre event
-			NuEvent::raise( 'pre_nu_relation_destroy', $o );
+			NuEvent::raise( 'nu_pre_relation_destroy', $o );
 
 			// halt, unset user/party
 			if( !is_numeric($o->user) || !is_numeric($o->party) ) return false;
 
 			$c = WrapMySQL::affected(
 			      "delete from nu_relation ".
-			      "where user={$o->user} && party={$o->party} limit 1;",
+			      "where user={$o->user} && party={$o->party} && model={$model} limit 1;",
 			      "Unable to delete relation");
 			
 			$o->success = $c>0;
 
 			// raise post event
-			NuEvent::raise( 'post_nu_relation_destroy', $o );
+			NuEvent::raise( 'nu_post_relation_destroy', $o );
 
 			return $c;
-		}
-
-		public static function userlist( $user, $select, $model=0, $paging=false )
-		{
-		  if( !isType("user|party", $select) )
-		    return null;
-
-		  $join   = $select == 'user' ? 'party' : 'user';
-
-		  $limit  = isset($paging['limit']) ? $paging['limit'] : 50;
-		  $offset = isset($paging['offset']) ? $paging['offset'] : 0;
-
-		  $q = "select R.{$join} as id, N.name, D.name as domain, R.ts ".
-		       "from nu_relation as R ".
-		       "left join nu_user as U on U.id=R.{$join} ".
-		       "left join nu_name as N on N.id=U.name ".
-		       "left join nu_domain as D on D.id=U.domain ".
-		       "where R.{$select}={$user} && R.model={$model} ".
-		       "limit {$limit} offset {$offset};";
-
-		  return WrapMySQL::q( $q, "Error fetching relation list" );
 		}
 
 	}
