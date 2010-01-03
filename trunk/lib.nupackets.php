@@ -229,7 +229,7 @@
     //
     public static function localID( $publisher, $packet_id, $local=true )
     {
-      $idq = new NuQuery( "nu_packet_index I" );
+      $idq = new NuSelect( "nu_packet_index I" );
       $idq->field( array('id','global_id') );
       
       if( $local )
@@ -253,7 +253,7 @@
     //
     public static function proxyID( $publisher, $packet_id )
     {
-      $idq = new NuQuery( 'nu_federated_packet as FP' );
+      $idq = new NuSelect( 'nu_federated_packet as FP' );
       $idq->field( "FP.packet" );
       $idq->join( "nu_packet_proxy as PX", "PX.id=FP.packet", "inner" );
       $idq->where( "FP.id={$packet_id}" );
