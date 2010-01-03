@@ -103,10 +103,10 @@
     {
       if( !$publisher ) return null;
 
-      $tq = new NuQuery('_void_');
+      $tq = new NuSelect('_void_');
       $tq = NuEvent::filter('subscriber_query', $q);
 
-      $q = new NuQuery('nu_federated_subscriber_auth as T');
+      $q = new NuSelect('nu_federated_subscriber_auth as T');
       $q->fields      = $tq->fields;
       $q->joins	      = $tq->joins;
       $q->conditions  = $tq->conditions;
@@ -149,7 +149,7 @@
     //
     public static function unqueue( $queue_id )
     {
-      $q = new NuQuery('nu_packet_queue Q');
+      $q = new NuSelect('nu_packet_queue Q');
       $q->field('*');
       $q->where("id={$queue_id}");
 

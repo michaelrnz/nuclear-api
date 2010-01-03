@@ -1,9 +1,11 @@
+create table nu_preference (id int unsigned not null, label varchar(32) not null, data blob, primary key(id,label)) engine=innodb;
+
+/*
 alter table nu_relation drop key user;
 alter table nu_relation drop key party;
 alter table nu_relation drop primary key;
 alter table nu_relation add primary key(user,model,party);
 
-/*
 alter table nu_packet_queue add column local_id int unsigned not null after global_id;
 alter table nu_packet_queue modify column id int unsigned not null auto_increment;
 alter table nu_packet_queue modify column mode enum('notify','publish','unpublish','republish') default 'publish';

@@ -1,6 +1,6 @@
 <?php
   
-  class RelationQuery extends NuQuery
+  class RelationQuery extends NuSelect
   {
     function __construct( $user, $model )
     {
@@ -22,7 +22,7 @@
       $this->where( "R.model=$model" );
 
       // FILTER EVENT
-      NuQuery::eventFilter( 
+      NuSelect::eventFilter( 
         $this, 
 	'nu_relation_query', 
 	array('fields'=>'premerge', 'joins'=>'postmerge', 'conditions'=>'postmerge')
