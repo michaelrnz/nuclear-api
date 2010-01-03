@@ -10,7 +10,7 @@
 
   require_once('class.nuquery.php');
 
-  class NuPacketQuery extends NuQuery
+  class NuPacketQuery extends NuSelect
   {
     function __construct($publisher, $page=1,$limit=20, $order='desc')
     {
@@ -39,7 +39,7 @@
     }
   }
 
-  class NuPacketInboxQuery extends NuQuery
+  class NuPacketInboxQuery extends NuSelect
   {
     function __construct($subscriber, $page=1, $limit=20, $order='desc')
     {

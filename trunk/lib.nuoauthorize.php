@@ -106,7 +106,7 @@
 
       //
       // get consumer-request relation
-      $quth = new NuQuery("{$token_table} as T");
+      $quth = new NuSelect("{$token_table} as T");
       $quth->field(
 	      array(
 		'D.id', 'D.name as domain',
@@ -121,8 +121,6 @@
 
       $quth->where("T.token='{$token}'");
       $quth->where("D.name='{$consumer_key}'");
-
-      echo $quth;
 
       $auth_data = $quth->single("Error fetching tokens");
 
@@ -172,7 +170,7 @@
 
       //
       // get consumer-request relation
-      $quth = new NuQuery("{$token_table} as T");
+      $quth = new NuSelect("{$token_table} as T");
       $quth->field(
 	      array(
 		'T.subscriber', 'T.publisher',

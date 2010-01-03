@@ -13,9 +13,7 @@
 
 	abstract class Service extends ObjectContainer
 	{
-
-		function __construct()
-		{
+function __construct() {
 			//
 			// wrap the initialization for exceptions
 			try
@@ -60,7 +58,7 @@
 		protected function loadBase()
 		{
 			require("var.global.php");
-			includer( array("class.mysqlconnection.php","wrap.mysql.php","lib.nuevent.php","class.nuquery.php") );
+			includer( array("class.mysqlconnection.php","wrap.mysql.php","lib.nuevent.php","class.nupreference.php") );
 		}
 
 		//

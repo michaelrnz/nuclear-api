@@ -7,28 +7,34 @@
       database query abstraction
   */
 
-  class NuQuery
+  abstract class NuQuery
   {
-    private $table;
-    private $fields;
-    private $joins;
-    private $conditions;
-    private $grouping;
-    private $order;
-    private $limit;
-    private $offset;
+    protected $template;
 
-    private $result;
+    protected $table;
+    protected $fields;
+    protected $values;
 
-    function __construct( $T )
+    protected $joins;
+    protected $conditions;
+    protected $grouping;
+    protected $order;
+    protected $limit;
+    protected $offest;
+
+    protected $result;
+
+    function __construct( $O, $T )
     {
+      $this->template = $O;
       $this->table = $T;
       $this->__init();
     }
 
-    private function __init()
+    protected function __init()
     {
       $this->fields = array();
+      $this->values = array();
       $this->joins = array();
       $this->conditions = array();
       $this->grouping = array();
@@ -65,73 +71,72 @@
 
     function __toString()
     {
-      $f = count($this->fields)>0 ? implode(', ', $this->fields) : "*";
+      $sql = $this->template;
 
-      $str = "select {$f} from {$this->table}";
+      $fields = array(
+        "[TABLE]",
+	"[FIELDS]",
+	"[VALUES]",
+	"[JOINS]",
+	"[CONDITION]",
+	"[GROUP]",
+	"[ORDER]",
+	"[LIMIT]"
+      );
+      $values = array();
+
+      $values[0] = $this->table;
+
+      $values[1] = count($this->fields)>0 ? implode(', ', $this->fields) : "*";
+
+      $values[2] = count($this->values)>0 ? implode(', ', $this->values) : "";
 
       if( count($this->joins)>0 )
       {
-	$str.= " " . implode(' ', $this->joins);
+	$values[3] = implode(' ', $this->joins);
+      }
+      else
+      {
+        $values[3] = "";
       }
 
       if( count($this->conditions)>0 )
       {
-	$str.= " where " . trim(implode(' ', $this->conditions), " &|");
+	$values[4] = "where " . trim(implode(' ', $this->conditions), " &|");
+      }
+      else
+      {
+        $values[4] = "";
       }
 
       if( count($this->grouping)>0 )
       {
-	$str.= " group by " . implode(', ', $this->grouping);
+	$values[5] = "group by " . implode(', ', $this->grouping);
+      }
+      else
+      {
+        $values[5] = "";
       }
 
       if( count($this->order)>0 )
       {
-	$str.= " order by " . implode(', ', $this->order);
+	$values[6] = "order by " . implode(', ', $this->order);
+      }
+      else
+      {
+        $values[6] = "";
       }
 
+      $limit = "";
       if( $this->limit )
-	$str.= " limit {$this->limit}";
-
-      if( $this->offset )
-	$str.= " offset {$this->offset}";
-
-      return $str . ';';
-    }
-
-    public function premerge( $field, $values )
-    {
-      switch( $field )
       {
-        case 'fields':
-	  $this->fields = array_merge( $values, $this->fields );
-	  break;
-	
-	case 'joins':
-	  $this->joins  = array_merge( $values, $this->joins );
-	  break;
-
-	case 'conditions':
-	  $this->conditions = array_merge( $values, $this->conditions );
-	  break;
+	$limit .= "limit {$this->limit}";
+        if( $this->offset )
+	  $limit.= ",{$this->offset}";
       }
-    }
+      $values[7] = $limit;
 
-    public function postmerge( $field, $values )
-    {
-      switch( $field )
-      {
-        case 'fields':
-	  $this->fields = array_merge( $this->fields, $values );
-	  break;
-	
-	case 'joins':
-	  $this->joins  = array_merge( $this->joins, $values );
-	  break;
-
-	case 'conditions':
-	  $this->conditions = array_merge( $this->conditions, $values );
-	  break;
-      }
+      return str_replace($fields,$values,$sql);
     }
 
     public function field( $f )
@@ -141,6 +146,18 @@
 
       foreach( $f as $v )
 	$this->fields[] = $v;
+    }
+
+    public function value( $f )
+    {
+      if( is_array($f) )
+      {
+        $this->values[] = "(" . implode(",",$f) . ")";
+      }
+      else
+      {
+        $this->values[] = "({$f})";
+      }
     }
 
     public function join( $t, $c=false, $type="left" )
@@ -209,85 +226,26 @@
       return array("limit"=>$l,"offset"=>$offset,"page"=>$p);
     }
 
-
-    //
-    // QUERYING
-    //
     public function void( $errmsg=false, $errcode=7 )
     {
       $r = mysql_query($this->__toString());
 
       if( !$r && $errmsg )
 	throw new Exception("{$errmsg}: ". mysql_error(), $errcode);
-    }
 
-    public function &select( $errmsg=false, $errcode=7 )
-    {
-      if( !($r = mysql_query($this->__toString())) )
-	throw new Exception(($errmsg ? "{$errmsg}: " : "Error selecting from {$this->table}: "). mysql_error(), $errcode);
-
-      $this->result = $r;
       return $r;
-    }
-
-    public function single()
-    {
-      $this->limit = 1;
-      $this->select();
-      if( $this->result )
-        return $this->hash();
-
-      return null;
-    }
-
-    public function &hash()
-    {
-      if( ($this->result != null) && ($tuple = mysql_fetch_array($this->result)) )
-      {
-	return $tuple;
-      }
-
-      return null;
-    }
-
-    public function &row()
-    {
-      if( ($this->result != null) && ($tuple = mysql_fetch_row($this->result)) )
-      {
-	return $tuple;
-      }
-
-      return null;
-    }
-
-    public static function eventFilter($query, $filter_name, $attributes)
-    {
-      $filter_query = new NuQuery('_void_');
-      $filter_query = NuEvent::filter($filter_name, $filter_query);
-
-      foreach( $attributes as $att=>$type )
-      {
-	if( !isType('fields|joins|conditions', $att) ) continue;
-
-        if( $type == 'premerge' )
-	{
-	  $query->premerge( $att, $filter_query->$att );
-	}
-	else if( $type == 'postmerge' )
-	{
-	  $query->postmerge( $att, $filter_query->$att );
-	}
-      }
     }
   }
 
   /*
   $user = 3;
+  $insert_template= "insert into [TABLE] ([FIELDS]) values [VALUES]";
+  $delete_template= "delete from [TABLE] [CONDITION] [LIMIT]";
+  $select_template= "select [FIELDS] from [TABLE] [JOINS] [CONDITION] [GROUP] [LIMIT]";
 
   // example
-  $q = new NuQuery('packet_inbox');
+  $q = new NuQuery($delete_template,'packet_inbox Inbox');
   $q->field( "Inbox.ts" );
-
   $q->where( "Inbox.subscriber={$user}" );
 
   // plugin join
@@ -298,20 +256,18 @@
   // action join
   $q->join( "actions", "actions.event=Inbox.id", "left" );
   $q->field( "actions.name" );
-
   $q->order( "Inbox.id", "desc" );
-
   $q->page( 6, 20 );
+
+  $q = new NuQuery($insert_template, 'vanity_mirror');
+  $q->field(array("entity_type", "entity_id", "reference_type", "reference_id", "data"));
+
+  $q->value( array("1","2","3","4","5") );
+  $q->value( array("3","4","1","2","5") );
 
   echo $q;
 
-  $q->select();
-  while( $d = $q->row() )
-  {
-    print_r($d);
-  }
-  
   echo "\n";
-  */
+  /**/
 
 ?>

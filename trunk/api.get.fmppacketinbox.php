@@ -58,7 +58,7 @@
 	    $packets = new NuPacketInboxQuery($user->id, $this->call->page, $this->call->limit);
 	  }
 
-	  NuQuery::eventFilter( $packets, 'nu_fmp_inbox_query', array("fields"=>"premerge", "joins"=>"postmerge", "conditions"=>"postmerge") );
+	  NuSelect::eventFilter( $packets, 'nu_fmp_inbox_query', array("fields"=>"premerge", "joins"=>"postmerge", "conditions"=>"postmerge") );
 
 	  return $packets;
 	}
