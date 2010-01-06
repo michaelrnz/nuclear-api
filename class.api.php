@@ -495,11 +495,13 @@
 		      $user_obj->id	= $user_data['id'];
 		      $user_obj->name	= $user_data['name'];
 		      $user_obj->email	= $user_data['email'];
+		      $user_obj->md5    = md5($user_data['email']);
 
 		      $GLOBALS['USER'] = $user_obj;
 		      $GLOBALS['USER_ID'] = $user_data['id'];
 		      $GLOBALS['USER_NAME'] = $user_data['name'];
 		      $GLOBALS['USER_EMAIL'] = $user_data['email'];
+		      $GLOBALS['USER_MD5'] = md5($user_data['email']);
 		    }
 		  }
 		}

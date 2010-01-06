@@ -140,6 +140,7 @@
 
 		public static function age( $t1 )
 		{
+		  if( !$t1 ) return false;
 		  $span = self::__span($t1, time(), 'Y');
 		  return floor($span['span'] / $span['divisor']);
 		}

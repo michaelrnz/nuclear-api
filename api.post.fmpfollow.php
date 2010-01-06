@@ -17,9 +17,27 @@
 			// RELATION (user,party,model,remote)
 			//
 			require_once( 'lib.nurelation.php' );
-			$a = NuRelation::update( $subscriber->id, $publisher->id, 'subscriber' );
+			$relation = NuRelation::check( $subscriber->id, $publisher->id );
 
+			if( $relation == 'subscriber' )
+			  throw new Exception("Already following publisher");
+
+			if( $relation == 'publisher' )
+			{
+			  $model = 'mutual';
+			}
+			else if( is_null($relation) )
+			{
+			  $model = 'subscriber';
+			}
+			else
+			{
+			  throw new Exception("${relation} relation exists");
+			}
+			
+			$a = NuRelation::update( $subscriber->id, $publisher->id, $model );
 			if( !$a ) return false;
+
 
 			//
 			// FEDERATED CORE / LOCAL

@@ -25,14 +25,31 @@
 
 		public static function check( $user, $party )
 		{
-			return WrapMySQL::single(
-				"select 'party', model from nu_relation ".
-				"where user=$user && party=$party limit 1;",
-				"Unable to check relation");
+		  $r = WrapMySQL::single(
+		         "select model from nu_relation ".
+			 "where user={$user} && party={$party} limit 1;",
+			 "Unable to check relation");
+
+		  return $r ? self::model($r[0]) : null;
 		}
 
 		public static function model( $m )
 		{
+		  if( is_numeric($m) )
+		  {
+		  switch($m)
+		  {
+		    case 0:                  return 'subscriber';
+		    case 1:                  return 'publisher';
+		    case 2:                  return 'mutual';
+		    case 9:                  return 'block';
+		    case 10:                 return 'proxy_subscriber';
+		    case 11:                 return 'proxy_publisher';
+		    default: return 0;
+		  }
+		  }
+		  else
+		  {
 		  switch($m)
 		  {
 		    case 'subscriber':       return 0;
@@ -42,6 +59,7 @@
 		    case 'proxy_subscriber': return 10;
 		    case 'proxy_publisher':  return 11;
 		    default: return 0;
+		  }
 		  }
 		}
 
@@ -67,6 +85,9 @@
 			    case 1:
 			      $party_model = 0;
 			      break;
+			    case 2:
+			      $party_model = 2;
+			      break;
 			    case 10:
 			      $party_model = 11;
 			      break;
@@ -84,10 +105,10 @@
 			switch( $user_model )
 			{
 			  case 0:
-			    $update_model = 2;
+			    $update_model = "values(model)";
 			    break;
 			  case 1:
-			    $update_model = 2;
+			    $update_model = "values(model)";
 			    break;
 			  default:
 			    $update_model = "values(model)";
@@ -99,7 +120,7 @@
 			$c = WrapMySQL::affected( 
 			      "insert into nu_relation (user, party, model) ".
 			      "values ". implode(',', $values) .
-			      "on duplicate key update model={$update_model};",
+			      "on duplicate key update model={$update_model}, ts=ts;",
 			      "Unable to update relation");
 
 			return $c;
@@ -123,9 +144,14 @@
 
 			// model
 			if( !is_null($o->model) )
+			{
 			  $model = $o->model;
+			}
 			else
+			{
 			  $model = self::model($model);
+			  $o->model = $model;
+			}
 
 			$o->success = self::__update( $user, $party, $model, $remote ? false : true );
 
@@ -155,11 +181,31 @@
 			// halt, unset user/party
 			if( !is_numeric($o->user) || !is_numeric($o->party) ) return false;
 
-			$c = WrapMySQL::affected(
-			      "delete from nu_relation ".
-			      "where user={$o->user} && party={$o->party} limit 1;",
-			      "Unable to delete relation");
-			
+			// test the mirrored relation
+			$m = WrapMySQL::affected(
+			      "update nu_relation set model=0 ".
+			      "where user={$o->party} && party={$o->user} && model=2 ".
+			      "limit 1;",
+			      "Error testing two-way relation");
+
+			if( $m==1 )
+			{
+			  $c = WrapMySQL::affected(
+			        "update nu_relation set model=1 ".
+				"where user={$o->user} && party={$o->party} && model=2 ".
+				"limit 1;",
+				"Error destroying two-way relation");
+			}
+			else
+			{
+			  $c = WrapMySQL::affected(
+			        "delete from nu_relation ".
+				"where (user={$o->user} && party={$o->party} && model=0) ".
+				"|| (user={$o->party} && party={$o->user} && model=1) ".
+				"limit 2;",
+				"Error destroying one-way relation");
+			}
+
 			$o->success = $c>0;
 
 			// raise post event

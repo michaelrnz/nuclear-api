@@ -14,7 +14,7 @@
 		private $xsl;
 		private $loaded;
 		private $time;
-		private $root;
+		protected $root;
 
 		function __construct($version=false, $encoding=false, $time=false)
 		{
