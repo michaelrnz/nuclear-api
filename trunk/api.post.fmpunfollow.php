@@ -5,18 +5,23 @@
 	class postFMPUnfollow extends apiUserAuthMethod
 	{
 
-	        private function follow()
+	        private function unfollow()
 		{
 		        $subscriber = $this->getAuth();
 			$publisher  = $this->getUser();
 
 			if( $publisher->id == $subscriber->id )
-				throw new Exception("Cannot follow self");
+				throw new Exception("Cannot unfollow self");
 
 			//
 			// RELATION (user,party,model,remote)
 			//
 			require_once( 'lib.nurelation.php' );
+			$relation = NuRelation::check( $subscriber->id, $publisher->id );
+
+			if( is_null($relation) )
+			  throw new Exception("Relation does not exist");
+
 			$a = NuRelation::destroy( $subscriber->id, $publisher->id );
 
 			if( !$a ) return false;
@@ -24,18 +29,6 @@
 			//
 			// FEDERATED CORE / LOCAL
 			//
-			/*
-			require_once( 'lib.nufederated.php' );
-
-			// create tokens
-			$token          = NuFederatedStatic::generateToken( $publisher->id );
-			$token_secret   = NuFederatedStatic::generateToken( $token );
-
-			// insert federated relation
-			NuFederatedIdentity::addPublisherAuth( $subscriber->id, $publisher->id, $token, $token_secret );
-			NuFederatedIdentity::addSubscriberAuth( $subscriber->id, $publisher->id, $token, $token_secret );
-			*/
-
 			WrapMySQL::void(
 			  "delete from nu_federated_subscriber_auth ".
 			  "where user={$publisher->id} && federated_user={$subscriber->id} ".
@@ -55,7 +48,7 @@
 		{
 			$resp = new JSON( $this->time );
 
-			if( $this->follow() )
+			if( $this->unfollow() )
 			{
 				$resp->status  = "ok";
 				$resp->message = "Unfollowed";
@@ -77,7 +70,7 @@
 			$root = $resp->createElement('response');
 			$root->setAttribute('request', 'fmp.unfollow');
 
-			if( $this->follow() )
+			if( $this->unfollow() )
 			{
 			        $root->setAttribute('status', 'ok');
 			        $root->appendChild( $resp->createElement("message", "Unfollowed") );
