@@ -12,7 +12,7 @@
     function __construct( $table )
     {
       parent::__construct(
-        "select [FIELDS] from [TABLE] [JOINS] [CONDITION] [GROUP] [LIMIT]", $table);
+        "select [FIELDS] from [TABLE] [JOINS] [CONDITION] [GROUP] [ORDER] [LIMIT]", $table);
     }
 
     //
