@@ -13,7 +13,9 @@
 		===========================
 		0 - subscriber
 		1 - publisher
-		2 - block
+		2 - mutual
+		9 - block
+		11- proxy
 	*/
 
 	require_once( 'lib.nuevent.php' );
@@ -33,9 +35,12 @@
 		{
 		  switch($m)
 		  {
-		    case 'subscriber': return 0;
-		    case 'publisher':  return 1;
-		    case 'block':     return 2;
+		    case 'subscriber':       return 0;
+		    case 'publisher':        return 1;
+		    case 'mutual':           return 2;
+		    case 'block':	     return 9;
+		    case 'proxy_subscriber': return 10;
+		    case 'proxy_publisher':  return 11;
 		    default: return 0;
 		  }
 		}
@@ -45,7 +50,6 @@
 			//
 			// determine relationship model
 		        $user_model  = $model;
-			$party_model = $model == 0 ? 1 : 0;
 
 			//
 			// basic user-party relation
@@ -55,7 +59,39 @@
 			// check binary relation, for local
 			if( $binary )
 			{
-			  $values[] = "({$party}, {$user}, {$party_model})";
+			  switch( $user_model )
+			  {
+			    case 0:
+			      $party_model = 1;
+			      break;
+			    case 1:
+			      $party_model = 0;
+			      break;
+			    case 10:
+			      $party_model = 11;
+			      break;
+			    case 11:
+			      $party_model = 10;
+			      break;
+			    default:
+			      $party_mode = false;
+			  }
+
+			  if( $party_model )
+			    $values[] = "({$party}, {$user}, {$party_model})";
+			}
+
+			switch( $user_model )
+			{
+			  case 0:
+			    $update_model = 2;
+			    break;
+			  case 1:
+			    $update_model = 2;
+			    break;
+			  default:
+			    $update_model = "values(model)";
+			    break;
 			}
 
 			//
@@ -63,7 +99,7 @@
 			$c = WrapMySQL::affected( 
 			      "insert into nu_relation (user, party, model) ".
 			      "values ". implode(',', $values) .
-			      "on duplicate key update model=values(model);",
+			      "on duplicate key update model={$update_model};",
 			      "Unable to update relation");
 
 			return $c;
@@ -103,7 +139,7 @@
 		// relation removal defaults to unsubscribing
 		// - removing user-party relation model=0
 		// - blocking can be achieved by removing model=1
-		public static function destroy( $user, $party, $model=0, $e=null )
+		public static function destroy( $user, $party, $e=null )
 		{
 			if( is_null( $e ) )
 			  $o = new Object();
@@ -121,7 +157,7 @@
 
 			$c = WrapMySQL::affected(
 			      "delete from nu_relation ".
-			      "where user={$o->user} && party={$o->party} && model={$model} limit 1;",
+			      "where user={$o->user} && party={$o->party} limit 1;",
 			      "Unable to delete relation");
 			
 			$o->success = $c>0;

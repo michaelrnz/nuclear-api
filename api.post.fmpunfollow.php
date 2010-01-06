@@ -17,7 +17,7 @@
 			// RELATION (user,party,model,remote)
 			//
 			require_once( 'lib.nurelation.php' );
-			$a = NuRelation::destroy( $subscriber->id, $publisher->id, 0 );
+			$a = NuRelation::destroy( $subscriber->id, $publisher->id );
 
 			if( !$a ) return false;
 

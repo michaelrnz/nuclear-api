@@ -34,7 +34,14 @@
 
 		function __toString()
 		{
-			return $this->response->__toString();
+			if( is_array($this->response) )
+			{
+			  return json_encode($this->response);
+			}
+			else
+			{
+			  return $this->response->__toString();
+			}
 		}
 
 		function __get($f)

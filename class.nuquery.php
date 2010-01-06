@@ -132,7 +132,7 @@
       {
 	$limit .= "limit {$this->limit}";
         if( $this->offset )
-	  $limit.= ",{$this->offset}";
+	  $limit= "offset {$this->offset}";
       }
       $values[7] = $limit;
 

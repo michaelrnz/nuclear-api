@@ -94,6 +94,56 @@
 			return self::approx( $int_d, $len );
 		}
 
+		private static function __span($t1, $t2=false, $p=false)
+		{
+			$t = $t2?$t2:time();
+
+			$int_d = $t-$t1;
+
+			$len = 1;
+
+			switch(true)
+			{
+				// Years
+				case $p=='Y' && $int_d>=31557600:
+					$len = 31557600;
+					$units='year';
+					break;		
+
+				// Weeks, not Day/Hour
+				case ($int_d>=604800 && strpos('-|D|H|', "|$p|")==0 ) || $p=='W':
+					$len = 604800;
+					$units='week';
+					break;
+
+				// Days, not Hour
+				case ($int_d>=86400 && strpos('-|H|', "|$p|")==0) || $p=='D':
+					$len = 86400;
+					$units='day';
+					break;
+
+				// Hours
+				case ($int_d>=3600 && !$p) || $p=='H':
+					$len = 3600;
+					$units='hour';
+					break;
+
+				// Minutes
+				default:
+					$len = 60;
+					$units='minute';
+					break;
+			}
+
+			return array("span"=>$int_d, "divisor"=>$len, "units"=>$units);
+		}
+
+		public static function age( $t1 )
+		{
+		  $span = self::__span($t1, time(), 'Y');
+		  return floor($span['span'] / $span['divisor']);
+		}
+
 		private static function approx($span,$length)
 		{
 			return round($span/$length);
