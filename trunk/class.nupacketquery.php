@@ -8,7 +8,7 @@
     selects inbox/index pub/sub
   */
 
-  require_once('class.nuquery.php');
+  require_once('class.nuselect.php');
 
   class NuPacketQuery extends NuSelect
   {
