@@ -117,10 +117,10 @@
 			// body
 			$body = "Thank you for registering at {$GLOBALS['APPLICATION_NAME']}!<br />\n".
 				"Please click the following link to complete your account verification.<br />\n".
-				"<a href=\"http://{$GLOBALS['APPLICATION_DOMAIN']}/verify/$verify\">http://{$GLOBALS['APPLICATION_DOMAIN']}/verify/$verify</a>.<br /><br />\n".
+				"<a href=\"http://{$GLOBALS['DOMAIN']}/verify/$verify\">http://{$GLOBALS['DOMAIN']}/verify/$verify</a>.<br /><br />\n".
 				"Here is your verification code for alternate uses: $verify<br /><br />\n".
 				"If you did not sign up for an account, please disregard this e-mail.<br /><br />\n".
-				"Thank you";
+				"Thank you,<br />{$GLOBALS['APPLICATION_NAME']}";
 
 			//
 			// content headers
@@ -129,7 +129,7 @@
 
 			//
 			// Additional headers
-			$headers .= "From: {$GLOBALS['APPLICATION_NAME']} <{$GLOBALS['REGISTRATION_MAIL']}>" . "\r\n";
+			$headers .= "From: {$GLOBALS['REGISTRATION_MAIL']} <{$GLOBALS['REGISTRATION_MAIL']}>" . "\r\n";
 			$subject= 'Your registration is almost complete!';
 
 			//

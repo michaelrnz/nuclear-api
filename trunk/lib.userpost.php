@@ -291,13 +291,13 @@
 		private static function sendDestroyVerification( $rcpt, $hash )
 		{
 			$body = "In order to complete your account removal please continue to the following link:<br /><br />" . 
-				"<a href=\"http://{$GLOBALS['APPLICATION_DOMAIN']}/account/destroy/$hash\">http://{$GLOBALS['APPLICATION_DOMAIN']}/account/destroy/$hash</a><br /><br />" . 
+				"<a href=\"http://{$GLOBALS['DOMAIN']}/account/destroy/$hash\">http://{$GLOBALS['DOMAIN']}/account/destroy/$hash</a><br /><br />" . 
 				"If you did not initiate a account removal, please report this to {$GLOBALS['SUPPORT_MAIL']}.<br /><br />" . 
 				"Thank you,<br />{$GLOBALS['APPLICATION_NAME']}";
 
 			$headers = 'MIME-Version: 1.0' . "\r\n";
 			$headers.= "Content-Type: text/html; charset=utf-8\r\n";
-			$headers.= "From: {$GLOBALS['APPLICATION_NAME']} <{$GLOBALS['AUTH_MAIL']}>\r\n";
+			$headers.= "From: {$GLOBALS['SUPPORT_MAIL']} <{$GLOBALS['SUPPORT_MAIL']}>\r\n";
 
 			$subject = "Complete your {$GLOBALS['APPLICATION_NAME']} account removal\r\n";
 
@@ -309,13 +309,13 @@
 		private static function sendResetVerification( $rcpt, $hash )
 		{
 			$body = "In order to complete your password reset please continue to the following link:<br /><br />" . 
-				"<a href=\"http://{$GLOBALS['APPLICATION_DOMAIN']}/reset/$hash\">http://{$GLOBALS['APPLICATION_DOMAIN']}/reset/$hash</a><br /><br />" . 
+				"<a href=\"http://{$GLOBALS['DOMAIN']}/reset/$hash\">http://{$GLOBALS['DOMAIN']}/reset/$hash</a><br /><br />" . 
 				"If you did not initiate a password reset, please report this to {$GLOBALS['SUPPORT_MAIL']}.<br /><br />" . 
 				"Thank you,<br />{$GLOBALS['APPLICATION_NAME']}";
 
 			$headers = 'MIME-Version: 1.0' . "\r\n";
 			$headers.= "Content-Type: text/html; charset=utf-8\r\n";
-			$headers.= "From: {$GLOBALS['APPLICATION_NAME']} <{$GLOBALS['AUTH_MAIL']}>\r\n";
+			$headers.= "From: {$GLOBALS['PASSWORD_MAIL']} <{$GLOBALS['PASSWORD_MAIL']}>\r\n";
 
 			$subject = "Reset your {$GLOBALS['APPLICATION_NAME']} password\r\n";
 
@@ -326,7 +326,7 @@
 		private static function sendChangeEmailVerification( $rcpt, $hash )
 		{
 			$body = "In order to complete your change of email, please continue to the following link:<br /><br />" . 
-				"<a href=\"http://{$GLOBALS['APPLICATION_DOMAIN']}/mailverify/$hash\">http://{$GLOBALS['APPLICATION_DOMAIN']}/mailverify/$hash</a><br /><br />" . 
+				"<a href=\"http://{$GLOBALS['DOMAIN']}/mailverify/$hash\">http://{$GLOBALS['DOMAIN']}/mailverify/$hash</a><br /><br />" . 
 				"If you did not initiate a change of email, please report this to {$GLOBALS['SUPPORT_MAIL']}.<br /><br />" . 
 				"Thank you,<br />{$GLOBALS['APPLICATION_NAME']}<br /><br />" . 
 				"Note: For security purposes, you must be logged on to complete this process.";
