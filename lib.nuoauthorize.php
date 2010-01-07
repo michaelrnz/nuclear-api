@@ -11,6 +11,7 @@
   */
 
   require_once('lib.nuoauth.php');
+  require_once("class.nuselect.php");
 
   class NuOAuthorize
   {
