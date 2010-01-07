@@ -1,5 +1,5 @@
 <?php
-
+  require_once( 'class.nuselect.php' );
 
   class NuPacketNamespace
   {
