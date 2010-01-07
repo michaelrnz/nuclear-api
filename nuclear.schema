@@ -21,7 +21,7 @@ CREATE TABLE `nu_domain` (
   `name` varchar(255) default NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -56,7 +56,7 @@ CREATE TABLE `nu_federated_namespace` (
   `uri` varchar(255) default NULL,
   PRIMARY KEY  (`id`),
   KEY `prefix` (`prefix`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -134,7 +134,7 @@ CREATE TABLE `nu_name` (
   `name` varchar(64) NOT NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -211,14 +211,26 @@ DROP TABLE IF EXISTS `nu_packet_index`;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
 CREATE TABLE `nu_packet_index` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `publisher` int(10) unsigned NOT NULL,
-  `ts` int(10) unsigned NOT NULL,
-  `arrival` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+ `id` int(10) unsigned NOT NULL auto_increment,
+ `publisher` int(10) unsigned NOT NULL,
+ `global_id` int(10) unsigned NOT NULL,
+ `ts` int(10) unsigned NOT NULL,
+ `arrival` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   PRIMARY KEY  (`id`),
   KEY `publisher` (`publisher`,`ts`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 SET character_set_client = @saved_cs_client;
+
+--
+-- Table structure for table `nu_publisher_packet_index`
+--
+
+CREATE TABLE `nu_publisher_packet_index` (
+ `publisher` int(10) unsigned NOT NULL,
+ `id` int(10) unsigned NOT NULL auto_increment,
+ `packet` int(10) unsigned NOT NULL,
+ PRIMARY KEY  (`publisher`,`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 
 --
 -- Table structure for table `nu_relation`
@@ -250,7 +262,7 @@ CREATE TABLE `nu_user` (
   `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `domain` (`domain`,`name`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -444,7 +456,7 @@ CREATE TABLE `nuclear_username` (
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`),
   UNIQUE KEY `hash` (`hash`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -474,15 +486,25 @@ create table nu_packet_proxy (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 
 
-create table nu_packet_queue (
-  id int unsigned not null auto_increment, 
-  publisher int unsigned not null, 
-  global_id int unsigned not null,
-  local_id int unsigned not null,
-  mode enum('notify','publish','unpublish','republish') default 'publish', 
-  data blob, 
-  primary key(id)
-);
+create table nu_preference (
+ id int unsigned not null, 
+ label varchar(32) not null, 
+ int_store int, 
+ blob_store blob, 
+ primary key(id,label)
+) engine=innodb DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `nu_packet_queue` (
+ `id` int(10) unsigned NOT NULL auto_increment,
+ `publisher` int(10) unsigned NOT NULL,
+ `global_id` int(10) unsigned NOT NULL,
+ `local_id` int(10) unsigned NOT NULL,
+ `mode` enum('notify','publish','unpublish','republish') default 'publish',
+ `data` blob,
+ PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
 
 CREATE VIEW `NuclearUser` AS (
   select `U`.`id` AS `id`,`N`.`name` AS `name`,`D`.`name` AS `domain` 
