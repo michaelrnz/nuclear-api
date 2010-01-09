@@ -36,12 +36,30 @@
       // create federated user
       $publisher_id   = NuFederatedUsers::id( $publisher, $req_data['domain'], $domain_id, true );
 
+        $relation = NuRelation::check( $subscriber_id, $publisher_id );
+
+        if( $relation == 'subscriber' )
+          throw new Exception("Already following publisher");
+
+        if( $relation == 'publisher' )
+        {
+          $model = 'mutual';
+        }
+        else if( is_null($relation) )
+        {
+          $model = 'subscriber';
+        }
+        else
+        {
+          throw new Exception("${relation} relation exists");
+        }
+
       // create tokens
       $token          = NuFederatedStatic::generateToken( $publisher_id );
       $token_secret   = NuFederatedStatic::generateToken( $token );
 
       // insert federated relation (user, party, model, remote)
-      NuRelation::update( $subscriber_id, $publisher_id, 'subscriber', true );
+      NuRelation::update( $subscriber_id,$publisher_id, $model, true );
       NuFederatedIdentity::addPublisherAuth( $subscriber_id, $publisher_id, $token, $token_secret );
       
       // remove request auth

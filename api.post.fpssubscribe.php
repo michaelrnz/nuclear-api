@@ -2,6 +2,7 @@
 
   require_once("abstract.callwrapper.php");
   require_once("lib.nufederated.php");
+  require_once("lib.nurelation.php");
 
   class postFPSSubscribe extends CallWrapper
   {
@@ -33,6 +34,31 @@
 
       if( !$domain_id )
 	throw new Exception("Publisher domain is not identified", 0);
+        
+        // check existing relation
+        $publisher_id = NuUser::userID( $publisher, $domain, $domain_id );
+
+        if( $publisher_id > 0 )
+        {
+            $relation = NuRelation::check( $subscriber_id, $publisher_id  );
+
+            if( $relation == 'subscriber' )
+                throw new Exception("Already following publisher");
+
+            if( $relation == 'publisher' )
+            {
+                $model = 'mutual';
+            }
+            else if( is_null($relation) )
+            {
+                $model = 'subscriber';
+            }
+            else
+            {
+                throw new Exception("${relation} relation exists");
+            }
+        }
+
 
       // create request keys
       $request_token  = NuFederatedStatic::generateToken();

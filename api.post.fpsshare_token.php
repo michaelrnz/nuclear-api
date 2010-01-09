@@ -58,9 +58,28 @@
 
       // good, downmix subscriber
       $subscriber_id = NuFederatedUsers::subscriber( $this->call->subscriber, true );
+        
+        // need relation checking to set mutual
+        $relation = NuRelation::check( $subscriber_id, $publisher );
+
+        if( $relation == 'subscriber' )
+            throw new Exception("Already following publisher");
+
+        if( $relation == 'publisher' )
+        {
+            $model = 'mutual';
+        }
+        else if( is_null($relation) )
+        {
+            $model = 'subscriber';
+        }
+        else
+        {
+            throw new Exception("${relation} relation exists");
+        }
 
       // insert federated relation (user, party, model, remote)
-      NuRelation::update( $publisher, $subscriber_id, 'publisher', true );
+      NuRelation::update( $subscriber_id, $publisher, $model, true );
       NuFederatedIdentity::addSubscriberAuth( $subscriber_id, $publisher, safe_slash($oauth_token), safe_slash($oauth_token_secret));
 
       // now have access to publish to subscriber's inbox

@@ -13,6 +13,54 @@
   require_once('lib.nuoauth.php');
   require_once("class.nuselect.php");
 
+  //
+  // Token Select query
+  //
+  abstract class FederatedTokenSelect extends NuSelect
+  {
+    function __construct($consumer_key, $token)
+    {
+      parent::__construct("nu_federated_auth T");
+      $this->field(
+	      array(
+		'U.name', 'U.domain',
+		'T.publisher', 'T.subscriber', 
+		'T.token', 'T.secret'
+	      ));
+
+      $this->where("T.token='{$token}'");
+      $this->where("U.domain='{$consumer_key}'");
+    }
+  }
+
+  //
+  // Publisher tokens
+  // Who is a subscriber for Publisher with $token
+  //
+  class OAuthPublisherTokens extends FederatedTokenSelect
+  {
+    function __construct($consumer_key, $token)
+    {
+      parent::__construct($consumer_key, $token);
+      $this->join("NuclearUser as U",		      "U.id=T.publisher");
+    }
+  }
+
+  //
+  // Subscriber tokens
+  // Who is the publisher for Subcriber with $token
+  //
+  class OAuthSubscriberTokens extends FederatedTokenSelect
+  {
+    function __construct($consumer_key, $token)
+    {
+      parent::__construct($consumer_key, $token);
+      $this->join("NuclearUser as U",		      "U.id=T.subscriber");
+    }
+  }
+
+
+
   class NuOAuthorize
   {
 
@@ -84,44 +132,31 @@
     }
 
     
-    // FEDERATION
-
     //
-    // Authorize a Publisher
+    // Federated OAuth Pub-Sub
     //
-    public static function publisher( $resource, $method, &$request, $param_filter='' )
+    protected static function federated( $mode, $resource, $method, &$request, $param_filter='' )
     {
 
       $auth            = self::parameters( $request );
       $consumer_key    = str_replace("'","",$auth['oauth_consumer_key']);
-      $consumer_secret = $consumer_key;
+      $consumer_secret = $consumer_key; // the domain
       $token           = str_replace("'","",$auth['oauth_token']);
       $signature       = $request['oauth_signature'];
 
       if( !$signature )
 	return array(false, "Missing signature from oauth parameters");
 
-      $token_table    = 'nu_federated_publisher_auth';
-      $user_table     = 'nu_user';
-      $domain_table   = 'nu_domain';
-
       //
       // get consumer-request relation
-      $quth = new NuSelect("{$token_table} as T");
-      $quth->field(
-	      array(
-		'D.id', 'D.name as domain',
-		'T.user', 'T.federated_user', 
-		'N.name', 
-		'T.token as token', 'T.secret as secret'
-	      ));
-
-      $quth->join("nu_user as U",		      "U.id=T.federated_user");
-      $quth->join("nu_name as N",		      "N.id=U.name");
-      $quth->join("nu_domain as D",		      "D.id=U.domain");
-
-      $quth->where("T.token='{$token}'");
-      $quth->where("D.name='{$consumer_key}'");
+      if( $mode == 'publisher' )
+      {
+        $quth = new OAuthPublisherTokens($consumer_key, $token);
+      }
+      else if( $mode == 'subscriber' )
+      {
+        $quth = new OAuthSubscriberTokens($consumer_key, $token);
+      }
 
       $auth_data = $quth->single("Error fetching tokens");
 
@@ -152,7 +187,24 @@
 
 
     //
-    // Authorize a Federation
+    // Authorize a Publisher
+    //
+    public static function publisher( $resource, $method, &$request, $param_filter='' )
+    {
+      return self::federated( 'publisher', $resource, $method, $request, $param_filter );
+    }
+
+    //
+    // Authorize a Subscriber
+    //
+    public static function subscriber( $resource, $method, &$request, $param_filter='' )
+    {
+      return self::federated( 'subscriber', $resource, $method, $request, $param_filter );
+    }
+
+
+    //
+    // Authorize a Federation Request ? fmp/access_token
     //
     public static function federation( $resource, $method, &$request, $param_filter='' )
     {
