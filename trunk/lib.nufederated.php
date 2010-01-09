@@ -4,15 +4,17 @@
   require_once('lib.nuoauth.php');
   require_once('lib.nufiles.php');
 
+  require_once('class.nuselect.php');
+
 
 
 
   //
   // Identification and Generation lib
   //
+
   class NuFederatedStatic
   {
-    //
     // Generate HASH token for Consumer
     //
     public function generateToken( $seed=false )
@@ -20,7 +22,6 @@
       return hash("sha1", mt_rand() . microtime(true) . $seed);
     }
 
-    //
     // domain as token/secret
     //
     public static function domain( $domain )
@@ -31,7 +32,6 @@
 	'token'=>$d, 
 	'secret'=>$d);
     }
-
   }
 
 
@@ -43,16 +43,25 @@
   class NuFederatedIdentity
   {
     //
+    // create Federated relation
+    // publish->subscribe
+    //
+    public static function addFederatedAuth( $publisher, $subscriber, $token, $secret )
+    {
+      WrapMySQL::void(
+        "insert into nu_federated_auth (publisher, subscriber, token, secret) ".
+	"values ({$publisher}, {$subscriber}, '{$token}', '{$secret}');",
+	"Error adding subscriber auth");
+    }
+
+    //
     // create Publisher relation
     // Publisher is a Federated User
     // Subscriber is local
     //
     public static function addPublisherAuth( $subscriber, $publisher, $token, $secret )
     {
-      WrapMySQL::void(
-        "insert into nu_federated_publisher_auth (user, federated_user, token, secret) ".
-	"values ($subscriber, $publisher, '{$token}', '{$secret}');",
-	"Error adding publisher auth");
+        self::addFederatedAuth( $publisher, $subscriber, $token, $secret );
     }
 
     //
@@ -62,10 +71,7 @@
     //
     public static function addSubscriberAuth( $subscriber, $publisher, $token, $secret )
     {
-      WrapMySQL::void(
-        "insert into nu_federated_subscriber_auth (user, federated_user, token, secret) ".
-	"values ($publisher, $subscriber, '{$token}', '{$secret}');",
-	"Error adding subscriber auth");
+        self::addFederatedAuth( $publisher, $subscriber, $token, $secret );
     }
   }
 
@@ -75,60 +81,53 @@
 
 
 
-  class NuFederatedRelation
+  //
+  // Select all subscribers from AUTH tuples
+  //
+
+  class NuFederatedSubscribers extends NuSelect
   {
-    //
-    // query the list of subscribers from db
-    //
-    public static function subscribers( $publisher )
+    function __construct( $publisher )
     {
-      if( !$publisher ) return null;
-
-      return WrapMySQL::q(
-	      "select T.user ".
-	      "from nu_federated_publisher_auth as T ".
-	      "where T.federated_user={$publisher};",
-	      "Error querying subscribers");
+      parent::__construct( 'nu_federated_auth A' );
+      $this->field( array("A.subscriber") );
+      $this->where("A.publisher={$publisher}");
     }
+  }
 
+
+  //
+  // Select subscriber AUTH tuples (remote)
+  //
+
+  class NuFederatedSubscriberKeys extends NuSelect
+  {
+    function __construct( $publisher )
+    {
+      if( !$publisher )
+        throw new Exception("Invalid publisher (Subscribers)",5);
+
+      parent::__construct("nu_federated_auth T");
+
+      NuSelect::eventFilter( $this, "subscriber_query", array("fields"=>"premerge","joins"=>"postmerge","conditions"=>"postmerge") );
+
+        $this->field(
+                array(
+                    'N.name', 'D.name as domain', 
+                    'T.token', 'T.secret as token_secret', 
+                    "'{$GLOBALS['DOMAIN']}' as consumer_key",
+                    "'{$GLOBALS['DOMAIN']}' as consumer_secret"
+                )
+            );
+
+      $this->join('NuclearUser U', 'U.id=T.subscriber');
+      $this->where("T.publisher={$publisher}");
+      $this->where("U.domain!='{$GLOBALS['DOMAIN']}'");
+    }
   }
 
   class NuFederatedPublishing
   {
-
-    //
-    // query the list of subscribers from db
-    //
-    private static function subscribers( $publisher )
-    {
-      if( !$publisher ) return null;
-
-      $tq = new NuSelect('_void_');
-      $tq = NuEvent::filter('subscriber_query', $q);
-
-      $q = new NuSelect('nu_federated_subscriber_auth as T');
-      $q->fields      = $tq->fields;
-      $q->joins	      = $tq->joins;
-      $q->conditions  = $tq->conditions;
-
-      $q->field(
-	    array(
-	      'N.name', 'D.name as domain', 
-	      'T.token', 'T.secret as token_secret', 
-	      "'{$GLOBALS['DOMAIN']}' as consumer_key",
-	      "'{$GLOBALS['DOMAIN']}' as consumer_secret"
-	    )
-	  );
-
-      $q->join('nu_user as F', 'F.id=T.federated_user');
-      $q->join('nu_name as N', 'N.id=F.name');
-      $q->join('nu_domain as D', 'D.id=F.domain');
-
-      $q->where("T.user={$publisher}");
-      $q->where("D.name!='{$GLOBALS['DOMAIN']}'");
-
-      return $q;
-    }
 
     //
     // queue a packet for dispatch
@@ -176,7 +175,7 @@
 		      "packet"=> $packet_data
 		     );
 
-      $subscribers  = self::subscribers( $publisher );
+      $subscribers  = new NuFederatedSubscriberKeys( $publisher );
 
       self::postSubscribers( '/api/fmp/notify.json', $subscribers, $fps_params, $GLOBALS['CACHE'] . '/notify.log' );
     }
@@ -203,7 +202,7 @@
 		      "packet"=> $packet_data
 		     );
 
-      $subscribers  = self::subscribers( $publisher );
+      $subscribers  = new NuFederatedSubscriberKeys( $publisher );
 
       self::postSubscribers( '/api/fps/'. $prefix .'publish.json', $subscribers, $fps_params, $GLOBALS['CACHE'] . '/'. $prefix .'publishing.log' );
     }
@@ -224,7 +223,7 @@
 		      "id"    => $packet_id,
 		     );
 
-      $subscribers  = self::subscribers( $publisher );
+      $subscribers  = new NuFederatedSubscriberKeys( $publisher );
 
       self::postSubscribers( '/api/fps/unpublish.json', $subscribers, $fps_params, $GLOBALS['CACHE'] . '/unpublishing.log' );
     }
@@ -259,7 +258,6 @@
 	}
       }
     }
-
   }
 
 

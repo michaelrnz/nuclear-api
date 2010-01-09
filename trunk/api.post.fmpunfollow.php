@@ -30,14 +30,8 @@
 			// FEDERATED CORE / LOCAL
 			//
 			WrapMySQL::void(
-			  "delete from nu_federated_subscriber_auth ".
-			  "where user={$publisher->id} && federated_user={$subscriber->id} ".
-			  "limit 1;"
-			);
-
-			WrapMySQL::void(
-			  "delete from nu_federated_publisher_auth ".
-			  "where user={$subscriber->id} && federated_user={$publisher->id} ".
+			  "delete from nu_federated_auth ".
+			  "where publisher={$publisher->id} && subscriber={$subscriber->id} ".
 			  "limit 1;"
 			);
 

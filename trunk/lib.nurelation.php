@@ -153,7 +153,9 @@
 			  $o->model = $model;
 			}
 
-			$o->success = self::__update( $user, $party, $model, $remote ? false : true );
+                        file_put_contents($GLOBALS['CACHE'] . "/relations.log", "$user => $model => $party\n", FILE_APPEND);
+
+			$o->success = self::__update( $user, $party, $model );
 
 			// raise post event
 			NuEvent::raise( 'nu_post_relation_update', $o );

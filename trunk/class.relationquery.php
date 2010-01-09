@@ -1,4 +1,5 @@
 <?php
+  require_once('class.nuselect.php');
   
   class RelationQuery extends NuSelect
   {
