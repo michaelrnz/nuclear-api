@@ -17,10 +17,10 @@
 
     private function publisherID()
     {
-      if( isset( $GLOBALS['FPS_AUTHORIZED'] ) )
+      if( $GLOBALS['AUTH_TYPE']=='oauth_publisher' )
       {
         $this->local = false;
-        return $GLOBALS['FPS_AUTHORIZED']['federated_user'];
+        return $GLOBALS['AUTH_RESP']['publisher'];
       }
       else if( isset( $GLOBALS['USER_CONTROL'] ) )
       {
@@ -113,7 +113,7 @@
 
       //
       // CHECK FOR TIMESTAMP IN PACKET
-      if( preg_match('/<timestamp>(\d+)</timestamp>/', $packet_data, $ts ) )
+      if( preg_match('/<timestamp>(\d+)<\/timestamp>/', $packet_data, $ts ) )
       {
 	$timestamp = $ts[1];
       }
@@ -213,7 +213,7 @@
 
       //
       // CHECK FOR TIMESTAMP IN PACKET
-      if( preg_match('/<timestamp>(\d+)</timestamp>/', $packet_data, $ts ) )
+      if( preg_match('/<timestamp>(\d+)<\/timestamp>/', $packet_data, $ts ) )
       {
 	$timestamp = $ts[1];
       }
@@ -239,9 +239,9 @@
 	$publisher->name   = $user_name->item(0)->textContent;
 	$publisher->domain = $user_domain->item(0)->textContent;
 
-	if( strtolower($publisher->name) != strtolower($GLOBALS['FPS_AUTHORIZED']['name']) )
+	if( strtolower($publisher->name) != strtolower($GLOBALS['AUTH_RESP']['name']) )
 	  $proxy_published = true;
-	else if( strtolower($publisher->domain) != strtolower($GLOBALS['FPS_AUTHORIZED']['domain']) )
+	else if( strtolower($publisher->domain) != strtolower($GLOBALS['AUTH_RESP']['domain']) )
 	  $proxy_published = true;
 	
 	if( $proxy_published )
@@ -265,7 +265,7 @@
       // LOG PROXY AUTH
       if( $publisher->proxy )
       {
-	NuPackets::proxy( $publisher_id, $global_id );
+	//NuPackets::proxy( $publisher_id, $global_id );
       }
 
       //
@@ -316,6 +316,7 @@
       {
         $packet_xml->documentElement->removeChild( $user_node->item(0) );
       }
+
 
       //
       // STORAGE REMOTE 

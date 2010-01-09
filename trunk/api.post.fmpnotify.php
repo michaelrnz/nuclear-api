@@ -16,10 +16,10 @@
 
     private function publisherID()
     {
-      if( isset( $GLOBALS['FPS_AUTHORIZED'] ) )
+      if( $GLOBALS['AUTH_TYPE'] == 'oauth_publisher' )
       {
         $this->local = false;
-        return $GLOBALS['FPS_AUTHORIZED']['federated_user'];
+        return $GLOBALS['AUTH_RESP']['publisher'];
       }
       else if( isset( $GLOBALS['USER_CONTROL'] ) )
       {
@@ -180,9 +180,9 @@
 	$publisher->name   = $user_name->item(0)->textContent;
 	$publisher->domain = $user_domain->item(0)->textContent;
 
-	if( strtolower($publisher->name) != strtolower($GLOBALS['FPS_AUTHORIZED']['name']) )
+	if( strtolower($publisher->name) != strtolower($GLOBALS['AUTH_RESP']['name']) )
 	  $proxy_published = true;
-	else if( strtolower($publisher->domain) != strtolower($GLOBALS['FPS_AUTHORIZED']['domain']) )
+	else if( strtolower($publisher->domain) != strtolower($GLOBALS['AUTH_RESP']['domain']) )
 	  $proxy_published = true;
 	
 	if( $proxy_published )

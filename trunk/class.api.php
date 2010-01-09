@@ -277,7 +277,6 @@
                     
                     $GLOBALS['AUTH_TYPE'] = 'oauth_publisher';
                     $GLOBALS['AUTH_RESP'] = array_splice( $auth_resp, 0, 10 );
-                    $GLOBALS['FPS_AUTHORIZED'] = array_splice( $auth_resp, 0, 10 );
                     return true;
 
                     break;

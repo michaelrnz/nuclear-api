@@ -184,10 +184,10 @@
       $ts = $timestamp ? $timestamp : time();
       return WrapMySQL::affected(
         "insert ignore into nu_packet_inbox (".
-          "select user as subscriber, {$packet_id} as packet, {$ts} as ts ".
+          "select party as subscriber, {$packet_id} as packet, {$ts} as ts ".
 	  "from nu_relation as R ".
-	  "left join nu_user as U on U.id=R.user ".
-	  "where R.user={$publisher} && R.model=1 && ". // user with subscriptions
+	  "left join nu_user as U on U.id=R.party ".
+	  "where R.user={$publisher} && (R.model=1 || R.model=2) && ".
 	  "U.domain=(select id from nu_domain where name='{$GLOBALS['DOMAIN']}')".
         ");",
         "nu_packet_inbox error (publish)");
