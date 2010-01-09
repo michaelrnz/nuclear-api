@@ -14,10 +14,10 @@
 
     private function publisherID()
     {
-      if( isset( $GLOBALS['FPS_AUTHORIZED'] ) )
+      if( $GLOBALS['AUTH_TYPE'] == 'oauth_publisher' )
       {
         $this->local = false;
-        return $GLOBALS['FPS_AUTHORIZED']['federated_user'];
+        return $GLOBALS['AUTH_RESP']['publisher'];
       }
       else if( isset( $GLOBALS['USER_CONTROL'] ) )
       {

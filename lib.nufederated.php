@@ -113,7 +113,7 @@
 
         $this->field(
                 array(
-                    'N.name', 'D.name as domain', 
+                    'U.name', 'U.domain', 
                     'T.token', 'T.secret as token_secret', 
                     "'{$GLOBALS['DOMAIN']}' as consumer_key",
                     "'{$GLOBALS['DOMAIN']}' as consumer_secret"

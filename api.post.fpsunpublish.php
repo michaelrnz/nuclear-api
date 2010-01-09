@@ -9,15 +9,15 @@
     /*
 	PARAMS
 	id	  // remote identification of packet
-	publisher // should be known from FPS_AUTH or LOCAL
+	publisher // should be known from AUTH_TYPE
     */
 
     private function publisherID()
     {
-      if( isset( $GLOBALS['FPS_AUTHORIZED'] ) )
+      if( $GLOBALS['AUTH_TYPE']=='oauth_publisher' )
       {
         $this->local = false;
-        return $GLOBALS['FPS_AUTHORIZED']['federated_user'];
+        return $GLOBALS['AUTH_RESP']['publisher'];
       }
       else if( isset( $GLOBALS['USER_CONTROL'] ) )
       {
