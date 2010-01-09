@@ -20,7 +20,7 @@
     protected $grouping;
     protected $order;
     protected $limit;
-    protected $offest;
+    protected $offset;
 
     protected $result;
 
@@ -132,7 +132,7 @@
       {
 	$limit .= "limit {$this->limit}";
         if( $this->offset )
-	  $limit= "offset {$this->offset}";
+	  $limit .= " offset {$this->offset}";
       }
       $values[7] = $limit;
 
