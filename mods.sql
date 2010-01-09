@@ -1,1 +1,1 @@
-create table nu_preference (id int unsigned not null, label varchar(32) not null, int_store int, blob_store blob, primary key(id,label)) engine=innodb;
+alter table nu_relation drop primary key, add primary key(user,party), add index(user,model);
