@@ -124,8 +124,11 @@
 		{
 			if( $this->xsl->hasChildNodes() )
 			{
-			$this->loadStylesheet( $this->xsl );
-			return self::$processor->transformToXML( $this );
+			  $this->loadStylesheet( $this->xsl );
+			  $str = self::$processor->transformToXML( $this );
+
+                          if( is_string($str) )
+                            return $str;
 			}
 			return "";
 		}
@@ -134,8 +137,8 @@
 		{
 			if( $this->xsl->hasChildNodes() )
 			{
-			$this->loadStylesheet( $this->xsl );
-			return self::$processor->transformToDoc( $this );
+			  $this->loadStylesheet( $this->xsl );
+			  return self::$processor->transformToDoc( $this );
 			}
 			return "";
 		}
