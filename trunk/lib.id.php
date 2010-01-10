@@ -67,12 +67,9 @@
 		  if( !Keys::checkAuth( $u, $k ) )
 		    return false;
 
-		  $q = "select N.name, U.email, S.*, (S.level+0) as level_id ".
-		       "from nu_user ".
-		       "inner join nuclear_user as U on U.id=nu_user.id ".
-		       "left join nu_name as N on N.id=nu_user.name ".
-		       "left join nuclear_system as S ON S.id=U.id ".
-		       "where N.name='{$u}' limit 1;";
+		  $q = "select NuclearAuthorized.* ".
+		       "from NuclearAuthorized ".
+		       "where NuclearAuthorized.name='{$u}' limit 1;";
 
 		       // second condition needed to make sure key is valid, although generating a random key is unlikely
 		  
@@ -81,24 +78,6 @@
 
 		// NOTICE userapi has been removed, use tokens
 		//
-		// get user authorization by API key
-		/*
-		public static function userByAPI( $k )
-		{
-			// check and split key
-			if( preg_match('/^([\+=_0-9A-Za-z]{22})([\+=_0-9A-Za-z]{22})$/', str_replace(' ','+',$k), $key_match)==0 )
-				throw new Exception("Invalid API key format");
-
-			// simple user control query
-			$q = "SELECT nuclear_user.name, nuclear_user.email, nuclear_user.domain, nuclear_system.*, (nuclear_system.level+0) AS level_id FROM nuclear_userapi
-				LEFT JOIN nuclear_system ON nuclear_system.id=nuclear_userapi.id
-				LEFT JOIN nuclear_user ON nuclear_user.id=nuclear_userapi.id
-				WHERE key0='{$key_match[1]}' && key1='{$key_match[2]}'
-				LIMIT 1;";
-
-			return WrapMySQL::single( $q, "Unable to query user api key" );
-		}
-		*/
 
 		//
 		// get user authorizaton by Login u-p
@@ -106,13 +85,10 @@
 		{
 			$user = safe_slash($u);
 
-		  $q = "select N.name, U.email, S.*, (S.level+0) as level_id ".
-		       "from nu_user ".
-		       "inner join nuclear_userkey as K on K.id=nu_user.id ".
-		       "left join nuclear_user as U on U.id=K.id ".
-		       "left join nu_name as N on N.id=nu_user.name ".
-		       "left join nuclear_system as S ON S.id=K.id ".
-		       "where N.name='{$user}' && K.pass='{$p}' limit 1;";
+		  $q = "select NuclearAuthorized.* ".
+		       "from NuclearAuthorized ".
+		       "inner join nuclear_userkey as K on K.id=NuclearAuthorized.id ".
+		       "where NuclearAuthorized.name='{$user}' && K.pass='{$p}' limit 1;";
 
 			return WrapMySQL::single( $q, "Unable to authenticate user by password" );
 		}
@@ -135,13 +111,9 @@
 		public static function userByName( $n )
 		{
 
-		  $q = "select nu_user.id, N.name, D.name as domain, U.email, S.level, (S.level+0) as level_id ".
-		       "from nu_user ".
-		       "left join nu_domain as D on D.id=nu_user.domain ".
-		       "left join nu_name as N on N.id=nu_user.name ".
-		       "inner join nuclear_user as U on U.id=nu_user.id ".
-		       "left join nuclear_system as S ON S.id=U.id ".
-		       "where D.name='{$GLOBALS['DOMAIN']}' && N.name='{$n}' limit 1;";
+		  $q = "select NU.* ".
+		       "from NuclearAuthorized NU ".
+		       "where NU.name='{$n}' && NU.domain='{$GLOBALS['DOMAIN']}' limit 1;";
 
 		  return WrapMySQL::single( $q, "Unable to query user" );
 		}
@@ -157,12 +129,9 @@
 		{
 			if( !is_numeric($id) ) return false;
 			return  WrapMySQL::single( 
-				  "SELECT N.name, U.email, S.*, (S.level+0) AS level_id ".
-				  "FROM nu_user ".
-				  "LEFT JOIN nu_name as N on N.id=nu_user.name ".
-				  "LEFT JOIN nuclear_system as S on S.id=nu_user.id ".
-				  "LEFT JOIN nuclear_user as U ON U.id=nu_user.id ".
-				  "WHERE nu_user.id=$id LIMIT 1;", "Unable to get user control");
+				  "SELECT NuclearAuthorized.* ".
+				  "FROM NuclearAuthorized ".
+				  "WHERE NuclearAuthorized.id=$id LIMIT 1;", "Unable to get user control");
 		}
 
 	}

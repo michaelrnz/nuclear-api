@@ -242,7 +242,7 @@ CREATE TABLE `nu_user` (
   `name` int(10) unsigned NOT NULL,
   `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   PRIMARY KEY  (`id`),
-  UNIQUE KEY `domain` (`domain`,`name`)
+  UNIQUE KEY `name` (`name`,`domain`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 SET character_set_client = @saved_cs_client;
 
@@ -490,6 +490,14 @@ CREATE TABLE `nu_packet_queue` (
 CREATE VIEW `NuclearUser` AS (
   select `U`.`id` AS `id`,`N`.`name` AS `name`,`D`.`name` AS `domain` 
   from ((`nu_user` `U` left join `nu_domain` `D` on((`D`.`id` = `U`.`domain`))) left join `nu_name` `N` on((`N`.`id` = `U`.`name`)))
+);
+
+
+create view NuclearAuthorized as (
+ select NuclearUser.*, U.email, S.level, S.verified, (S.level+0) as level_id 
+ from NuclearUser 
+ left join nuclear_user U on U.id=NuclearUser.id 
+ left join nuclear_system S on S.id=NuclearUser.id
 );
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
