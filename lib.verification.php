@@ -24,7 +24,7 @@
 
 			//
 			// fixed length hash
-			if( preg_match('/^[_\+=0-9A-Za-z]{44}$/', $h)==0 ) $exc = "Invalid hash format";
+			if( preg_match('/^[_\+=0-9A-Za-z]$/', $h)==0 ) $exc = "Invalid hash format";
 
 			$verification = WrapMySQL::q( "SELECT * FROM nuclear_verify WHERE hash='$h' && user='$u' LIMIT 1;", "Unable to verify user" . mysql_error() );
 
@@ -40,7 +40,6 @@
 			//
 			// get array data
 			$verified = mysql_fetch_array( $verification );
-			$pass = $verified['pass'];
 
 			//
 			// insert into nu_user
@@ -58,7 +57,7 @@
 					$q = "INSERT INTO nuclear_user (id, name, email, ts) VALUES ($id, '$u', '". $verified['email'] ."', '". $verified['ts'] ."');";
 					WrapMySQL::affected( $q, "Unable to insert user" . mysql_error(), 10 );
 
-					$q = "INSERT INTO nuclear_userkey (id, pass, verify) VALUES ($id, '". $verified['pass'] ."', '". $verified['hash'] ."');";
+					$q = "INSERT INTO nuclear_userkey (id, auth) VALUES ($id, UNHEX('". $verified['auth'] ."'));";
 					WrapMySQL::affected( $q, "Unabled to insert userkey" . mysql_error(), 11 );
 
 					// NOTICE userapi has been removed, user tokens

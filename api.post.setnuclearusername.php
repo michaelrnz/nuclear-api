@@ -5,7 +5,8 @@
 	*/
 
 	require_once( 'abstract.callwrapper.php' );
-	require( 'lib.fields.php' );
+        require_once( 'lib.nuuser.php' );
+	require_once( 'lib.fields.php' );
 
 	class postSetNuclearUsername extends CallWrapper
 	{
@@ -36,28 +37,42 @@
 
 			require_once('lib.keys.php');
 
-			$password = Keys::password( $GLOBALS['USER_CONTROL']['name'], $this->call->password );
+			$password = new NuclearPassword( $GLOBALS['USER_CONTROL']['name'], $this->call->password );
 
-			if( ID::checkUserPassword( $user_id, $password )==0 )
+			if( ID::checkUserPassword( $user_id, $password->token )==0 )
 			{
 				$o->message = "Set username requires valid user-password";
 				return $o;
 			}
 
-			$affect = WrapMySQL::affected(
-					"UPDATE nuclear_username SET hash=SHA1(LOWER('{$username}')), name='{$username}' WHERE id=$user_id LIMIT 1;",
+                        //
+                        // get id for new username
+                        $name_id    = NuUser::nameID( $username );
+
+                        //
+                        // change the name in nu_user
+                        $affect     = WrapMySQL::affected(
+                                        "update nu_user set name={$name_id} where id={$user_id} limit 1;",
+                                        "Unable to change nu_user");
+
+                        //
+                        // change the nuclear_username (possibly a view)
+			$affect     = WrapMySQL::affected(
+					"update nuclear_username SET name='{$username}' WHERE id={$user_id} limit 1;",
 					"Unable to change username");
 
-			$affect = WrapMySQL::affected(
-					"UPDATE nuclear_user SET name='$username' WHERE id=$user_id LIMIT 1;",
+                        //
+                        // change the nuclear_user name (possibly remove in future)
+			$affect     = WrapMySQL::affected(
+					"update nuclear_user SET name='{$username}' WHERE id={$user_id} LIMIT 1;",
 					"Unable to change user");
 
 			// more important than we know
 			if( $affect>0 )
 			{
-				$newhash = Keys::password( $username, $this->call->password );
+				$new_pass = new NuclearPassword( $username, $this->call->password );
 				WrapMySQL::affected(
-					"UPDATE nuclear_userkey SET pass='{$newhash}' WHERE id=$user_id LIMIT 1;",
+					"UPDATE nuclear_userkey SET auth=UNHEX('{$new_pass}') WHERE id=$user_id LIMIT 1;",
 					"Unable to set user password, please use reset in unable to login");
 			}
 
@@ -75,14 +90,8 @@
 			return $o;
 		}
 
-		protected function initXML()
-		{
-			$o = $this->initJSON();
-			$o->outputMessage = "No xml format for this method";
-			return $o;
-		}
 	}
 
-	return postSetNuclearUsername;
+	return "postSetNuclearUsername";
 
 ?>

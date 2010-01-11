@@ -6,7 +6,7 @@
   {
     function __construct( $ts, $root='response' )
     {
-      parent::__construct( '1.0', 'utf8', $ts );
+      parent::__construct( '1.0', 'utf-8', $ts );
       $root = $this->createElement($root);
       $this->appendRoot($root);
     }

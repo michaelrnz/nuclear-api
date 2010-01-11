@@ -64,20 +64,18 @@
 		{
 		  require_once('lib.keys.php');
 
-		  if( !Keys::checkAuth( $u, $k ) )
+		  if( !NuclearAuthToken::verify( $k, $u ) )
 		    return false;
 
 		  $q = "select NuclearAuthorized.* ".
 		       "from NuclearAuthorized ".
 		       "where NuclearAuthorized.name='{$u}' limit 1;";
 
-		       // second condition needed to make sure key is valid, although generating a random key is unlikely
-		  
 		  return WrapMySQL::single( $q, "Unabled to query user auth key" );
 		}
 
+
 		// NOTICE userapi has been removed, use tokens
-		//
 
 		//
 		// get user authorizaton by Login u-p
@@ -88,17 +86,17 @@
 		  $q = "select NuclearAuthorized.* ".
 		       "from NuclearAuthorized ".
 		       "inner join nuclear_userkey as K on K.id=NuclearAuthorized.id ".
-		       "where NuclearAuthorized.name='{$user}' && K.pass='{$p}' limit 1;";
+		       "where NuclearAuthorized.name='{$user}' && K.auth=UNHEX('{$p}') limit 1;";
 
 			return WrapMySQL::single( $q, "Unable to authenticate user by password" );
 		}
 
 		//
 		// check user password valid
-		public static function checkUserPassword( $id, $p )
+		public static function checkUserPassword( $id, $auth )
 		{
 			$q =   "SELECT id FROM nuclear_userkey
-				WHERE nuclear_userkey.id=$id && nuclear_userkey.pass='$p';";
+				WHERE nuclear_userkey.id=$id && nuclear_userkey.auth=UNHEX('$auth');";
 
 			$r = WrapMySQL::q( $q, "Unable to check user password." );
 

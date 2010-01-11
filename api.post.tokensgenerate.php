@@ -17,6 +17,7 @@
 
   class postTokensGenerate extends CallWrapper
   {
+
     private function maxId( $user_id )
     {
       $r = WrapMySQL::single(
@@ -27,6 +28,7 @@
 
     protected function initJSON()
     {
+
       $resp = new JSON( $this->time );
 
       //
@@ -45,7 +47,7 @@
 	$ts = time() + 315360000;
       }
 
-      //
+
       // get username
       $user = strtolower($GLOBALS['USER_CONTROL']['name']);
       $user_id= $GLOBALS['USER_CONTROL']['id'];
@@ -53,7 +55,7 @@
       if( strlen($user)==0 )
 	throw new Exception("Missing valid user name", 4);
 
-      //
+
       // check key count
       $max_id = $this->maxId( $user_id );
 
@@ -62,16 +64,22 @@
 
       $key_id = $max_id ? $max_id+1 : 1;
 
-      //
-      // generate, rely on APPLICATION_AUTH_SECRET
-      $new_token = Keys::auth( $user, $ts );
 
-      //
+      // generate, rely on APPLICATION_AUTH_SECRET
+      $new_token = new NuclearAuthToken( $user, $ts );
+
       // store key for validity
-      $q = "insert into nuclear_api_auth (user, id, auth_key, ts) values ($user_id, $key_id, '". str_replace("-{$ts}","", $new_token) ."', $ts);";
+      // FUTURE auth_key will be removed
+
+      $q = "insert into nuclear_api_auth ".
+           "(user, id, auth_token, ts) ".
+           "values ($user_id, $key_id, ".
+           "UNHEX('". $new_token->token ."'), $ts);";
+
       $r = WrapMySQL::affected($q, "Unable to insert authorization key");
+
       $resp->token_id = $key_id;
-      $resp->token = str_replace("-{$ts}","", $new_token);
+      $resp->token = $new_token->user_token;
       $resp->timestamp = $ts;
 	
       return $resp;
@@ -81,11 +89,14 @@
     {
       $o = $this->initJSON();
       header('Content-type: text/xml');
-      echo'<response status="ok" ms="'. number_format((microtime(true) - $this->time)*1000,3) ."\"><token id=\"{$o->token_id}\" auth_key=\"{$o->token}\" timestamp=\"{$o->timestamp}\" /></response>";
+      echo'<response status="ok" ms="'. 
+           number_format((microtime(true) - $this->time)*1000,3) .
+           "\"><token id=\"{$o->token_id}\" auth_key=\"{$o->token}\" timestamp=\"{$o->timestamp}\" /></response>";
+
       exit();
     }
   }
 
-  return postTokensGenerate;
+  return "postTokensGenerate";
 
 ?>

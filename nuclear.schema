@@ -162,7 +162,7 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
 CREATE TABLE `nu_packet_hash` (
   `publisher` int(10) unsigned NOT NULL,
-  `hash` char(40) NOT NULL,
+  `hash` binary(20) NOT NULL,
   `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   PRIMARY KEY  (`publisher`,`hash`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
@@ -287,6 +287,7 @@ CREATE TABLE `nuclear_api_auth` (
   `user` int(10) unsigned NOT NULL,
   `id` tinyint(4) NOT NULL default '1',
   `auth_key` varbinary(255) default NULL,
+  `auth` binary(20) NOT NULL,
   `ts` int(10) unsigned NOT NULL,
   PRIMARY KEY  (`user`,`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
@@ -301,7 +302,7 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
 CREATE TABLE `nuclear_change_email` (
   `user` int(10) unsigned NOT NULL,
-  `hash` char(44) default NULL,
+  `hash` varchar(255) default NULL,
   `email` varchar(320) default NULL,
   `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   PRIMARY KEY  (`user`),
@@ -336,7 +337,7 @@ SET character_set_client = utf8;
 CREATE TABLE `nuclear_password_reset` (
   `user` int(10) unsigned NOT NULL,
   `name` varchar(64) character set utf8 default NULL,
-  `hash` char(44) character set ascii default NULL,
+  `hash` varchar(255) character set ascii default NULL,
   `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
   PRIMARY KEY  (`user`),
   KEY `name` (`name`),
@@ -418,7 +419,7 @@ SET character_set_client = utf8;
 CREATE TABLE `nuclear_userkey` (
   `id` int(10) unsigned NOT NULL,
   `pass` char(28) NOT NULL,
-  `verify` char(44) NOT NULL,
+  `auth` BINARY(20) NOT NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 SET character_set_client = @saved_cs_client;
@@ -432,11 +433,9 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
 CREATE TABLE `nuclear_username` (
   `id` int(10) unsigned NOT NULL auto_increment,
-  `hash` char(40) default NULL,
   `name` varchar(64) NOT NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`),
-  UNIQUE KEY `hash` (`hash`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
@@ -448,7 +447,7 @@ DROP TABLE IF EXISTS `nuclear_verify`;
 SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = utf8;
 CREATE TABLE `nuclear_verify` (
-  `hash` char(44) default NULL,
+  `hash` varchar(255) default NULL,
   `user` varchar(64) NOT NULL,
   `pass` char(28) default NULL,
   `email` varchar(320) default NULL,
