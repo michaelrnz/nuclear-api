@@ -11,11 +11,9 @@
 	
 	*/
 
-	require_once('wrap.mysql.php');
-	require_once('class.eventlibrary.php');
 	require_once('lib.keys.php');
 
-	class UserPost extends EventLibrary
+	class UserPost
 	{
 		protected static $listeners = null;
 		
@@ -30,21 +28,20 @@
 			if( !$r ) return array(false, "User does not exist");
 
 			// create hash
-			$h = implode( '', Keys::generate( $r['id'] . number_format((microtime(true) * rand())) . $e ) );
+                        $hash = new NuclearVerification($r['id'] . number_format((microtime(true) * rand())) . $e);
 
 			// insert hash to password table
-			$c = WrapMySQL::affected( "INSERT INTO nuclear_password_reset (user,name,hash) VALUES ({$r['id']},'{$r['name']}', '$h');", "Unable to create reset hash");
+			$c = WrapMySQL::affected( "INSERT INTO nuclear_password_reset (user,name,hash) VALUES ({$r['id']},'{$r['name']}', '{$hash->token}');", "Unable to create reset hash");
 
 			if( !$c ) return array(false, "Could not insert reset data");
 
 			// send
-			self::sendResetVerification( $e, $h );
+			self::sendResetVerification( $e, $hash->token );
 
-			// fire onHashed
 			$o = new Object();
 			$o->details = $r;
-			$o->hash = $h;
-			self::fire('BeginReset',$o);
+			$o->hash = $hash->token;
+                        NuEvent::action("nu_request_reset_password", $o);
 
 			return array($c,"Check email");
 		}
@@ -64,17 +61,18 @@
 			}
 
 			// check user password
-			if( ID::checkUserPassword( $id, Keys::password($user, $p) ) )
+                        $password = new NuclearPassword( $user, $p );
+			if( ID::checkUserPassword( $id, $password->token ) )
 			{
 				// generate hash
-				$hash = implode( '', Keys::generate( $id . number_format((microtime(true) * rand())) . $e ) );
+                                $hash = new NuclearVerification($id . number_format((microtime(true) * rand())) . $e);
 
 				// insert data into table
-				WrapMySQL::void( "INSERT INTO nuclear_change_email (user, hash, email) VALUES($id, '$hash', '$e');",
+				WrapMySQL::void( "INSERT INTO nuclear_change_email (user, hash, email) VALUES($id, '{$hash}', '$e');",
 						 "Error while inserting email verification to database." );
 
 				// send validation to new email
-				self::sendChangeEmailVerification( $e, $hash );
+				self::sendChangeEmailVerification( $e, $hash->token );
 
 				return true;
 			}
@@ -88,13 +86,13 @@
 		{
 			$hash = str_replace(' ','+',$h);
 
-			if( preg_match('/^[0-9a-zA-Z_\+=]{44}$/', $hash)==0 )
+			if( preg_match('/^[0-9a-zA-Z_\+=]$/', $hash)==0 )
 				throw new Exception("Invalid hash format.");
 
 			return WrapMySQL::affected(
 				"UPDATE nuclear_user LEFT JOIN nuclear_change_email ON nuclear_change_email.nuclear_user=user.id
 				SET nuclear_user.email=_change_email.email
-				WHERE nuclear_change_email.nuclear_user=$id && nuclear_change_email.hash='$hash';",
+				WHERE nuclear_change_email.nuclear_user=$id && nuclear_change_email.hash='$h';",
 				"Error while updating email" );
 		}
 
@@ -109,7 +107,7 @@
 
 			//
 			// check hash size
-			if( !(preg_match('/^[a-zA-Z0-9=_\+]{44}$/', $hash)) ) throw new Exception("Invalid hash format");
+			if( !(preg_match('/^[a-zA-Z0-9=_\+]$/', $hash)) ) throw new Exception("Invalid hash format");
 
 			//
 			// check for hash
@@ -148,12 +146,12 @@
 				throw new Exception("Invalid password format {6,64}.");
 			}
 
-			$pass_old = Keys::password( $u, $old_p );
-			$pass_new = Keys::password( $u, $new_p );
+			$pass_old = new NuclearPassword( $u, $old_p );
+			$pass_new = new NuclearPassword( $u, $new_p );
 
-			if( ID::checkUserPassword( $id, $pass_old ) )
+			if( ID::checkUserPassword( $id, $pass_old->token ) )
 			{
-				return self::setPassword( $id, $pass_new );
+				return self::setPassword( $id, $pass_new->token );
 			}
 
 			return false;
@@ -171,15 +169,15 @@
 			}
 
 			// hash the pass
-			$pass= Keys::password( $u, $p );
+			$pass= new NuclearPassword( $u, $p );
 
-			return self::setPassword( $id, $pass );
+			return self::setPassword( $id, $pass->token );
 		}
 
 		// hard reset in db
-		private static function setPassword( $id, $pass )
+		private static function setPassword( $id, $auth )
 		{
-			return WrapMySQL::affected("UPDATE nuclear_userkey SET pass='$pass' WHERE id=$id LIMIT 1;", "Error on password update");
+			return WrapMySQL::affected("UPDATE nuclear_userkey SET auth=UNHEX('$auth') WHERE id=$id LIMIT 1;", "Error on password update");
 		}
 
 		//
@@ -197,21 +195,20 @@
 			if( !$r ) return array(false, "User does not exist");
 
 			// create hash
-			$h = implode( '', Keys::generate( $r['id'] . number_format((microtime(true) * rand())) . $e ) );
+			$h = new NuclearVerification( $r['id'] . number_format((microtime(true) * rand())) . $e );
 
 			// insert hash to password table
-			$c = WrapMySQL::affected( "INSERT INTO nuclear_account_destroy (id,name,hash) VALUES ({$r['id']},'{$r['name']}', '$h');", "Unable to create verification hash");
+			$c = WrapMySQL::affected( "INSERT INTO nuclear_account_destroy (id,name,hash) VALUES ({$r['id']},'{$r['name']}', '$h->token');", "Unable to create verification hash");
 
 			if( !$c ) return array(false, "Could not insert destroy data");
 
 			// send
-			self::sendDestroyVerification( $e, $h );
+			self::sendDestroyVerification( $e, $h->token );
 
-			// fire onHashed
 			$o = new Object();
 			$o->details = $r;
-			$o->hash = $h;
-			self::fire('NuclearAccountDestroyRequested',$o);
+			$o->hash = $h->token;
+                        NuEvent::action("nu_request_account_destroy", $o);
 
 			return array($c,"Please check email for verification");
 		}
@@ -226,7 +223,7 @@
 
 			//
 			// check hash size
-			if( !(preg_match('/^[a-zA-Z0-9=_\+]{40,60}$/', $hash)) ) throw new Exception("Invalid hash format", 5);
+			if( !(preg_match('/^[a-zA-Z0-9=_\+]$/', $hash)) ) throw new Exception("Invalid hash format", 5);
 
 			//
 			// check for hash
@@ -342,8 +339,5 @@
 		}
 
 	}
-
-	// begin handling
-	UserPost::init();
 
 ?>

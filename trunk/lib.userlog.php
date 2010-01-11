@@ -30,11 +30,11 @@
 			if( !($u && $o ) ) throw new Exception("Missing user or pass");
 
 			// generate pass
-			$pass = Keys::password( $u, $p );
+			$pass = new NuclearPassword( $u, $p );
 
 			// check for login
 			require_once('lib.id.php');
-			$index = ID::userLoginByPassword($u, $pass);
+			$index = ID::userLoginByPassword($u, $pass->token);
 
 			if(isset($index[0]))
 			{

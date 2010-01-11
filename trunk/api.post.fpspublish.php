@@ -5,15 +5,17 @@
   require_once("lib.nupackets.php");
   require_once("lib.nufederated.php");
 
+  // FUTURE: raw packet publishing
+  // $postdata = file_get_contents("php://input");
+
+  /*
+    PARAMS
+    id    // remote identification of packet
+    packet    // <fps packet
+  */
+
   class postFederatedPublish extends CallWrapper
   {
-    /*
-
-      PARAMS
-      id    // remote identification of packet
-      packet    // <fps packet
-
-    */
 
     private function publisherID()
     {

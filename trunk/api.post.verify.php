@@ -22,25 +22,17 @@
 			require_once( 'lib.verification.php' );
 
 			//
-			// 3rd party handler for successful verification
-			include( 'handler.postVerify.php' );
-			if( class_exists('postVerifyHandler',false) )
-			{
-				Verification::addEventListener('onSuccess', array('postVerifyHandler','success'));
-			}
-
-			//
 			// proceed with process
 			if( ($id = Verification::post( $this->call )) )
 			{
-				$o->valid = 1;
+				$o->status = "ok";
 				$o->id = $id;
-				$o->msg = "You may now proceed to login";
+				$o->message = "You may now proceed to login";
 			}
 			else
 			{
-				$o->valid = 0;
-				$o->msg = "Your verification was invalid or expired, please register again";
+				$o->valid = "error";
+				$o->message= "Your verification was invalid or expired, please register again";
 			}
 
 			return $o;
@@ -53,5 +45,5 @@
 		}
 	}
 
-	return postVerify;
+	return "postVerify";
 ?>

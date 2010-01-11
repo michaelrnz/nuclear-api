@@ -59,21 +59,21 @@
 
 			//
 			// this is the storage of passwords, md5 but combination of login and pass
-			$pass= Keys::password( $u, $p );
+                        $pass= NuclearPassword( $u, $p );
 
 			//
 			// compute the verification hash
-			$verify= implode( '', Keys::generate( $u . number_format((microtime(true) * rand())) . $e) );
+                        $verify= new NuclearVerification( $u . number_format((microtime(true) * rand())) . $e );
 
 			//
 			// compose query
-			$q= "INSERT INTO nuclear_verify (user, pass, email, hash) VALUES ('$u', '$pass', '$e', '$verify');";
+			$q= "INSERT INTO nuclear_verify (user, pass, email, hash) VALUES ('$u', '$pass', '$e', '{$verify->token}');";
 
 			//
 			// wrap insert affected
 			if( WrapMySQL::affected( $q, "Unable to insert user verification" ) > 0 )
 			{
-				return $verify;
+				return $verify->token;
 			}
 
 			return 0;

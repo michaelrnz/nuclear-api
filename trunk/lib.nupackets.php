@@ -78,7 +78,7 @@
       {
         WrapMySQL::void(
 	  "insert into nu_packet_hash (publisher, hash) ".
-	  "values ($publisher, '{$hash}');",
+	  "values ($publisher, UNHEX('{$hash}'));",
 	  "Packet hash error", 15);
       }
       catch( Exception $e )

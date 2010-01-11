@@ -321,7 +321,10 @@
             else if( isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW']) )
             {
               require_once('lib.keys.php');
-              $user_c = ID::userLoginByPassword( $_SERVER['PHP_AUTH_USER'], Keys::password($_SERVER['PHP_AUTH_USER'],$_SERVER['PHP_AUTH_PW']) );
+              $auth_u = $_SERVER['PHP_AUTH_USER'];
+              $auth_p = $_SERVER['PHP_AUTH_PW'];
+              $password = new NuclearPassword( $auth_u, $auth_p );
+              $user_c = ID::userLoginByPassword( $auth_u, $password->token );
             }
 
             //
@@ -560,6 +563,9 @@
         public static function invalidate($message=false, $code=-1, $die=true)
         {
           $ms = number_format( (microtime(true) - $GLOBALS['ATIME']) * 1000, 3);
+
+          if( $code==2 )
+            header("HTTP/1.0 401 Unauthorized");
 
           switch( strtolower($GLOBALS['API_FORMAT']) )
           {
