@@ -1,49 +1,50 @@
 <?php
-	
-	/*
-		nuclear.framework
-		altman,ryan,2008
+    
+    /*
+        nuclear.framework
+        altman,ryan,2008
 
-		Verification API
-		================================================
-			generic verification model
-	*/
+        Verification API
+        ================================================
+            generic verification model
+    */
 
-	require_once( 'abstract.callwrapper.php' );
+    require_once( 'abstract.callwrapper.php' );
 
-	class postVerify extends CallWrapper
-	{
-		protected function initJSON()
-		{
-			//
-			// include the json
-			$o = new JSON( $this->time );
-			
-			require_once( 'lib.verification.php' );
+    class postVerifyRegistration extends CallWrapper
+    {
+        protected function initJSON()
+        {
+            //
+            // include the json
+            $o = new JSON( $this->time );
+            
+            require_once( 'lib.verification.php' );
 
-			//
-			// proceed with process
-			if( ($id = Verification::post( $this->call )) )
-			{
-				$o->status = "ok";
-				$o->id = $id;
-				$o->message = "You may now proceed to login";
-			}
-			else
-			{
-				$o->valid = "error";
-				$o->message= "Your verification was invalid or expired, please register again";
-			}
+            //
+            // proceed with process
+            if( ($id = Verification::post( $this->call )) )
+            {
+                $o->status = "ok";
+                $o->id = $id;
+                $o->message = "You may now proceed to login";
+            }
+            else
+            {
+                $o->valid = "error";
+                $o->message= "Your verification was invalid or expired, please register again";
+            }
 
-			return $o;
+            return $o;
 
-		}
+        }
 
-		protected function initXML()
-		{
-			return $this->initJSON();
-		}
-	}
+        protected function initXML()
+        {
+            return $this->initJSON();
+        }
+    }
 
-	return "postVerify";
+    return "postVerifyRegistration";
+
 ?>

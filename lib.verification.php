@@ -28,7 +28,7 @@
 
             //
             // fixed length hash
-            if( Fields::isVerification($hash)==0 )
+            if( Fields::isVerification($h)==0 )
                 throw new Exception("Invalid hash format", 5);
 
             $verified = WrapMySQL::single(
