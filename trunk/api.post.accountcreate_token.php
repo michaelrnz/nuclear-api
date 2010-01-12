@@ -2,7 +2,7 @@
   
   /*
 
-    /api/tokens/generate - Nuclear
+    /account/create_token - Nuclear
     altman,ryan,2009
     =============================
      generate a key using SECRET
@@ -15,7 +15,7 @@
   require_once( 'abstract.callwrapper.php' );
   require_once( 'lib.keys.php');
 
-  class postTokensGenerate extends CallWrapper
+  class postCreateToken extends CallWrapper
   {
 
     private function maxId( $user_id )
@@ -72,7 +72,7 @@
       // FUTURE auth_key will be removed
 
       $q = "insert into nuclear_api_auth ".
-           "(user, id, auth_token, ts) ".
+           "(user, id, auth, ts) ".
            "values ($user_id, $key_id, ".
            "UNHEX('". $new_token->token ."'), $ts);";
 
@@ -97,6 +97,6 @@
     }
   }
 
-  return "postTokensGenerate";
+  return "postCreateToken";
 
 ?>

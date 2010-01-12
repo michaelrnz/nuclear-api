@@ -1,7 +1,7 @@
 <?php
   
   /*
-    /api/keys/generate - Nuclear
+    /account/destroy_token - Nuclear
     altman,ryan,2009
     =============================
      generate a key using SECRET
@@ -13,7 +13,7 @@
   require_once( 'abstract.callwrapper.php' );
   require_once( 'lib.keys.php');
 
-  class postTokensDestroy extends CallWrapper
+  class postDestroyToken extends CallWrapper
   {
     private function query( $user_id, $token_id )
     {
@@ -65,6 +65,6 @@
     }
   }
 
-  return postTokensDestroy;
+  return "postDestroyToken";
 
 ?>
