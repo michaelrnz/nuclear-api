@@ -1,79 +1,75 @@
 <?php
-	
-	/*
-		nuclear.framework
-		altman,ryan,2008
+    
+    /*
+        nuclear.framework
+        altman,ryan,2008
 
-		Logout API
-		====================================
-			closes user session and data
-	*/
+        Logout API
+        ====================================
+            closes user session and data
+    */
 
-	require_once( 'abstract.callwrapper.php' );
+    require_once( 'abstract.callwrapper.php' );
 
-	class postLogout extends CallWrapper
-	{
-		private function logout()
-		{
-			if( !isset($_SESSION['logged']) ) throw new Exception("User is not logged in");
+    class postSessionDestroy extends CallWrapper
+    {
+        private function logout()
+        {
+            if( !isset($_SESSION['logged']) ) throw new Exception("User is not logged in");
 
-			require_once( 'lib.userlog.php' );
+            require_once( 'lib.userlog.php' );
 
-			return UserLog::out();
-		}
+            return UserLog::out();
+        }
 
-		protected function initJSON()
-		{
-			$logged = $this->logout();
+        protected function initJSON()
+        {
+            $logged = $this->logout();
 
-			// include the json
-			$o = new JSON( $this->time );
+            // include the json
+            $o = new JSON( $this->time );
 
-			if( $logged )
-			{
-				$o->status = "ok";
-				$o->message = "You are now logged out.";
-			}
-			else
-			{
-				$o->status = "error";
-				$o->message = "User was not logged out";
-			}
+            if( $logged )
+            {
+                $o->status = "ok";
+                $o->message = "You are now logged out.";
+            }
+            else
+            {
+                $o->status = "error";
+                $o->message = "User was not logged out";
+            }
 
-			return $o;
+            return $o;
 
-		}
+        }
 
-		protected function initXML()
-		{
-			$logged = $this->logout();
+        protected function initXML()
+        {
+            $logged = $this->logout();
 
-			require_once('class.xmlcontainer.php');
+            require_once('class.xmlresponse.php');
 
-			$resp = new XMLContainer("1.0","utf-8",$this->time);
+            $resp = new XMLResponse($this->time);
 
-			$root = $resp->createElement("response");
+            if( $logged )
+            {
+                $status = "ok";
+                $message = "You are now logged out.";
+            }
+            else
+            {
+                $status = "error";
+                $message = "User was not logged out";
+            }
 
-			if( $logged )
-			{
-				$status = "ok";
-				$message = "You are now logged out.";
-			}
-			else
-			{
-				$status = "error";
-				$message = "User was not logged out";
-			}
+            $resp->status = $status;
+            $resp->append( $resp->attach("message", $message) );
 
-			$root->setAttribute("status", $status);
-			$root->appendChild( $resp->createElement("message", $message) );
+            return $resp;
+        }
+    }
 
-			$resp->appendChild($root);
-
-			return $resp;
-		}
-	}
-
-	return postLogout;
+    return "postSessionDestroy";
 
 ?>
