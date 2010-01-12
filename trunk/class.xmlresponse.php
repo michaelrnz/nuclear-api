@@ -16,8 +16,12 @@
       switch( $f )
       {
         case 'status':
-	  $this->root->setAttribute('status', $v);
-	  break;
+	    $this->root->setAttribute('status', $v);
+	    break;
+
+        default:
+            $this->root->setAttribute($f,$v);
+            break;
       }
     }
 

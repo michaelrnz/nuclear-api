@@ -1,87 +1,85 @@
 <?php
-	
-	/*
-		nuclear.framework
-		altman,ryan,2008
+    
+    /*
+        nuclear.framework
+        altman,ryan,2008
 
-		LoginAPI call
-		=======================================
-			logins in, starts session
-			returns session id
-	*/
+        LoginAPI call
+        =======================================
+            logins in, starts session
+            returns session id
+    */
 
-	require_once( 'abstract.callwrapper.php' );
+    require_once( 'abstract.callwrapper.php' );
 
-	class postLogin extends CallWrapper
-	{
-	  
-		private function login()
-		{
-			// check for already logged
-			if( isset($_SESSION['USER_CONTROL']) && $_SESSION['USER_CONTROL']['id']>0 ) throw new Exception("User already logged in", 0);
+    class postSessionCreate extends CallWrapper
+    {
+      
+        private function login()
+        {
+            // check for already logged
+            if( isset($_SESSION['USER_CONTROL']) && $_SESSION['USER_CONTROL']['id']>0 ) throw new Exception("User already logged in", 0);
 
-			// include the lib
-			require_once( 'lib.userlog.php' );
-			return UserLog::in( $this->call );
-		}
+            // include the lib
+            require_once( 'lib.userlog.php' );
+            return UserLog::in( $this->call );
+        }
 
-		protected function initJSON()
-		{
-			$logged = $this->login();
+        protected function initJSON()
+        {
+            $logged = $this->login();
 
-			// make return object
-			$o = new JSON( $this->time );
+            // make return object
+            $o = new JSON( $this->time );
 
-			if( $logged )
-			{
-				$o->status  = "ok";
-				$o->valid   = 1;
-				$o->message = "You are now logged in.";
-				$o->session = $logged;
-			}
-			else
-			{
-				$o->status  = "error";
-				$o->valid   = 0;
-				$o->message = "Please check your credentials.";
-			}
+            if( $logged )
+            {
+                $o->status  = "ok";
+                $o->valid   = 1;
+                $o->message = "You are now logged in.";
+                $o->session = $logged;
+            }
+            else
+            {
+                $o->status  = "error";
+                $o->valid   = 0;
+                $o->message = "Please check your credentials.";
+            }
 
-			return $o;
+            return $o;
 
-		}
+        }
 
-		protected function initXML()
-		{
-			$logged = $this->login();
+        protected function initXML()
+        {
+            $logged = $this->login();
 
-			require_once('class.xmlcontainer.php');
+            require_once('class.xmlresponse.php');
 
-			$resp = new XMLContainer("1.0","utf-8",$this->time);
+            $resp = new XMLResponse($this->time);
 
-			$root = $resp->createElement("response");
+            if( $logged )
+            {
+                $status = "ok";
+                $message = "You are now logged in.";
+            }
+            else
+            {
+                $status = "error";
+                $message = "Please check your credentials";
+            }
 
-			if( $logged )
-			{
-				$status = "ok";
-				$message = "You are now logged in.";
-			}
-			else
-			{
-				$status = "error";
-				$message = "Please check your credentials";
-			}
+            $resp->status = $status;
 
-			$root->setAttribute("status", $status);
+            if( $logged )
+              $resp->session = $logged;
 
-			if( $logged )
-			  $root->setAttribute("session", $logged);
+            $resp->append( $resp->attach("message", $message) );
 
-			$root->appendChild( $resp->createElement("message", $message) );
-			$resp->appendChild($root);
-			return $resp;
-		}
-	}
+            return $resp;
+        }
+    }
 
-	return postLogin;
+    return "postSessionCreate";
 
 ?>

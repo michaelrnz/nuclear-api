@@ -404,7 +404,7 @@
         // default no override
         protected function overridePostAuthentication($op="")
         {
-          if( isType("register|verify|login|resetpassword|verifyresetpassword|nuclearaccountsdestroyverification|fpsshare_token|fpspublisher_token", $op) ) return true;
+          if( isType("accountregister|accountverify_registration|sessioncreate|accountreset_password|accountverify_password|accountverify_destroy|fpsshare_token|fpspublisher_token", $op) ) return true;
         }
 
 
