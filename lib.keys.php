@@ -26,7 +26,7 @@
             switch( $a )
             {
                 case 'user_token':
-                    return str_replace( '/','_', base64_encode( pack("H*", $this->token) ) );
+                    return self::pack( $this->token );
 
                 case 'token':
                     return $this->token;
@@ -37,6 +37,11 @@
         {
             if( is_null($this->token) ) return "";
             return $this->token;
+        }
+
+        public static function pack( $token )
+        {
+            return str_replace( '/','_', base64_encode( pack("H*", $token) ) );
         }
 
         public static function unpack( $token )
