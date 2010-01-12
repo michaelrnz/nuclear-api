@@ -80,10 +80,6 @@
 						{
 							$GLOBALS['post_error'] = $f;
 							throw new Exception( "Invalid data in registration: " . $f . self::restrictions($f) );
-							/*
-							$this->valid[0]=false;
-							$this->valid[$f]='Error';
-							*/
 						}
 					}
 					else if( $f != 'site' )
