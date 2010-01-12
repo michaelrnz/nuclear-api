@@ -10,6 +10,12 @@
 
 	class Fields
 	{
+		public static function isVerification($hash)
+                {
+		        $pattern = '/^[0-9a-zA-Z_\+=]{16,}$/';
+			return preg_match( $pattern, $hash );
+                }
+
 		public static function isValidEmailAddress($address='') 
 		{
 			$pattern = '/^(([a-z0-9!#$%&*+-=?^_`{|}~]'.'[a-z0-9!#$%&*+-=?^_`{|}~.]*'.'[a-z0-9!#$%&*+-=?^_`{|}~])'.'|[a-z0-9!#$%&*+-?^_`{|}~]|'.'("[^"]+"))'.'[@]'.'([-a-z0-9]+\.)+'.'([a-z]{2}'.'|com|net|edu|org'.'|gov|mil|int|biz'.'|pro|info|arpa|aero'.'|coop|name|museum)$/ix';

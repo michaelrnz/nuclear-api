@@ -59,7 +59,7 @@
 
 			//
 			// this is the storage of passwords, md5 but combination of login and pass
-                        $pass= NuclearPassword( $u, $p );
+                        $pass= new NuclearPassword( $u, $p );
 
 			//
 			// compute the verification hash
@@ -67,7 +67,7 @@
 
 			//
 			// compose query
-			$q= "INSERT INTO nuclear_verify (user, pass, email, hash) VALUES ('$u', '$pass', '$e', '{$verify->token}');";
+			$q= "INSERT INTO nuclear_verify (user, auth, email, hash) VALUES ('$u', '$pass', '$e', '{$verify->token}');";
 
 			//
 			// wrap insert affected
