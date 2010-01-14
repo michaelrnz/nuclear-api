@@ -215,12 +215,15 @@
         {
             require_once('lib.id.php');
 
+            $auth_data  = null;
+
             //
             // Check for Nuclear's native auth_token
             //
             if( $auth_key = $this->resource['auth_token'] )
             {
-                $user_c = ID::userByAuthKey( strtolower($this->resource['auth_user']), $auth_key );
+                $auth_type  = 'nuclear';
+                $auth_data  = ID::userByAuthKey( strtolower($this->resource['auth_user']), $auth_key );
             }
             //
             // Check for OAuth
@@ -231,6 +234,7 @@
 
                 // check the auth_type
                 $oauth_type = $this->operationType( $this->opText() );
+                $auth_type  = $oauth_type;
 
                 switch( $oauth_type )
                 {
@@ -254,10 +258,7 @@
                     if( !$auth_resp[0] )
                       throw new Exception("Unauthorized fps request", 2);
                     
-                    $GLOBALS['AUTH_TYPE'] = $oauth_type;
-                    $GLOBALS['AUTH_RESP'] = $auth_resp;
-                    $GLOBALS['FPS_REQUEST_AUTH'] = $auth_resp;
-                    return true;
+                    $auth_data  = $auth_resp;
                     break;
 
                   //
@@ -275,10 +276,7 @@
                     if( !$auth_resp[0] )
                       throw new Exception("Unauthorized oauth_publisher request", 2);
                     
-                    $GLOBALS['AUTH_TYPE'] = 'oauth_publisher';
-                    $GLOBALS['AUTH_RESP'] = array_splice( $auth_resp, 0, 10 );
-                    return true;
-
+                    $auth_data  = array_splice( $auth_resp, 0, 10 );
                     break;
 
                   //
@@ -296,11 +294,9 @@
                     if( !$auth_resp[0] )
                       throw new Exception("Unauthorized oauth_subscriber request", 2);
                     
-                    $GLOBALS['AUTH_TYPE'] = 'oauth_subscriber';
-                    $GLOBALS['AUTH_RESP'] = $auth_resp;
-                    return true;
-
+                    $auth_data  = $auth_resp;
                     break;
+
 
                   default:
                     // USER OAUTH
@@ -313,7 +309,8 @@
             //
             else if( $_SESSION['logged'] == 1 )
             {
-                $user_c = $_SESSION['USER_CONTROL'];
+                $auth_data  = $_SESSION['USER_CONTROL'];
+                $auth_type  = 'cookie';
             }
             //
             // BASIC AUTH
@@ -321,18 +318,22 @@
             else if( isset($_SERVER['PHP_AUTH_USER']) && isset($_SERVER['PHP_AUTH_PW']) )
             {
               require_once('lib.keys.php');
-              $auth_u = $_SERVER['PHP_AUTH_USER'];
-              $auth_p = $_SERVER['PHP_AUTH_PW'];
-              $password = new NuclearPassword( $auth_u, $auth_p );
-              $user_c = ID::userLoginByPassword( $auth_u, $password->token );
+              $auth_u       = $_SERVER['PHP_AUTH_USER'];
+              $auth_p       = $_SERVER['PHP_AUTH_PW'];
+              $password     = new NuclearPassword( $auth_u, $auth_p );
+              $auth_data    = ID::userLoginByPassword( $auth_u, $password->token );
+              $auth_type    = 'basic';
             }
 
             //
             // Set user control for local user
             //
-            if( $user_c )
+            if( $auth_data )
             {
-                $GLOBALS['USER_CONTROL'] = $user_c;
+                $GLOBALS['USER_CONTROL'] = $auth_data;
+
+                $auth_user  = new AuthenticatedUser( $auth_data['id'], $auth_data['name'], get_global('DOMAIN') );
+                $auth_user->setAuthorization( $auth_type, $auth_data );
                 
                 // do we return always true for authorized users?
                 // user-level checking can be left to Call
@@ -355,8 +356,7 @@
 
 
             // BLOCK GETS BY AUTHORITY, fall back on Basic
-            $getBlocks = $this->requireAuthentication();
-            if( isType( $getBlocks, $this->opText() ) )
+            if( isType( $this->requireAuthentication(), $this->opText() ) )
             {
                 $this->basicAuthentication();
             }
@@ -542,16 +542,8 @@
 
             if( $user_data )
             {
-              $user_obj        = new Object();
-              $user_obj->id    = $user_data['id'];
-              $user_obj->name    = $user_data['name'];
-              $user_obj->email    = $user_data['email'];
-              $user_obj->md5    = md5($user_data['email']);
-
+              $local_user       = new LocalUser( $user_data['id'], $user_data['name'], $user_data['email'] );
               $GLOBALS['USER'] = $user_obj;
-              $GLOBALS['USER_ID'] = $user_data['id'];
-              $GLOBALS['USER_NAME'] = $user_data['name'];
-              $GLOBALS['USER_EMAIL'] = $user_data['email'];
               $GLOBALS['USER_MD5'] = md5($user_data['email']);
             }
           }

@@ -62,13 +62,23 @@
     class LocalUser extends UserObject implements iSingleton
     {
         private static $_instance;
+        protected $email;
 
-        function __construct( $id, $name )
+        function __construct( $id, $name, $email )
         {
             parent::__construct( $id, $name, get_global('DOMAIN') );
 
+            $this->email = $email;
+
             if( is_null(self::$_instance) )
                 self::$_instance = $this;
+        }
+
+        function __get( $f )
+        {
+            if( $f == 'email' ) return $this->email;
+
+            return parent::__get( $f );
         }
 
         public static function getInstance()
@@ -93,6 +103,7 @@
     class AuthorizedUser extends UserObject implements iSingleton
     {
         private static $_instance;
+        protected $_properties;
         protected $auth_type;
         protected $auth_data;
 
@@ -131,6 +142,11 @@
         {
             $this->auth_type    = $type;
             $this->auth_data    = $data;
+        }
+
+        public function isLocal()
+        {
+            return isType( 'nuclear|cookie|basic', $this->auth_type );
         }
     }
 

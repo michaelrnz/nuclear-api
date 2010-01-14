@@ -11,23 +11,27 @@
   {
     function getUser( $force=true )
     {
-      if( isset($GLOBALS['USER']) && is_object($GLOBALS['USER']) )
-      {
-        return $GLOBALS['USER'];
-      }
-      else if( is_numeric($this->call->user_id) )
-      {
-        $user = new Object();
-	$user->id = intval($this->call->user_id);
-	$user->name = $this->call->user_name;
+        $user = LocalUser::getInstance();
 
-	return $user;
-      }
+        if( is_null($user) )
+        {
+            if( is_numeric($this->call->user_id) )
+            {
+                $user = new Object();
+                $user->id = intval($this->call->user_id);
+                $user->name = $this->call->user_name;
+	        return $user;
+            }
+        }
+        else
+        {
+            return $user;
+        }
 
-      if( $force )
-        throw new Exception("Missing identified user", 5);
+        if( $force )
+            throw new Exception("Missing identified user", 5);
 
-      return null;
+        return null;
     }
   }
 
