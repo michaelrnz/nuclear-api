@@ -42,4 +42,11 @@
 		//function build();
 	}
 
+
+        interface iSingleton
+        {
+            public static function getInstance();
+            public static function setInstance( &$object );
+        }
+
 ?>
