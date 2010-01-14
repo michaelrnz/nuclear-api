@@ -12,29 +12,22 @@
   {
     function getAuth()
     {
-      if( isset($GLOBALS['USER_CONTROL']) )
-      {
-        $user = new Object();
-	$user->id   = $GLOBALS['USER_CONTROL']['id'];
-	$user->name = $GLOBALS['USER_CONTROL']['name'];
+      $user = AuthorizedUser::getInstance();
 
-	return $user;
-      }
+      if( is_null($user) || !$user->isLocal() )
+        throw new Exception("Unauthorized", 2);
 
-      throw new Exception("Unauthorized", 2);
+      return $user;
     }
 
     function getUser( $force=true )
     {
-      if( isset($GLOBALS['USER']) && is_object($GLOBALS['USER']) )
-      {
-        return $GLOBALS['USER'];
-      }
+      $user = LocalUser::getInstance();
 
-      if( $force )
-        throw new Exception("Missing identified user",5);
+      if( is_null($user) && $force )
+        throw new Exception("Unidentified user",5);
 
-      return null;
+      return $user;
     }
   }
 

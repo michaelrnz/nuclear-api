@@ -58,7 +58,15 @@ function __construct() {
 		protected function loadBase()
 		{
 			require("var.global.php");
-			includer( array("class.mysqlconnection.php","wrap.mysql.php","lib.nuevent.php","class.nupreference.php") );
+			includer(
+                            array(
+                                "class.mysqlconnection.php",
+                                "wrap.mysql.php",
+                                "lib.nuevent.php",
+                                "lib.entity.php",
+                                "class.nupreference.php"
+                            )
+                        );
 		}
 
 		//

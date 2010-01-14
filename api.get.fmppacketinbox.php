@@ -4,38 +4,11 @@
         example api call
     */
 
-    require_once( 'abstract.callwrapper.php' );
-
-    abstract class baseNuclearAuthorizedMethod extends CallWrapper
-    {
-      protected function getUser()
-      {
-	if( !isset($GLOBALS['USER_CONTROL']) )
-	  throw new Exception("Unauthorized", 2);
-	
-	$user = new Object();
-	$user->id   = $GLOBALS['USER_CONTROL']['id'];
-	$user->name = $GLOBALS['USER_CONTROL']['name'];
-
-	return $user;
-      }
-    }
-
-    abstract class baseNuclearUserMethod extends CallWrapper
-    {
-      protected function getUser()
-      {
-	if( !isset($GLOBALS['USER']) )
-	  throw new Exception("Unknown user", 3);
-	
-	return $GLOBALS['USER'];
-      }
-    }
-
+    require_once('api.class.userauthmethod.php');
     require_once('class.nupacketquery.php');
     require_once('lib.nupackets.php');
 
-    class getFMPPacketInbox extends baseNuclearAuthorizedMethod
+    class getFMPPacketInbox extends apiUserAuthMethod
     {
         private function packets()
 	{
