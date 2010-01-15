@@ -12,7 +12,7 @@
     {
         private function packets()
 	{
-	  $user = $this->getUser();
+	  $user = $this->getAuth();
 
 	  if( isset($this->call->namespace) )
 	  {

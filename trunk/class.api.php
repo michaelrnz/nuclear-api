@@ -332,7 +332,7 @@
             {
                 $GLOBALS['USER_CONTROL'] = $auth_data;
 
-                $auth_user  = new AuthenticatedUser( $auth_data['id'], $auth_data['name'], get_global('DOMAIN') );
+                $auth_user  = new AuthorizedUser( $auth_data['id'], $auth_data['name'], get_global('DOMAIN') );
                 $auth_user->setAuthorization( $auth_type, $auth_data );
                 
                 // do we return always true for authorized users?
@@ -537,15 +537,8 @@
         {
           if( isset($this->resource['user']) )
           {
-            // globalize USER_ID
-            $user_data = ID::userByName( $this->resource['user'] );
-
-            if( $user_data )
-            {
-              $local_user       = new LocalUser( $user_data['id'], $user_data['name'], $user_data['email'] );
-              $GLOBALS['USER'] = $user_obj;
-              $GLOBALS['USER_MD5'] = md5($user_data['email']);
-            }
+            // globalize LocalUser
+            ID::loadUserByName( str_replace("'", "", $this->resource['user']) );
           }
         }
 
