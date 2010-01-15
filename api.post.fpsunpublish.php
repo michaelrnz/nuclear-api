@@ -14,15 +14,22 @@
 
     private function publisherID()
     {
-      if( $GLOBALS['AUTH_TYPE']=='oauth_publisher' )
+      if( $publisher = AuthorizedUser::getInstance() )
       {
-        $this->local = false;
-        return $GLOBALS['AUTH_RESP']['publisher'];
-      }
-      else if( isset( $GLOBALS['USER_CONTROL'] ) )
-      {
-        $this->local = true;
-        return $GLOBALS['USER_CONTROL']['id'];
+        if( $publisher->isLocal() )
+        {
+            $this->local = true;
+        }
+        else if( $publisher->auth_type == 'oauth_publisher' )
+        {
+            $this->local = false;
+        }
+        else
+        {
+            throw new Exception("Unauthorized publisher", 2);
+        }
+
+        return $publisher->id;
       }
       else
       {

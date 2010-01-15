@@ -117,6 +117,9 @@
 
         function __get( $f )
         {
+            if( $f == 'auth_type' )
+                return $this->auth_type;
+
             $v  = parent::__get( $f );
 
             if( is_null( $v ) && is_array( $this->auth_data ) && isset( $this->auth_data[$f] ) )
