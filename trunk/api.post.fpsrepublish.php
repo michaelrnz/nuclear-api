@@ -14,15 +14,22 @@
 
     private function publisherID()
     {
-      if( $GLOBALS['AUTH_TYPE'] == 'oauth_publisher' )
+      if( $publisher = AuthorizedUser::getInstance() )
       {
-        $this->local = false;
-        return $GLOBALS['AUTH_RESP']['publisher'];
-      }
-      else if( isset( $GLOBALS['USER_CONTROL'] ) )
-      {
-        $this->local = true;
-        return $GLOBALS['USER_CONTROL']['id'];
+        if( $publisher->isLocal() )
+        {
+            $this->local = true;
+        }
+        else if( $publisher->auth_type == 'oauth_publisher' )
+        {
+            $this->local = false;
+        }
+        else
+        {
+            throw new Exception("Unauthorized publisher", 2);
+        }
+
+        return $publisher->id;
       }
       else
       {
@@ -135,8 +142,8 @@
       // USER
       $user_node = $packet_xml->createElement('user');
       $user_node->appendChild($packet_xml->createElement('id', $publisher));
-      $user_node->appendChild($packet_xml->createElement('name', $GLOBALS['USER_CONTROL']['name']));
-      $user_node->appendChild($packet_xml->createElement('domain', $GLOBALS['DOMAIN']));
+      $user_node->appendChild($packet_xml->createElement('name', AuthorizedUser::getInstance()->name));
+      $user_node->appendChild($packet_xml->createElement('domain', get_global('DOMAIN')));
 
       //
       // FILTER USER NODE
