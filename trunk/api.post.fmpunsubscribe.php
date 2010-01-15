@@ -10,22 +10,24 @@
 
     protected function authID()
     {
-      if( $GLOBALS['AUTH_TYPE'] == 'oauth_subscriber' )
+      $user = AuthorizedUser::getInstance();
+
+      if( $user->auth_type == 'oauth_subscriber' )
       {
         $this->local == false;
         $auth           = new Object();
-        $auth->id       = $GLOBALS['AUTH_RESP']['subscriber'];
-        $auth->name     = $GLOBALS['AUTH_RESP']['name'];
-        $auth->domain   = $GLOBALS['AUTH_RESP']['domain'];
+        $auth->id       = $user->id;
+        $auth->name     = $user->name;
+        $auth->domain   = $user->domain;
         return $auth;
       }
-      else if( isset( $GLOBALS['USER_CONTROL'] ) )
+      else if( $auth->isLocal() )
       {
         $this->local = true;
         $auth           = new Object();
-        $auth->id       = $GLOBALS['USER_CONTROL']['id'];
-        $auth->name     = $GLOBALS['USER_CONTROL']['name'];
-        $auth->domain   = $GLOBALS['DOMAIN'];
+        $auth->id       = $user->id;
+        $auth->name     = $user->name;
+        $auth->domain   = $user->domain;
         return $auth;
       }
       else
