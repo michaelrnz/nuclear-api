@@ -149,7 +149,7 @@
 
 		    if( $data = WrapMySQL::single( $q, "Unable to query user by name" ) )
                     {
-                        $local_user     = new LocalUser( $data->id, $data->name, $data->email );
+                        $local_user     = new LocalUser( $data['id'], $data['name'], $data['email'] );
                         return true;
                     }
 
@@ -168,7 +168,7 @@
 
                     if( $data = WrapMySQL::single( $q, "Unable to query user by id" ) )
                     {
-                        $local_user     = new LocalUser( $data->id, $data->name, $data->email );
+                        $local_user     = new LocalUser( $data['id'], $data['name'], $data['email'] );
                         return true;
                     }
 
