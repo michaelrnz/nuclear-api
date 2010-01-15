@@ -14,10 +14,15 @@
 
     protected function initJSON()
     {
-      $subscriber     = $GLOBALS['USER_CONTROL']['name'];
-      $subscriber_id  = $GLOBALS['USER_CONTROL']['id'];
-      $publisher      = str_replace("'","",NuFederatedUsers::user( $this->call->publisher ));
-      $domain	      = str_replace("'","",NuFederatedUsers::domain( $this->call->publisher ));
+      $subscriber       = AuthorizedUser::getInstance();
+
+      if( !$subscriber->isLocal() )
+        throw new Exception("Unauthorized", 2);
+
+      $subscriber_name  = $subscriber->name;
+      $subscriber_id    = $subscriber->id;
+      $publisher        = str_replace("'","",NuFederatedUsers::user( $this->call->publisher ));
+      $domain	        = str_replace("'","",NuFederatedUsers::domain( $this->call->publisher ));
 
       if( !$publisher )
 	throw new Exception("Missing publisher", 4);
@@ -74,7 +79,7 @@
       $uri    = "http://{$domain}/api/fps/share_token.json";
       $params = array(
 	"publisher"   => "{$publisher}@{$domain}",
-	"subscriber"  => "{$subscriber}@{$GLOBALS['DOMAIN']}",
+	"subscriber"  => "{$subscriber_name}@{$GLOBALS['DOMAIN']}",
 	"request_token"		=> "{$request_token}",
 	"request_token_secret"	=> "{$request_secret}"
       );
