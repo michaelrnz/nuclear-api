@@ -277,6 +277,7 @@
                       throw new Exception("Unauthorized oauth_publisher request", 2);
                     
                     $auth_data  = array_splice( $auth_resp, 0, 10 );
+                    $auth_data['id'] = $auth_data['publisher'];
                     break;
 
                   //
@@ -295,6 +296,7 @@
                       throw new Exception("Unauthorized oauth_subscriber request", 2);
                     
                     $auth_data  = $auth_resp;
+                    $auth_data['id'] = $auth_data['subscriber'];
                     break;
 
 
