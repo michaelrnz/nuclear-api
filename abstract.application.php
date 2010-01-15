@@ -92,7 +92,7 @@
 		//
 		protected function loadRedirectLayer()
 		{
-			include( "application.redirects.php" );
+			@include( "application.redirects.php" );
 		}
 
 		/*

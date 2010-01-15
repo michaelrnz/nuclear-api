@@ -114,8 +114,10 @@
 		       "where NU.name='{$n}' && NU.domain='{$GLOBALS['DOMAIN']}' limit 1;";
 
 		  return WrapMySQL::single( $q, "Unable to query user" );
+
 		}
 
+                
 		//
 		// get user id by name
 		public static function userById( $id )
@@ -131,6 +133,47 @@
 				  "FROM NuclearAuthorized ".
 				  "WHERE NuclearAuthorized.id=$id LIMIT 1;", "Unable to get user control");
 		}
+
+
+                /*
+                    Loading LocalUser singletons
+                */
+
+                //
+                // load local user
+                public static function loadUserByName( $n )
+                {
+		    $q = "select NU.* ".
+		         "from NuclearAuthorized NU ".
+		         "where NU.name='{$n}' && NU.domain='{$GLOBALS['DOMAIN']}' limit 1;";
+
+		    if( $data = WrapMySQL::single( $q, "Unable to query user by name" ) )
+                    {
+                        $local_user     = new LocalUser( $data->id, $data->name, $data->email );
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                //
+                // load local user
+                public static function loadUserByID( $id )
+                {
+                    if( !is_numeric($id) ) return false;
+
+                    $q  = "select NuclearAuthorized.* ".
+                          "from NuclearAuthorized ".
+                          "where NuclearAuthorized.id={$id} limit 1;";
+
+                    if( $data = WrapMySQL::single( $q, "Unable to query user by id" ) )
+                    {
+                        $local_user     = new LocalUser( $data->id, $data->name, $data->email );
+                        return true;
+                    }
+
+                    return false;
+                }
 
 	}
 
