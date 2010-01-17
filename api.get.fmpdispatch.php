@@ -32,33 +32,36 @@
 
 	  $o = new JSON($this->time);
 
-	  if( is_array($packet) )
+	  if( is_object($packet) )
 	  {
 
 	    // dispatch packet
-	    switch( $packet['mode'] )
+	    switch( $packet->mode )
 	    {
 	      case 'notify':
-	        NuFederatedPublishing::dispatch( $packet['publisher'], $packet['data'] );
+	        NuFederatedPublishing::dispatch( $packet->publisher, $packet->packet );
 		break;
 
 	      case 'publish':
-	        NuFederatedPublishing::dispatch( $packet['publisher'], $packet['global_id'], $packet['data'], false );
+	        NuFederatedPublishing::dispatch( $packet->publisher, $packet->global_id, $packet->packet, false );
 		break;
 
 	      case 'republish':
-	        NuFederatedPublishing::dispatch( $packet['publisher'], $packet['global_id'], $packet['data'], true );
+	        NuFederatedPublishing::dispatch( $packet->publisher, $packet->global_id, $packet->packet, true );
 		break;
 
 	      case 'unpublish':
-	        NuFederatedPublishing::undispatch( $packet['publisher'], $packet['global_id'] );
+	        NuFederatedPublishing::undispatch( $packet->publisher, $packet->global_id );
 		break;
 	    }
 
-	    file_put_contents($GLOBALS['CACHE'] .'/dispatch.log', time() . ": {$queue_id} out for {$packet['mode']}\n", FILE_APPEND );
+	    file_put_contents(
+                $GLOBALS['CACHE'] .'/dispatch.log', 
+                time() . ": {$queue_id} out for {$packet->mode}\n",
+                FILE_APPEND );
 
 	    $o->status = "ok";
-	    $o->message = "Packet mode: {$packet['mode']}";
+	    $o->message = "Packet mode: {$packet->mode}";
 	  }
 	  else
 	  {

@@ -499,6 +499,15 @@ create view NuclearAuthorized as (
  left join nuclear_system S on S.id=NuclearUser.id
 );
 
+
+CREATE TABLE `nu_queue` (
+ `id` int(10) unsigned NOT NULL auto_increment,
+ `label` varchar(32) default NULL,
+ `data` blob,
+ PRIMARY KEY  (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;

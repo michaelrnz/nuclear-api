@@ -549,6 +549,9 @@
         // public to invalidate
         public static function invalidate($message=false, $code=-1, $die=true)
         {
+            // basic error logging
+            file_put_contents($GLOBALS['CACHE'] . "/api.log", time() . ":{$code}:{$message}\n", FILE_APPEND);
+            
           $ms = number_format( (microtime(true) - $GLOBALS['ATIME']) * 1000, 3);
 
           if( $code==2 )
