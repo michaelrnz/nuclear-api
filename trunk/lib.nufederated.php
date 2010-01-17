@@ -135,12 +135,17 @@
     public static function queue( $local_id, $publisher, $global_id, $packet_data, $dmode='publish' )
     {
       $mode = isType('unpublish|republish|publish|notify', $dmode) ? $dmode : 'publish';
-      $data = safe_slash($packet_data);
-
-      return WrapMySQL::id(
-        "insert into nu_packet_queue (publisher, global_id, local_id, mode, data) ".
-	"values ({$publisher}, {$global_id}, {$local_id}, '{$mode}', '{$data}');"
-      );
+      
+      $obj = new Object();
+      $obj->publisher = $publisher;
+      $obj->local_id    = $local_id;
+      $obj->global_id   = $global_id;
+      $obj->packet      = $packet_data;
+      $obj->mode        = $dmode;
+      
+      require_once( 'class.scheduler.php' );
+      
+      return Scheduler::getInstance()->queue( "fmp_dispatch", $obj );
     }
 
     //
@@ -148,16 +153,11 @@
     //
     public static function unqueue( $queue_id )
     {
-      $q = new NuSelect('nu_packet_queue Q');
-      $q->field('*');
-      $q->where("id={$queue_id}");
-
-      $data = $q->single();
-
-      if( $data )
-       WrapMySQL::void("delete from nu_packet_queue where id={$queue_id} limit 1;");
-
-      return $data;
+        require_once( 'class.scheduler.php' );
+        
+        $obj    = Scheduler::getInstance()->unqueue( $queue_id, "fmp_dispatch" );
+        
+        return $obj;
     }
 
     //
