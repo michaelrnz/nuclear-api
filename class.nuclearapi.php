@@ -72,7 +72,8 @@
         private static function &execute( $rest, $method, &$call, $output="json" )
         {
             // name the src
-            $src = "api." . $rest . "." . strtolower($method) . ".php";
+            $src_1  = "api.{$rest}.". strtolower($method) .".php";
+            $src_2  = "api.{$resp}.{$output}.". strtolower($method) .".php";
 
             //
             // globalize the call
@@ -80,34 +81,42 @@
 
             //
             // try include
-            $apiclass = (@include $src);
-
-            if( class_exists( $apiclass, false ) )
+            $api_class  = (@include $src_2);
+            
+            if( !$api_class )
+                $api_class  = (@include $src_1);
+            
+            if( $api_class && strlen($api_class)>1 )
             {
-                try
-                {
-                    $o = new $apiclass( microtime(true), $output, false );
-                    
-                    //
-                    // get object of instance
-                    //
-                    return $o->response;
-                }
-                catch( Exception $e )
-                {
-                    $o = new Object();
-                    $o->status      = "error";
-                    $o->valid       = 0;
-                    $o->message = $e->getMessage();
-
-                    return $o;
-                }
+                    if( class_exists( $api_class, false ) )
+                    {
+                        try
+                        {
+                            $co = new $api_class( microtime(true), $output, false );
+                            return $co->response;
+                        }
+                        catch( Exception $e )
+                        {
+                            $o  = new JSON();
+                            $o->status      = "error";
+                            $o->message = $e->getMessage();
+                            return $o;
+                        }
+                    }
+                    else
+                    {
+                        $o  = new JSON();
+                        $o->status      = "error";
+                        $o->message = "Operation is not defined: {$method}";
+                    }
             }
             else
             {
-                // should hopefully not occur
-                throw new Exception("Call to unknown API method: " . $rest . "." . $method);
+                $o = new JSON();
+                $o->status      = "error";
+                $o->message = "Operation does not exist: {$method}";
             }
+            
         }
 
 
