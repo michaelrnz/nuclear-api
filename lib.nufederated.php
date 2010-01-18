@@ -300,7 +300,7 @@
     public static function publisherID( $local_user )
     {
       $name = NuUser::filterUser($local_user);
-      return NuUser::userID( $name, $GLOBALS['DOMAIN'], false );
+      return NuUser::userID( $name, $GLOBALS['DOMAIN'] );
     }
 
     public static function subscriber( $federated_user, $auto=false )
@@ -311,15 +311,15 @@
       if( !$domain )
 	throw new Exception("Federated user must have domain");
 
-      return NuUser::userID( $user, $domain, false, true );
+      return NuUser::userID( $user, $domain, true );
     }
 
-    public static function id( $user, $domain, $domain_id, $auto=false )
+    public static function id( $user, $domain, $auto=false )
     {
       $user   = str_replace("'","",$user);
       $domain = str_replace("'","",$domain);
 
-      return NuUser::userID( $user, $domain, $domain_id, $auto );
+      return NuUser::userID( $user, $domain, $auto );
     }
 
   }

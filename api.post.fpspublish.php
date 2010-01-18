@@ -321,7 +321,7 @@
 
       //
       // REMOVE REDUNDANT NODE
-      if( $user_node->length && !$user_node->item(0)->hasChildNodes() )
+      if( $packet_xml->documentElement && $user_node->length && !$user_node->item(0)->hasChildNodes() )
       {
         $packet_xml->documentElement->removeChild( $user_node->item(0) );
       }

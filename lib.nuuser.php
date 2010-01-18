@@ -90,20 +90,8 @@
 
     //
     // identify user
-    public static function userID( $user, $domain, $domain_id, $auto=false )
+    public static function userID( $user, $domain, $auto=false )
     {
-
-      /*
-      //
-      // check for new domain
-      if( !$domain_id )
-      {
-	if( !$auto )
-	  return false;
-
-	return self::add( $user, $domain, 0 );
-      }
-      */
 
       if( !self::isValidName($user) )
         throw new Exception("Invalid federated username");
@@ -119,7 +107,7 @@
 
       if( !$r && $auto )
       {
-	$id = self::add( $user, $domain, $domain_id );
+	$id = self::add( $user, $domain );
 	return $id;
       }
 
@@ -129,11 +117,9 @@
 
     //
     // add user (does not imply usership)
-    public static function add( $name, $domain, $domain_id )
+    public static function add( $name, $domain )
     {
-      if( !$domain_id )
-	$domain_id = self::domainID( $domain );
-
+      $domain_id = self::domainID( $domain );
       $name_id  = self::nameID( $name );
 
       WrapMySQL::void(
