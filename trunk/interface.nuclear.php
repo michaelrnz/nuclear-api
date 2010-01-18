@@ -46,7 +46,7 @@
         interface iSingleton
         {
             public static function getInstance();
-            public static function setInstance( &$object );
+            //public static function setInstance( &$object );
         }
 
 ?>
