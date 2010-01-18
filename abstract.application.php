@@ -70,7 +70,8 @@
 			parent::loadBase();
 			includer(
 				array(
-					"class.localapi.php"
+					"class.localapi.php",
+					"class.nuclearapi.php"
 				)
 			);
 		}
