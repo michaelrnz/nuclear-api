@@ -22,6 +22,11 @@
 	      throw new Exception("Running without globals");
 	    }
 	  }
+            
+            function __get( $f )
+            {
+                return get_global( $f );
+            }
 
 	  private function assign($xml)
 	  {
