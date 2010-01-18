@@ -64,6 +64,7 @@
 		//
 		protected function clean($u)
 		{
+			$u = preg_replace('/\?.*/', '', $u);
 			return preg_replace( array('/^\/+/','/\/+$/'), array('',''), urldecode($u) );
 		}
 
