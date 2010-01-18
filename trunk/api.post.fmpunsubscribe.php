@@ -69,7 +69,7 @@
         throw new Exception("Invalid publisher name", 5);
 
       // identify publisher-party
-      $publisher->id = NuFederatedUsers::id( $publisher->name, $publisher->domain, false );
+      $publisher->id = NuFederatedUsers::id( $publisher->name, $publisher->domain );
       if( !$publisher->id )
         throw new Exception("Publisher does not exist", 5);
 

@@ -15,26 +15,29 @@
 
     protected function initJSON()
     {
-      $req_data = $GLOBALS['FPS_REQUEST_AUTH'];
+      $req_data = AuthorizedUser::getInstance();
 
-      if( !$req_data )
-	throw new Exception("Missing request auth");
+      if( is_null($req_data) )
+        throw new Exception("Missing request auth");
 
-      $subscriber_id = $req_data['subscriber'];
-      $publisher     = $req_data['publisher'];
-      $domain_id     = $req_data['id'];
+      if( $req_data->auth_type != 'oauth_fmp' )
+	throw new Exception("Unauthorized", 2);
+
+      $subscriber_id = $req_data->subscriber;
+      $publisher     = $req_data->publisher;
+      $domain        = $req_data->domain;
 
       if( !$subscriber_id )
 	throw new Exception("Missing subscriber", 4);
 
-      if( !$domain_id )
+      if( !$domain )
 	throw new Exception("Missing domain", 4);
 
       if( !$publisher )
 	throw new Exception("Missing publisher", 4);
 
       // create federated user
-      $publisher_id   = NuFederatedUsers::id( $publisher, $req_data['domain'], $domain_id, true );
+      $publisher_id   = NuUser::id( $publisher, $domain, true );
 
         $relation = NuRelation::check( $subscriber_id, $publisher_id );
 

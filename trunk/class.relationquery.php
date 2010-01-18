@@ -3,13 +3,10 @@
   
   class RelationQuery extends NuSelect
   {
-    function __construct( $user, $model )
+    function __construct( $user )
     {
       if( !is_numeric($user) )
         throw new Exception("Invalid relation user");
-
-      if( !is_numeric($model) )
-        throw new Exception('Invalid relation model');
 
       parent::__construct('nu_relation R');
       $this->join(
@@ -20,7 +17,6 @@
        'U.id', 'U.name', 'U.domain') );
 
       $this->where( "R.user=$user" );
-      $this->where( "R.model=$model" );
 
       // FILTER EVENT
       NuSelect::eventFilter( 
@@ -35,8 +31,9 @@
   {
     function __construct($user, $page=1)
     {
-      parent::__construct($user,1);
+      parent::__construct($user);
       $this->page(is_numeric($page) ? $page : 1, 100, 10, 100);
+      $this->where( "R.model IN (1,2)" );
     }
   }
 
@@ -44,8 +41,9 @@
   {
     function __construct($user, $page=1)
     {
-      parent::__construct($user,0);
+      parent::__construct($user);
       $this->page(is_numeric($page) ? $page : 1, 100, 10, 100);
+      $this->where( "R.model IN (0,2)" );
     }
   }
 
