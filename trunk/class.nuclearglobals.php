@@ -35,7 +35,7 @@
 	    {
 	      if( $name = $g->getAttribute('name') )
 	      {
-	        $GLOBALS[$name] = $g->textContent;
+	        $GLOBALS[$name] = rtrim($g->textContent, '/');
 	      }
 	    }
 	  }
