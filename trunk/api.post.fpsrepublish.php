@@ -155,7 +155,7 @@
 
       //
       // CHECK FOR NAMESPACES 
-      NuPacketNamespace::unlink( $packet_id );
+      NuPacketNamespace::unlink( $local_id );
       if( preg_match_all('/xmlns:(\w+)="(http:\/\/[^"]+?)"/', substr( $packet_data, 0, strpos($packet_data,'>') ), $xmlns ) )
       {
         $this->linkNS( $id, $xmlns );
