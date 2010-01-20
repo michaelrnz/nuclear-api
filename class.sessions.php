@@ -178,6 +178,17 @@
 	ini_set("session.cookie_path", "/");
 	ini_set("session.cookie_domain", ".". $GLOBALS['APPLICATION_DOMAIN']);
 
+        //
+        // require that cache be defined or definable
+        //
+        if( !isset($GLOBALS['CACHE']) )
+        {
+          if( !isset($GLOBALS['APPLICATION_ROOT']) )
+            die("Application has no root.");
+          
+          $GLOBALS['CACHE'] = $GLOBALS['APPLICATION_ROOT'] . '/cache/';
+        }
+
 	session_save_path( $GLOBALS['CACHE'] . 'sessions' );
 
 	session_set_save_handler(
