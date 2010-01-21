@@ -66,7 +66,10 @@
 			// new session
 			// Sessions::goSession();
 			session_start();
-			setcookie( $GLOBALS['APPLICATION_SESSION'], session_id() );
+
+                        //
+                        // WHY DO WE SET COOKIE?
+			setcookie( $GLOBALS['APPLICATION_SESSION'], session_id(), time()+86400, '/' );
 
 			//
 			// SESSION ip set
