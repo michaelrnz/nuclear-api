@@ -18,7 +18,8 @@
         private function login()
         {
             // check for already logged
-            if( isset($_SESSION['USER_CONTROL']) && $_SESSION['USER_CONTROL']['id']>0 ) throw new Exception("User already logged in", 0);
+            if( isset($_SESSION['USER_CONTROL']) && $_SESSION['USER_CONTROL']['id']>0 )
+                throw new Exception("User already logged in", 0);
 
             // include the lib
             require_once( 'lib.userlog.php' );

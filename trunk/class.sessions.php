@@ -127,7 +127,7 @@
 		    }
 		    else
 		    {
-		      setcookie($n, false, time()+3600);
+		      setcookie($n, false, time()+3600, '/');
 		    }
 		  }
 		}
@@ -173,7 +173,7 @@
 
 	ini_set('session.hash_function',1);
 	ini_set("session.name", $GLOBALS['APPLICATION_SESSION']);
-	ini_set("session.gc_maxlifetime", intval($sess_expire) + 7200); // ADDING TIME S\T the gc last's longer that the cookie
+	ini_set("session.gc_maxlifetime", intval($sess_expire) + 3600*6); // ADDING TIME S\T the gc last's longer that the cookie
 	ini_set("session.cookie_lifetime", $sess_expire);
 	ini_set("session.cookie_path", "/");
 	ini_set("session.cookie_domain", ".". $GLOBALS['APPLICATION_DOMAIN']);
@@ -201,6 +201,7 @@
 
 	//
 	// only session if logged
-	Sessions::sessionLogged();
+        Sessions::sessionLogged();
+
 
 ?>
