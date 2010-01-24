@@ -25,7 +25,7 @@
 
       $subscriber_id = $req_data->subscriber;
       $publisher     = $req_data->publisher;
-      $domain        = $req_data->domain;
+      $domain        = $req_data->publisher_domain;
 
       if( !$subscriber_id )
 	throw new Exception("Missing subscriber", 4);
@@ -37,7 +37,7 @@
 	throw new Exception("Missing publisher", 4);
 
       // create federated user
-      $publisher_id   = NuUser::id( $publisher, $domain, true );
+      $publisher_id   = NuUser::userID( $publisher, $domain, true );
 
         $relation = NuRelation::check( $subscriber_id, $publisher_id );
 

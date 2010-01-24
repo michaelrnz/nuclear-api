@@ -42,7 +42,7 @@
       // make request, get data
       $access_data = NuOAuthRequest::text( $oauth_params, "http://{$subscriber_domain}/api/fps/access_token.json", "POST" );
 
-      file_put_contents($GLOBALS['CACHE'] . 'access_request.log', "$subscriber_domain $access_data\n", FILE_APPEND);
+      file_put_contents($GLOBALS['CACHE'] . 'access_request.log', time() . ": ${subscriber_domain} ${access_data}\n", FILE_APPEND);
 
       // get json
       $resp = json_decode( $access_data );
