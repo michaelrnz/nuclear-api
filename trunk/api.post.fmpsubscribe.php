@@ -4,7 +4,7 @@
   require_once("lib.nufederated.php");
   require_once("lib.nurelation.php");
 
-  class postFPSSubscribe extends CallWrapper
+  class postFederatedSubscribe extends CallWrapper
   {
 
     /*
@@ -76,7 +76,7 @@
 	"Error inserting request auth");
 
       // post to domain's SHARE_TOKEN method
-      $uri    = "http://{$domain}/api/fps/share_token.json";
+      $uri    = "http://{$domain}/api/fmp/share_token.json";
       $params = array(
 	"publisher"   => "{$publisher}@{$domain}",
 	"subscriber"  => "{$subscriber_name}@{$GLOBALS['DOMAIN']}",
@@ -112,6 +112,6 @@
     }
   }
 
-  return postFPSSubscribe;
+  return "postFederatedSubscribe";
 
 ?>

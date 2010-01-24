@@ -197,14 +197,14 @@
       if( !strlen($packet_data) )
 	throw new Exception("Missing packet data", 4);
 
-      $fps_params  = array(
+      $fmp_params  = array(
 		      "id"    => $packet_id,
 		      "packet"=> $packet_data
 		     );
 
       $subscribers  = new NuFederatedSubscriberKeys( $publisher );
 
-      self::postSubscribers( '/api/fps/'. $prefix .'publish.json', $subscribers, $fps_params, $GLOBALS['CACHE'] . '/'. $prefix .'publishing.log' );
+      self::postSubscribers( '/api/fmp/'. $prefix .'publish.json', $subscribers, $fmp_params, $GLOBALS['CACHE'] . '/'. $prefix .'publishing.log' );
     }
 
     //
@@ -219,13 +219,13 @@
       if( !$packet_id || !is_numeric($packet_id) )
 	throw new Exception("Invalid packet id", 5);
 
-      $fps_params  = array(
+      $fmp_params  = array(
 		      "id"    => $packet_id,
 		     );
 
       $subscribers  = new NuFederatedSubscriberKeys( $publisher );
 
-      self::postSubscribers( '/api/fps/unpublish.json', $subscribers, $fps_params, $GLOBALS['CACHE'] . '/unpublishing.log' );
+      self::postSubscribers( '/api/fmp/unpublish.json', $subscribers, $fmp_params, $GLOBALS['CACHE'] . '/unpublishing.log' );
     }
 
     private static function postSubscribers( $api_method, &$subscribers, &$params, $log_file=false )

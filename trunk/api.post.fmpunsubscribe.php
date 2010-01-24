@@ -5,7 +5,7 @@
   require_once("lib.nurelation.php");
   require_once("class.nuselect.php");
 
-  class postFMPUnsubscribe extends CallWrapper
+  class postFederatedUnsubscribe extends CallWrapper
   {
 
     protected function authID()
@@ -171,6 +171,7 @@
     }
   }
 
-  return postFMPUnsubscribe;
+
+  return "postFederatedUnsubscribe";
 
 ?>

@@ -249,14 +249,14 @@
                   //
                   case 'oauth_fmp':
                     $auth_resp = NuOAuthorize::federation( 
-                           "http://{$GLOBALS['DOMAIN']}/api/". preg_replace('/^(fmp|fps)/', '\1/', $this->opText()) .".{$GLOBALS['API_FORMAT']}", 
+                           "http://{$GLOBALS['DOMAIN']}". real_request_uri(),
                            $this->getMethod(), 
                            $this->resource,
                            "format|op|output" );
 
                     // CHECK VALID
                     if( !$auth_resp[0] )
-                      throw new Exception("Unauthorized fps request", 2);
+                      throw new Exception("Unauthorized oauth_fmp request", 2);
                     
                     $auth_data  = $auth_resp;
                     break;
@@ -267,7 +267,7 @@
                   case 'oauth_publisher':
 
                     $auth_resp = NuOAuthorize::publisher( 
-                           "http://{$GLOBALS['DOMAIN']}/api/". preg_replace('/^(fmp|fps)/', '\1/', $this->opText()) .".{$GLOBALS['API_FORMAT']}", 
+                           "http://{$GLOBALS['DOMAIN']}". real_request_uri(),
                            $this->getMethod(), 
                            $this->resource,
                            "format|op|output" );
@@ -286,7 +286,7 @@
                   case 'oauth_subscriber':
 
                     $auth_resp = NuOAuthorize::subscriber( 
-                           "http://{$GLOBALS['DOMAIN']}/api/". preg_replace('/^(fmp|fps)/', '\1/', $this->opText()) .".{$GLOBALS['API_FORMAT']}", 
+                           "http://{$GLOBALS['DOMAIN']}". real_request_uri(),
                            $this->getMethod(), 
                            $this->resource,
                            "format|op|output" );
@@ -385,13 +385,13 @@
         // useful for Federated OAuth
         protected function operationType( $op="" )
         {
-          if( isType("fmpaccess_token|fpsaccess_token", $op) )
+          if( isType("fmpaccess_token", $op) )
             return "oauth_fmp";
 
-          if( isType("fmppublish|fmprepublish|fmpunpublish|fpspublish|fpsrepublish|fpsunpublish", $op) )
+          if( isType("fmppublish|fmprepublish|fmpunpublish", $op) )
             return 'oauth_publisher';
 
-          if( isType("fmpunsubscribe|fpsunsubscribe", $op) )
+          if( isType("fmpunsubscribe", $op) )
             return 'oauth_subscriber';
 
           if( $op == "oauthaccess_token" )
@@ -406,7 +406,7 @@
         // default no override
         protected function overridePostAuthentication($op="")
         {
-          if( isType("accountregister|accountverify_registration|sessioncreate|accountreset_password|accountverify_password|accountverify_destroy|fpsshare_token|fpspublisher_token", $op) ) return true;
+          if( isType("accountregister|accountverify_registration|sessioncreate|accountreset_password|accountverify_password|accountverify_destroy|fmpshare_token|fmppublisher_token", $op) ) return true;
         }
 
 
@@ -415,7 +415,7 @@
         // default no override
         protected function requireAuthentication()
         {
-            return "|authtokens|tokens|fmppacketinbox";
+            return "|authtokens|tokens|fmppacketinbox|fmpaccess_token";
         }
 
 

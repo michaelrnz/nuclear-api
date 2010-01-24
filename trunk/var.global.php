@@ -158,6 +158,23 @@
 		}
 		return false;
 	}
+    
+    
+    //
+    // real request uri, without GET
+    //
+    $_REAL_REQUEST_URI = false;
+    function real_request_uri()
+    {
+        global $_REAL_REQUEST_URI;
+        if( !$_REAL_REQUEST_URI )
+        {
+            $uri = explode('?', $_SERVER['REQUEST_URI']);
+            $_REAL_REQUEST_URI = $uri[0];
+        }
+        return $_REAL_REQUEST_URI;
+    }
+    
 
 	//
 	// setup global directories

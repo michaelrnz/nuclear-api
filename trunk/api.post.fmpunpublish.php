@@ -155,6 +155,6 @@
 
   }
 
-  return postFederatedUnpublish;
+  return "postFederatedUnpublish";
 
 ?>
