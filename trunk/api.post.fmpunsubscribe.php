@@ -21,7 +21,7 @@
         $auth->domain   = $user->domain;
         return $auth;
       }
-      else if( $auth->isLocal() )
+      else if( $user->isLocal() )
       {
         $this->local = true;
         $auth           = new Object();

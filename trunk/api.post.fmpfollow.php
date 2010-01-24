@@ -49,8 +49,7 @@
 			$token_secret   = NuFederatedStatic::generateToken( $token );
 
 			// insert federated relation
-			NuFederatedIdentity::addPublisherAuth( $subscriber->id, $publisher->id, $token, $token_secret );
-			NuFederatedIdentity::addSubscriberAuth( $subscriber->id, $publisher->id, $token, $token_secret );
+			NuFederatedIdentity::addFederatedAuth( $publisher->id, $subscriber->id, $token, $token_secret );
 
 			return true;
 		}

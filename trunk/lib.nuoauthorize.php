@@ -58,6 +58,26 @@
       $this->join("NuclearUser as U",		      "U.id=T.subscriber");
     }
   }
+  
+  //
+  // Federated Access Request
+  //
+  class OAuthFederatedAccess extends NuSelect
+  {
+      function __construct( $consumer_key, $token )
+      {
+          parent::__construct('nu_federated_auth_request T');
+          $this->field(
+                    array(
+                        'T.publisher', 'T.subscriber',
+                        'T.token', 'T.secret',
+                        'D.name as publisher_domain'
+           ));
+           
+           $this->join("nu_domain D", "D.id=T.domain");
+           $this->where("T.token='{$token}'");
+      }
+  }
 
 
 
@@ -218,23 +238,7 @@
       if( !$signature )
 	return array(false, "Missing signature from oauth parameters");
 
-      $token_table    = 'nu_federated_auth_request';
-      $domain_table   = 'nu_domain';
-
-      //
-      // get consumer-request relation
-      $quth = new NuSelect("{$token_table} as T");
-      $quth->field(
-	      array(
-		'T.subscriber', 'T.publisher',
-		'T.domain as id', 'D.name as domain',
-		'T.token as token', 'T.secret as secret'
-	      ));
-
-      $quth->join("nu_domain as D",		      "D.id=T.domain");
-
-      $quth->where("T.token='{$token}'");
-
+      $quth = new OAuthFederatedAccess( $consumer_key, $token );
       $auth_data = $quth->single("Error fetching Tokens");
       
       if( !$auth_data )
