@@ -4,7 +4,7 @@
   require_once("lib.nurelation.php");
   require_once("lib.nufederated.php");
 
-  class postFPSAccess_Token extends CallWrapper
+  class getFederatedAccess_Token extends CallWrapper
   {
 
     /*
@@ -81,6 +81,6 @@
     }
   }
 
-  return postFPSAccess_Token;
+  return "getFederatedAccess_Token";
 
 ?>

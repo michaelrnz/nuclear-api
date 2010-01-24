@@ -108,6 +108,13 @@
     //
     public function curl( $resource, $method="get", $fields=null, $auth=false )
     {
+        if( strcasecmp($method,"get")==0 && is_array($fields) )
+        {
+            $resource .= "?";
+            foreach( $fields as $k=>$v )
+                $resource .= $k ."=". urlencode($v) ."&";
+        }
+            
       $csess = curl_init( $resource );
 
       curl_setopt( $csess, CURLOPT_HEADER, 0 );

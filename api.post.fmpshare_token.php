@@ -40,7 +40,7 @@
       $oauth_params = new NuOAuthParameters( $consumer->token, $consumer->secret, $r_token, $r_secret );
 
       // make request, get data
-      $access_data = NuOAuthRequest::text( $oauth_params, "http://{$subscriber_domain}/api/fps/access_token.json", "POST" );
+      $access_data = NuOAuthRequest::text( $oauth_params, "http://{$subscriber_domain}/api/fmp/access_token.json", "get" );
 
       file_put_contents($GLOBALS['CACHE'] . 'access_request.log', time() . ": ${subscriber_domain} ${access_data}\n", FILE_APPEND);
 
@@ -91,6 +91,6 @@
     }
   }
 
-  return postFederatedShare_Token;
+  return "postFederatedShare_Token";
 
 ?>
