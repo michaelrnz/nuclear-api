@@ -435,7 +435,7 @@ CREATE TABLE `nuclear_username` (
   `id` int(10) unsigned NOT NULL auto_increment,
   `name` varchar(64) NOT NULL,
   PRIMARY KEY  (`id`),
-  UNIQUE KEY `name` (`name`),
+  UNIQUE KEY `name` (`name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 SET character_set_client = @saved_cs_client;
 
