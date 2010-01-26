@@ -49,7 +49,7 @@
                 {
                     // TMP PATCH
                     WrapMySQL::void( 
-                      "insert into nuclear_username (id,hash,name) values ($id, SHA1(LOWER('{$u}')), '{$u}')",
+                      "insert into nuclear_username (id,name) values ($id, '{$u}')",
                       "Unabled to insert username", 9);
 
                     $q = "INSERT INTO nuclear_user (id, name, email, ts) VALUES ($id, '$u', '". $verified['email'] ."', '". $verified['ts'] ."');";
