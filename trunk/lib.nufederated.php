@@ -254,7 +254,7 @@
 
 	  // log resp
 	  if( $log_file )
-	    file_put_contents( $log_file, time() . ": {$access_resp}\n", FILE_APPEND );
+	    file_put_contents( $log_file, time() . ": {$domain} {$access_resp}\n", FILE_APPEND );
 	}
       }
     }

@@ -57,6 +57,42 @@
     //
     // Non-blocking url retrieval
     //
+    private function deliverNonBlocking( &$sock, $payload, $timeout=60 )
+    {
+      // unblock
+      stream_set_blocking($sock,0);
+
+      $sent     = 0;
+      $recv     = 0;
+
+      // stream_select until payload delivered
+      while( $sent<strlen($payload) || $recv==0 )
+      {
+
+        // muxers
+        $read     = array( $sock );
+        $write    = array( $sock );
+        $error    = NULL;
+
+        if( ($changes = stream_select( $read, $write, $error, $timeout )) !== false )
+        {
+            // check for input
+            if( count($read) )
+            {
+                $data = fgets( $read[0], 1024 );
+                $recv += strlen($data);
+                //echo "SOCKET SAYS {$recv}: \n{$data}\n\n";
+            }
+
+            if( count($write) && $sent<strlen($payload) )
+            {
+                $sent += fwrite( $write[0], substr( $payload, $sent ) );
+                //echo "SOCKET GETS {$sent}: \n" . substr( $payload, 0, $sent ) . "\n\n";
+            }
+        }
+      }
+    }
+
     public static function ping( $url, $port=false, $sleep=false )
     {
       $url = str_replace('http://','',$url);
@@ -85,22 +121,16 @@
       // create resource
       $fp = fsockopen("tcp://" . $domain, $port ? $port : 80, $errno, $errstr, 10);
 
-      //
-      // unblock
-      stream_set_blocking($fp,0);
-
       if( !$fp )
       {
         return false;
       }
       else
       {
-        fwrite( $fp, $header );
-	fgets( $fp, 16 );
+        self::deliverNonBlocking( $fp, $header );
       }
 
       return true;
-
     }
 
     //
