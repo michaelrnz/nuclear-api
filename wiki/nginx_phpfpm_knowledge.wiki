@@ -1,0 +1,28 @@
+#summary Different fixes that may be needed on nginx/fpm environments.
+
+==Output Buffering/Flush==
+
+The following fix is for nginx+fpm's output buffering/flush. This is required for optimal dispatch in FMP. The issue arises when 'ping' is called in Publish or Republish. 'Ping' waits for at least one response from the server `HTTP/1.0 200 OK`. With PHP-FPM buffers, the headers will not be sent until the page is finished processing. So what we do is fill up the buffer with spaces, in 4 byte blocks.
+
+===The Fix===
+Insert the below content underneath the require_once call in *api.get.fmpdispatch.php*
+
+{{{
+    function force_nginx_flush( $blocks=1024 )
+    {
+        header('HTTP/1.1 200 OK');
+        header('Content-length: ' . (4*$blocks));
+        echo(str_repeat("    ", $blocks));
+        flush();
+    }
+
+    force_nginx_flush();
+}}}
+
+You will also need to set the below against your nginx configuration file for either the whole server or the specific location you want to affect.
+
+{{{
+    fastcgi_buffer_size 4k
+}}}
+
+----
