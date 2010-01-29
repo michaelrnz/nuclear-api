@@ -547,7 +547,7 @@
 
         //
         // public to invalidate
-        public static function invalidate($message=false, $code=-1, $die=true)
+        public static function invalidate($message=false, $code=-1, $die=false)
         {
             // basic error logging
             file_put_contents($GLOBALS['CACHE'] . "/api.log", time() . ":{$code}:{$message}\n", FILE_APPEND);
@@ -593,6 +593,12 @@
         {
             $src_1 = "api.{$this->getMethod()}.{$this->opText()}.php";
             $src_2 = "api.{$this->getMethod()}.{$this->output_extension}.{$this->opText()}.php";
+
+            switch( $this->output_extension )
+            {
+                case 'json': header("Content-type: text/javascript"); break;
+                case 'xml': header("Content-type: application/xml"); break;
+            }
 
             $api_class = (@include_once $src_2);
 

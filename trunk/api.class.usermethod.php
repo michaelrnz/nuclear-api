@@ -15,7 +15,11 @@
 
         if( is_null($user) )
         {
-            if( is_numeric($this->call->user_id) )
+            if( is_object($this->call->user) )
+            {
+                return $this->call->user;
+            }
+            else if( is_numeric($this->call->user_id) )
             {
                 $user = new Object();
                 $user->id = intval($this->call->user_id);
