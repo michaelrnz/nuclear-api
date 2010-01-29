@@ -58,9 +58,9 @@
 		//
 		public static function inSuccess( $result )
 		{
-			$id=$result[0];
-			$username=$result[1];
-			$email=$result[2];
+			$id=$result['id'];
+			$username=$result['name'];
+			$email=$result['email'];
 
 			//
 			// new session

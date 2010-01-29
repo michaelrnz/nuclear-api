@@ -119,31 +119,29 @@
                 // Create, Update, Delete
                 case 'POST':
                     $r = 4;
-                    $this->resource = &$_POST;
                     break;
 
                 // Create, Update
                 case 'PUT':
                     $r = 3;
-                    $this->resource = &$_PUT;
                     break;
 
                 // Delete
                 case 'DELETE':
                     $r = 2;
-                    $this->resource = &$_DELETE;
                     break;
 
                 // Read
                 case 'GET':
                     $r = 1;
                     $this->resource = &$_GET;
-                    $this->readOnly = true;
                     break;
 
                 default:
                     throw new Exception("No REST method");
             }
+            
+            $this->resource = $_REQUEST;
             return $r;
         }
 
