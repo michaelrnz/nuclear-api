@@ -35,6 +35,10 @@
 
         function __toString()
         {
+            if( is_array($this->response)
+            {
+                return json_encode( $this->response );
+            }
             return $this->response->__toString();
         }
 
