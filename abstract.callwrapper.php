@@ -18,11 +18,11 @@
 		protected $time;
 		protected $output;
 
-		function __construct($time=false,$format="json",$output=true)
+		function __construct($time=false,$format=false,$output=true)
 		{
 			$this->call = $GLOBALS[self::$globalField];
 			$this->time = $time;
-			$this->format = $GLOBALS['API_FORMAT'] ? $GLOBALS['API_FORMAT'] : $format;
+			$this->format = strlen($format )>0? $format : ($GLOBALS['API_FORMAT'] ? $GLOBALS['API_FORMAT'] : "json");
 
 			$this->process();
 
@@ -34,14 +34,17 @@
 
 		function __toString()
 		{
-			if( is_array($this->response) )
+			if( is_callable( array($this->response,"__toString") ) )
 			{
-			  return json_encode($this->response);
+				return $this->response->__toString();
 			}
-			else
+			
+			if( is_object( $this->response ) || is_array( $this->response ) )
 			{
-			  return $this->response->__toString();
+				return json_encode( $this->response );
 			}
+			
+			return "";
 		}
 
 		function __get($f)
