@@ -25,7 +25,7 @@
 
       $this->where("P.publisher={$publisher}");
       $this->order( 'P.ts', isType('asc|desc', $order)? $order : 'desc' );
-      $this->page( $page, $limit, 20, 10, 100 );
+      $this->page( $page, $limit, 20, 10, 200 );
     }
   }
 
@@ -55,7 +55,7 @@
 
       $this->where( "P.subscriber={$subscriber}");
       $this->order( 'P.ts', isType('asc|desc', $order)? $order : 'desc' );
-      $this->page(  $page, $limit, 20, 10, 100 );
+      $this->page(  $page, $limit, 20, 10, 200 );
     }
   }
 
