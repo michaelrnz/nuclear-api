@@ -35,11 +35,17 @@
 
         function __toString()
         {
-            if( is_array($this->response) )
+            if( is_callable( array($this->response, "__toString") ) )
+            {
+                return $this->response->__toString();
+            }
+            
+            if( is_object( $this->response) || is_array( $this->response ) )
             {
                 return json_encode( $this->response );
             }
-            return $this->response->__toString();
+                        
+            return "";
         }
 
 
