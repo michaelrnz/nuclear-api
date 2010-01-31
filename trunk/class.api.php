@@ -77,6 +77,27 @@
             // judge method
             $this->method = $this->restMethod();
 
+            //
+            // assign op
+            $operation = $this->operation();
+            
+            //
+            // nu_api_operation filter
+            $filter_operation = NuEvent::filter('nu_api_operation', $operation);
+            
+            //
+            // test for operation, fallback on default
+            if( strlen($filter_operation) )
+                $this->op = $filter_operation;
+            else
+                $this->op = $operation;
+
+            $this->format = $this->mapField('format');
+            
+            //
+            // assign resource via REQUEST
+            $this->resource = $_REQUEST;
+            
             // output
             if( isset($this->resource['output']) )
             {
@@ -93,11 +114,6 @@
               $GLOBALS['API_FORMAT'] = 'json';
               $this->output_extension = 'json';
             }
-
-            //
-            // assign op
-            $this->op = $this->operation();
-            $this->format = $this->mapField('format');
         }
 
 
@@ -134,14 +150,12 @@
                 // Read
                 case 'GET':
                     $r = 1;
-                    $this->resource = &$_GET;
                     break;
 
                 default:
                     throw new Exception("No REST method");
             }
             
-            $this->resource = $_REQUEST;
             return $r;
         }
 
@@ -150,7 +164,7 @@
         private function mapField($f, $emsg=false )
         {
             $map = $this->map[$f];
-            $v = isset($this->resource[$map]) ? $this->resource[$map] : $_GET[$map];
+            $v = isset($_REQUEST[$map]) ? $_REQUEST[$map] : $_GET[$map];
             
             if( $v )
             {
@@ -413,7 +427,8 @@
         // default no override
         protected function requireAuthentication()
         {
-            return "|authtokens|tokens|fmppacketinbox|fmpaccess_token";
+            $meths = "|authtokens|tokens|fmppacketinbox|fmpaccess_token";
+            return NuEvent::filter('nu_api_require_auth', $meths);
         }
 
 

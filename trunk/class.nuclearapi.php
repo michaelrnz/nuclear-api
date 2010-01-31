@@ -73,7 +73,7 @@
         {
             // name the src
             $src_1  = "api.{$rest}.". strtolower($method) .".php";
-            $src_2  = "api.{$resp}.{$output}.". strtolower($method) .".php";
+            $src_2  = "api.{$rest}.{$output}.". strtolower($method) .".php";
 
             //
             // globalize the call
