@@ -99,7 +99,7 @@
 				{
 				// pass by reference for 5.2.x and lower
 				if( !is_object($o) && version_compare( PHP_VERSION, '5.3.0', '<' ) )
-				  $o = call_user_func( $H, array(&$o) );
+				  $o = call_user_func( $H, array($o) );
 				else
 				  $o = call_user_func( $H, $o );
 				}
