@@ -1,45 +1,17 @@
 <?php
 
-	/*
-		nuclear.framework
-		altman,ryan,2008
+    /*
+        nuclear.framework
+        altman,ryan,2008
 
-		global variable funcs
-		==================================
-			simple functions related
-			to globals, and code flow
+        global variable funcs
+        ==================================
+            simple functions related
+            to globals, and code flow
+    */
+    
 
-	*/
-	
-	//
-	// FROM php.net/magic_quotes
-	//
-	if (get_magic_quotes_gpc()) {
-	  function stripslashes_deep($value)
-	  {
-	    $value = is_array($value) ?
-                    array_map('stripslashes_deep', $value) :
-                    stripslashes($value);
-	    return $value;
-	  }
-
-	  $_POST = array_map('stripslashes_deep', $_POST);
-	  $_GET = array_map('stripslashes_deep', $_GET);
-	  $_COOKIE = array_map('stripslashes_deep', $_COOKIE);
-	  $_REQUEST = array_map('stripslashes_deep', $_REQUEST);
-	}
-
-	function isType($group, $type)
-	{
-		return strpos("-|{$group}|","|{$type}|");
-	}
-
-	function mk_cache_dir( $dir, $mode=0775 )
-	{
-	  if( is_dir( $dir ) ) return;
-	  mkdir( $dir, $mode, true );
-	}
-
+/* POSSIBLY TRASH */
   function &nuXmlChars( &$str,$mode=0)
   {
     $rstr= $str;
@@ -73,25 +45,7 @@
     return str_replace( array('+',' '), array('%2B','+'), $str);
   }
 
-	      function safe_slash($f)
-	      {
-		$find = array("/\\\+'/","/([^\\\])\\\([^'\\\])/");
-		$rep = array("\'",'\1\\\\\\\\\2');
-		return preg_replace( $find, $rep, str_replace("'","\'",$f) );
-	      }
 
-	function old_safe_slash( $f )
-	{
-		// first delimit all ', then replace multi \
-		//
-		//return preg_replace($find, $rep, ,str_replace("'","\'",$f));
-		return preg_replace("/\\\+'/","\'",str_replace("'","\'",$f));
-	}
-
-	function safe_unslash( $f )
-	{
-		return str_replace("\'", "'", $f);
-	}
 
 	function includer( $files )
 	{
@@ -113,19 +67,6 @@
 		return false;
 	}
 
-	function set_global($id, &$data)
-	{
-		$GLOBALS[$id] = $data;
-	}
-
-	function &get_global($id)
-	{
-		if( isset($GLOBALS[$id]) )
-		{
-			return $GLOBALS[$id];
-		}
-		return false;
-	}
 
 	function get_server($id)
 	{
@@ -140,24 +81,120 @@
 		}
 		return false;
 	}
+    
+    /* END POSSIBLY TRASH */
 
-	function &GET($f)
-	{
-		if( isset($_GET[$f]) && strlen($_GET[$f])>0 )
-		{
-			return $_GET[$f];
-		}
-		return false;
-	}
 
-	function &POST($f)
-	{
-		if( isset($_POST[$f]) )
-		{
-			return $_POST[$f];
-		}
-		return false;
-	}
+    //
+    // FROM php.net/magic_quotes
+    // we don't want magic quotes
+    //
+    if (get_magic_quotes_gpc()) {
+        function stripslashes_deep($value)
+        {
+            $value = is_array($value) ?
+            array_map('stripslashes_deep', $value) :
+            stripslashes($value);
+            
+            return $value;
+        }
+        
+        $_POST = array_map('stripslashes_deep', $_POST);
+        $_GET = array_map('stripslashes_deep', $_GET);
+        $_COOKIE = array_map('stripslashes_deep', $_COOKIE);
+        $_REQUEST = array_map('stripslashes_deep', $_REQUEST);
+    }
+
+    
+    //
+    // Typing function, utility
+    // can save a regex for url testing
+    //
+    function isType( $group, $type )
+    {
+        return strpos("-|{$group}|","|{$type}|");
+    }
+    
+    function is_type( $group, $type )
+    {
+        return strpos("-|{$group}|","|{$type}|");
+    }
+    
+    
+    //
+    // Make caching directory (checks presence)
+    //
+    function mk_cache_dir( $dir, $mode=0775 )
+    {
+        if( is_dir( $dir ) ) return;
+        mkdir( $dir, $mode, true );
+    }
+    
+    
+    //
+    // invasive slash management
+    // two-stage process
+    //
+    function safe_slash($f)
+    {
+        $find = array("/\\\+'/","/([^\\\])\\\([^'\\\])/");
+        $rep = array("\'",'\1\\\\\\\\\2');
+        return preg_replace( $find, $rep, str_replace("'","\'",$f) );
+    }
+    
+    function safe_unslash( $f )
+    {
+        return str_replace("\'", "'", $f);
+    }
+    
+    //
+    // GLOBALS get/set wrapper
+    //
+    function set_global( $f, &$data )
+    {
+        $GLOBALS[$id] = $data;
+    }
+    
+    function &get_global( $f )
+    {
+        if( array_key_exists($f, $GLOBALS) )
+        {
+            return $GLOBALS[$f];
+        }
+        //return null; TODO
+        return false;
+    }
+    
+    
+    //
+    // GET, POST, REQUEST, SESSION fetching
+    //
+    function GET($f)
+    {
+        if( array_key_exists($f, $_GET) && strlen($_GET[$f])>0 )
+        {
+            return $_GET[$f];
+        }
+        return false;
+    }
+    
+    function POST($f)
+    {
+        if( array_key_exists($f, $_POST) )
+        {
+            return $_POST[$f];
+        }
+        return false;
+    }
+    
+    function REQUEST($f)
+    {
+        if( array_key_exists($f, $_REQUEST) )
+        {
+            return $_REQUEST[$f];
+        }
+        return false;
+    }
     
     
     //
@@ -175,11 +212,65 @@
         return $_REAL_REQUEST_URI;
     }
     
+    
+    //
+    // convert an xml doc to object recursively
+    // requires only a few miliseconds to convert 20 fmp packets
+    //
+    function &xml_to_object( &$xml )
+    {
+        $result = new Object();
 
-	//
-	// setup global directories
-	//
+        // attribute check
+        foreach( $xml->attributes as $attrName => $attrNode )
+        {
+            $result->$attrName = $attrNode->nodeValue;
+        }
 
-	$GLOBALS['ATIME']= microtime(true);
+        foreach( $xml->childNodes as $node )
+        {
+            $key = $node->nodeName;
+
+            // assume no more nodes
+            if( strpos($key,'#')===0 )
+            {
+                return $node->nodeValue;
+            }
+
+            // recursive check
+            if( $node->hasChildNodes() )
+            {
+                $value  = xml_to_object( $node );
+            }
+            else
+            {
+                $value  = $node->nodeValue;
+            }
+
+            // collision check
+            if( !is_null($result->$key) )
+            {
+                if( !is_array($result->$key) )
+                {
+                    $data           = $result->$key;
+                    $result->$key   = array( $data );
+                }
+
+                array_push( $result->$key, $value );
+            }
+            else
+            {
+                $result->$key = $value;
+            }
+        }
+
+        return $result;
+    }
+    
+    //
+    // TODO migrate ATIME to the Service abstract
+    //
+    
+    $GLOBALS['ATIME']= microtime(true);
 
 ?>
