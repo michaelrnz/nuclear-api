@@ -24,14 +24,24 @@
 
 	  if( isset($ns_id) )
 	  {
-	    $packets = new NuPacketNSQuery($user->id, $ns_id, $this->call->page, $this->call->limit);
+	    $packets = new NuPacketNSQuery($user->id, $ns_id, $this->call->page, $this->call->count);
 	  }
 	  else
 	  {
-	    $packets = new NuPacketQuery($user->id, $this->call->page, $this->call->limit);
+	    $packets = new NuPacketQuery($user->id, $this->call->page, $this->call->count);
 	  }
 
-	  NuSelect::eventFilter( $packets, 'nu_fmp_packet_query', array("fields"=>"premerge", "joins"=>"postmerge", "conditions"=>"postmerge") );
+            if( ($since_id = intval($this->call->since_id)) )
+            {
+                $packets->where("P.packet > {$since_id}");
+            }
+            
+            if( !$since_id && ($max_id = intval($this->call->max_id)) )
+            {
+                $packets->where("P.packet <= {$max_id}");
+            }
+	  
+            NuSelect::eventFilter( $packets, 'nu_fmp_packet_query', array("fields"=>"premerge", "joins"=>"postmerge", "conditions"=>"postmerge") );
 
 	  return $packets;
 	}
@@ -63,7 +73,7 @@
 	      // append id/time data
 	      $ts = $packet['ts'];
 	      $id = $packet['packet'];
-	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('created_at', gmdate('r',$ts)), $packet_xml->documentElement->firstChild );
+	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('created_at', gmdate('D M d G:i:s O Y',$ts)), $packet_xml->documentElement->firstChild );
 	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('timestamp', $ts), $packet_xml->documentElement->firstChild );
 	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('id', $id), $packet_xml->documentElement->firstChild );
 
