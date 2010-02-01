@@ -18,14 +18,14 @@
 
             if( !$email )
             {
-              $o->valid = 0;
+              $o->status = "error";
               $o->message = "Please provide a valid email";
               return $o;
             }
 
             $resp = UserPost::resetPassword( $email );
 
-            $o->valid = $resp[0];
+            $o->status = "ok";
             $o->message = $resp[1];
             return $o;
 
