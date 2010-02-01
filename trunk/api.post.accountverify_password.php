@@ -16,7 +16,7 @@
 
             $resp = UserPost::verifyResetPassword( $this->call );
 
-            $o->valid = $resp[0] ? 1 : 0;
+            $o->status = $resp[0] ? "ok" : "error";
             $o->message = $resp[1];
 
             return $o;
