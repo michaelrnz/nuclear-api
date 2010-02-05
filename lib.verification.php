@@ -38,8 +38,10 @@
 
             if( !$verified )
                 throw new Exception("Invalid hash");
-
-                        //
+            
+            if( strlen($verified['auth'])==0 )
+                $verified['auth'] = "0";
+			//
             // Add User
             $id = NuUser::add( $u, $GLOBALS['DOMAIN'], 0 );
 
