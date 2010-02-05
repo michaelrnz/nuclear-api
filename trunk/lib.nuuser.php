@@ -59,24 +59,22 @@
     // user@domain
     public static function filterUser( $user )
     {
-      if( ($i = strpos($user, '@')) )
-	$name = substr($user,0,$i);
-      else
-	$name = $user;
-      
-      return str_replace("'","",$name);
+        $user = trim(str_replace('http://', '', $user),"/ \r\n");
+        if( $i = strrpos($user, '/') )
+        $name = substr($user, $i+1);
+                                        
+        return str_replace(array("'","."), array("",""), $name);
     }
 
     //
     // user@domain
     public static function filterDomain( $domain )
     {
-      if( ($i = strpos($domain, '@')) )
-	$name = substr($domain,$i+1);
-      else
-	$name = $user;
-      
-      return str_replace("'","",$name);
+        $domain = str_replace('http://', '', $domain);
+        if( $i = strrpos($domain, '/') )
+        $name = substr($domain, 0, $i);
+                                        
+        return trim(str_replace("'","", $name),"/ \r\n");
     }
 
 
@@ -84,7 +82,7 @@
     // is valid
     public static function isValidName( $name )
     {
-      return preg_match('/^[a-zA-Z0-9_\-]{3,64}$/', $name);
+      return preg_match('/^[a-zA-Z0-9_\-]{2,64}$/', $name);
     }
 
 

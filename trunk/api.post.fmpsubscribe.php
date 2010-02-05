@@ -78,8 +78,8 @@
       // post to domain's SHARE_TOKEN method
       $uri    = "http://{$domain}/api/fmp/share_token.json";
       $params = array(
-	"publisher"   => "{$publisher}@{$domain}",
-	"subscriber"  => "{$subscriber_name}@{$GLOBALS['DOMAIN']}",
+	"publisher"   => "{$domain}/{$publisher}",
+	"subscriber"  => "{$GLOBALS['DOMAIN']}/{$subscriber_name}",
 	"request_token"		=> "{$request_token}",
 	"request_token_secret"	=> "{$request_secret}"
       );

@@ -95,7 +95,7 @@
 
       $params       = array(
         "publisher" => $publisher->name,
-        "subscriber"=> "{$subscriber->name}@{$subscriber->domain}"
+        "subscriber"=> "{$subscriber->domain}/{$subscriber->name}"
       );
 
       // create OAuth
@@ -165,7 +165,7 @@
       $resp   = new JSON($this->time);
       $resp->status    = "ok";
       $resp->message   = "Federated subscription destroyed";
-      $resp->publisher = $status->name . '@' . $status->domain;
+      $resp->publisher = "{$status->domain}/{$status->name}";
       
       return $resp;
     }
