@@ -91,7 +91,9 @@
         public static function verify( $token, $identification, $app_secret=false )
         {
             // get expires
-            $exp = intval( substr( $token, strrpos($token, '-')+1 ) );
+            list($key,$exp) = explode('-', $token, 2);
+
+            $exp = intval($exp);
 
             // check expiration
             if( $exp < time() )
@@ -99,7 +101,7 @@
 
             // check for valid auth
             $auth = new NuclearAuthToken( $identification, $exp, $app_secret );
-            if( $token === $auth->user_token )
+            if( $key === $auth->user_token )
               return true;
 
             return false;
