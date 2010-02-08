@@ -82,7 +82,7 @@
     // is valid
     public static function isValidName( $name )
     {
-      return preg_match('/^[a-zA-Z0-9_\-]{2,64}$/', $name);
+      return preg_match('/^[@a-zA-Z0-9_\-]{2,64}$/', $name);
     }
 
 
