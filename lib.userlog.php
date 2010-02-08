@@ -69,7 +69,7 @@
 
                         //
                         // WHY DO WE SET COOKIE?
-			setcookie( $GLOBALS['APPLICATION_SESSION'], session_id(), time()+86400, '/' );
+			setcookie( $GLOBALS['APPLICATION_SESSION'], session_id(), time()+86400, '/', ".". get_global('DOMAIN') );
 
 			//
 			// SESSION ip set

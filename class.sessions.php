@@ -176,7 +176,7 @@
 	ini_set("session.gc_maxlifetime", intval($sess_expire) + 3600*6); // ADDING TIME S\T the gc last's longer that the cookie
 	ini_set("session.cookie_lifetime", $sess_expire);
 	ini_set("session.cookie_path", "/");
-	ini_set("session.cookie_domain", ".". $GLOBALS['APPLICATION_DOMAIN']);
+	ini_set("session.cookie_domain", ".". $GLOBALS['DOMAIN']);
 
         //
         // require that cache be defined or definable
