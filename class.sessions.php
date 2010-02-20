@@ -112,7 +112,7 @@
 		      // check if really logged, else kill session
 		      if( !isset($_SESSION['logged']) )
 		      {
-			setcookie($n, false, time()-3600, '/', $GLOBALS['APPLICATION_DOMAIN'], 1);
+			setcookie($n, false, time()-3600, '/', $GLOBALS['DOMAIN'], 1);
 			session_destroy();
 		      }
 		      else
@@ -122,6 +122,9 @@
                         // AuthorizedUser control
                         $auth_user = new AuthorizedUser( $_SESSION['id'], $_SESSION['username'], get_global('DOMAIN') );
                         $auth_user->setAuthorization( 'cookie', $_SESSION['USER_CONTROL'] );
+                        
+                        // Reset cookie
+                        setcookie($n, $_COOKIE[$n], time() + ini_get("session.cookie_lifetime"), '/', '.'. $GLOBALS['DOMAIN'] );
 
 		      }
 		    }
