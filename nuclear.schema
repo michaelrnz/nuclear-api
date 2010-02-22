@@ -582,6 +582,24 @@ CREATE TABLE `nuclear_verify` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+
+CREATE TABLE `nu_authority` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `name` varchar(255) default NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `nu_taguri` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `tag_authority` int(10) unsigned NOT NULL,
+  `tag_date` date default NULL,
+  `tag_specific` varchar(255) NOT NULL,
+  PRIMARY KEY  (`id`),
+  UNIQUE KEY `tag_authority` (`tag_authority`,`tag_date`,`tag_specific`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
 --
 -- Final view structure for view `NuclearAuthorized`
 --
