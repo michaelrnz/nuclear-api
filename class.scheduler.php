@@ -10,7 +10,7 @@
             (via NuFiles::ping, async socket GET)
             
     */
-    
+
     class Scheduler implements iSingleton
     {
         protected static $_instance;
@@ -57,6 +57,8 @@
         //
         public function unqueue( $id, $label )
         {
+            require_once('class.nuselect.php');
+    
             $q      = new NuSelect(self::$_table . " Q");
             $q->where("id={$id}");
             $q->where("label='{$label}'");

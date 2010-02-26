@@ -26,7 +26,7 @@
 
             //
             // dispatch to ping
-            Scheduler::dispatch( "http://{$GLOBALS['DOMAIN']}/api/push/notify.ping", $schedule_id );
+            Scheduler::dispatch($schedule_id, "http://{$GLOBALS['DOMAIN']}/api/push/notify.ping");
         }
     }
 

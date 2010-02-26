@@ -164,6 +164,8 @@
 
       $resp = curl_exec( $csess );
 
+      file_put_contents('/home/ryan/.www/kronblr/cache/curl.log', $resource . "\n" . $resp . "\n\n", FILE_APPEND);
+
       curl_close( $csess );
 
       return $resp;
