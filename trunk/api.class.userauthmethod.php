@@ -30,5 +30,30 @@
       return $user;
     }
   }
+  
+  require_once('abstract.apimethod.php');
+  
+  abstract class NuUserAuthMethod extends NuclearAPIMethod
+  {
+    function getAuth()
+    {
+      $user = AuthorizedUser::getInstance();
+
+      if( is_null($user) || !$user->isLocal() )
+        throw new Exception("Unauthorized", 2);
+
+      return $user;
+    }
+
+    function getUser( $force=true )
+    {
+      $user = LocalUser::getInstance();
+
+      if( is_null($user) && $force )
+        throw new Exception("Unidentified user",5);
+
+      return $user;
+    }
+  }
 
 ?>
