@@ -117,22 +117,20 @@
 
 		}
 
-                
-		//
-		// get user id by name
-		public static function userById( $id )
-		{
-			return self::_nameById( $id, 'username' );
-		}
 
-		public static function userControlById( $id )
-		{
-			if( !is_numeric($id) ) return false;
-			return  WrapMySQL::single( 
-				  "SELECT NuclearAuthorized.* ".
-				  "FROM NuclearAuthorized ".
-				  "WHERE NuclearAuthorized.id=$id LIMIT 1;", "Unable to get user control");
-		}
+        //
+        // get user id by name
+        public static function userById( $id )
+        {
+            if( !is_numeric($id) ) return false;
+            
+            return  WrapMySQL::single(
+                "SELECT NuclearAuthorized.* ".
+                "FROM NuclearAuthorized ".
+                "WHERE NuclearAuthorized.id=$id LIMIT 1;", 
+                "Unable to get user control");
+        }
+        
 
 
                 /*

@@ -21,6 +21,7 @@
         private $format;
         private $output_extension;
         private $_optext;
+        private $auth_user;
 
         protected $resource;
         protected $call;
@@ -82,6 +83,13 @@
             $operation = $this->operation();
             
             //
+            // check if operation is remote
+            if( $operation == 'nuclear' )
+            {
+                $operation = $this->runScheduler();
+            }
+            
+            //
             // nu_api_operation filter
             $filter_operation = NuEvent::filter('nu_api_operation', $operation);
             
@@ -122,6 +130,34 @@
         private function process()
         {
             $this->includer( strtolower($this->opFile()) );
+        }
+        
+        //
+        // run scheduler
+        private function runScheduler()
+        {
+            $id = $_REQUEST['schedule_id'];
+            
+            if( !is_numeric( $id ) )
+                throw new Exception("Missing schedule_id for nuclear.api", 4);
+            
+            // must return operation
+            require_once('class.scheduler.php');
+            
+            $data = Scheduler::getInstance()->unqueue( $id, 'nuclear_api' );
+                        
+            // TODO data checking
+            if( is_null($data) || is_null($data->operation) )
+                throw new Exception("Scheduler does not exist", 5);
+            
+            $operation          = $data->operation;
+            $this->method       = $data->method;
+            $this->auth_user    = $data->auth_user;
+            
+            foreach( $data->parameters as $p=>$v )
+                $_REQUEST[$p] = $v;
+            
+            return $operation;
         }
 
 
@@ -226,13 +262,21 @@
         private function validateAccess()
         {
             require_once('lib.id.php');
-
+            
             $auth_data  = null;
 
             //
+            // Check for Nuclear remote auth_user (scheduled)
+            //
+            if( $this->auth_user > 0 )
+            {
+                $auth_type  = 'nuclear';
+                $auth_data  = ID::userById( $this->auth_user );
+            }
+            //
             // Check for Nuclear's native auth_token
             //
-            if( $auth_key = $this->resource['auth_token'] )
+            else if( $auth_key = $this->resource['auth_token'] )
             {
                 $auth_type  = 'nuclear';
                 $auth_data  = ID::userByAuthKey( strtolower($this->resource['auth_user']), $auth_key );
