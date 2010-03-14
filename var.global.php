@@ -266,7 +266,26 @@
 
         return $result;
     }
-    
+
+    function object_to_xml( $object, $doc, $name )
+    {
+        $node = $doc->createElement($name);
+
+        foreach( $object as $k=>$o )
+        {
+            if( !is_object($o) )
+            {
+                $node->appendChild( $doc->createElement($k,$o) );
+            }
+            else
+            {
+                $node->appendChild( object_to_xml($o, $doc, $k) );
+            }
+        }
+
+        return $node;
+    }
+
     //
     // TODO migrate ATIME to the Service abstract
     //

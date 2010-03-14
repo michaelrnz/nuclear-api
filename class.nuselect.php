@@ -92,6 +92,15 @@
       return null;
     }
 
+    public function &object()
+    {
+        $tuple = $this->hash();
+        if( !is_null($tuple) )
+            return (object) $tuple;
+
+        return null;
+    }
+
     public static function eventFilter($query, $filter_name, $attributes)
     {
       $filter_query = new NuSelect('_void_');
