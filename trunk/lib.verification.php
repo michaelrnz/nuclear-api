@@ -10,13 +10,11 @@
         Verification checking class
     */
 
-    require_once('class.eventlibrary.php');
     require_once('lib.nuuser.php');
     require_once('lib.fields.php');
 
-    class Verification extends EventLibrary
+    class Verification
     {
-        protected static $driver;
         
         public static function post( $d )
         {
@@ -49,11 +47,7 @@
             {
                 try
                 {
-                    // TMP PATCH
-                    WrapMySQL::void( 
-                      "insert into nuclear_username (id,name) values ($id, '{$u}')",
-                      "Unabled to insert username", 9);
-
+                
                     $q = "INSERT INTO nuclear_user (id, name, email, ts) VALUES ($id, '$u', '". $verified['email'] ."', '". $verified['ts'] ."');";
                     WrapMySQL::affected( $q, "Unable to insert user", 10 );
 
@@ -70,11 +64,13 @@
                     self::remove( $u, $h );
 
                     //
-                    // fire onSuccess
-                    $o = new Object();
+                    // raise action with User
+                    $o          = new Object();
+                    $o->id      = $id;
+                    $o->name    = $u;
+                    $o->email   = $verified['email'];
                     $o->user_id = $id;
 
-                    self::fire( 'Success', $o );
                     NuEvent::action('nu_registration_verified', $o);
 
                     return $id;
@@ -103,8 +99,7 @@
             }
 
             //
-            // fire onFail
-            self::fire( 'Failure', $d );
+            // raise action on fail
             NuEvent::action('nu_verification_failed', $d);
 
             return false;
@@ -119,7 +114,5 @@
         }
 
     }
-
-    Verification::init();
 
 ?>

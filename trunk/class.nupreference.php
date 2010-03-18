@@ -61,6 +61,12 @@
            "on duplicate key update int_store=int_store-values(int_store);";
       WrapMySQL::void($q, "Unable to set preference");
     }
+    
+    public function delete( $id, $label )
+    {
+      $q = "delete from ". self::$_pref_table ." where id={$id} && label='{$label}' limit 1;";
+      WrapMySQL::void($q, "Unable to delete preference");
+    }
   }
 
 ?>
