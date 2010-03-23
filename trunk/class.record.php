@@ -21,7 +21,7 @@
         {
             if( array_key_exists( $k, $this->_values ) )
             {
-                return $this->_values;
+                return $this->_values[$k];
             }
 
             return null;
