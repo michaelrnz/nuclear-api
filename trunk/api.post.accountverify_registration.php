@@ -1,5 +1,5 @@
 <?php
-    
+
     /*
         nuclear.framework
         altman,ryan,2008
@@ -18,7 +18,7 @@
             //
             // include the json
             $o = new JSON( $this->time );
-            
+
             require_once( 'lib.verification.php' );
 
             //
@@ -31,7 +31,7 @@
             }
             else
             {
-                $o->valid = "error";
+                $o->status = "error";
                 $o->message= "Your verification was invalid or expired, please register again";
             }
 
