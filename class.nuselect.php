@@ -94,8 +94,12 @@
 
     public function &object()
     {
-        $tuple = $this->hash();
-        if( !is_null($tuple) )
+        $tuple = null;
+
+        if( $this->result != null )
+            $tuple = mysql_fetch_assoc($this->result);
+
+        if( $tuple && !is_null($tuple) )
             return (object) $tuple;
 
         return null;

@@ -1,5 +1,5 @@
 <?php
-  
+
   /* mock pref handler */
 
   class NuPreference
@@ -33,7 +33,7 @@
 
     public function getInteger($id,$label)
     {
-      $q = "select int_store from ". self::$_pref_table ."{self::$_pref_table} where id={$id} && label='{$label}' limit 1;";
+      $q = "select int_store from ". self::$_pref_table ." where id={$id} && label='{$label}' limit 1;";
 
       if( $d = WrapMySQL::single($q,"Unable to get preference") )
         return $d['int_store'];
@@ -61,7 +61,7 @@
            "on duplicate key update int_store=int_store-values(int_store);";
       WrapMySQL::void($q, "Unable to set preference");
     }
-    
+
     public function delete( $id, $label )
     {
       $q = "delete from ". self::$_pref_table ." where id={$id} && label='{$label}' limit 1;";

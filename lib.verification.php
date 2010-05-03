@@ -15,7 +15,7 @@
 
     class Verification
     {
-        
+
         public static function post( $d )
         {
             if( !($h = str_replace(' ','+',$d->hash)) )
@@ -36,7 +36,7 @@
 
             if( !$verified )
                 throw new Exception("Invalid hash");
-            
+
             if( strlen($verified['auth'])==0 )
                 $verified['auth'] = "0";
 			//
@@ -47,7 +47,7 @@
             {
                 try
                 {
-                
+
                     $q = "INSERT INTO nuclear_user (id, name, email, ts) VALUES ($id, '$u', '". $verified['email'] ."', '". $verified['ts'] ."');";
                     WrapMySQL::affected( $q, "Unable to insert user", 10 );
 

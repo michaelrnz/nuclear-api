@@ -84,7 +84,14 @@
             $api_class  = (@include $src_2);
             
             if( !$api_class )
+            {
                 $api_class  = (@include $src_1);
+                $dynamic    = false;
+            }
+            else
+            {
+                $dynamic    = true;
+            }
             
             if( $api_class && strlen($api_class)>1 )
             {
@@ -92,7 +99,11 @@
                     {
                         try
                         {
-                            $co = new $api_class( microtime(true), $output, false );
+                            if( $dynamic )
+                                $co = new $api_class( microtime(true), false );
+                            else
+                                $co = new $api_class( microtime(true), $output, false );
+                            
                             return $co->response;
                         }
                         catch( Exception $e )
