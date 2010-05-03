@@ -266,21 +266,48 @@
 
         return $result;
     }
-
+    
     function object_to_xml( $object, $doc, $name )
     {
         $node = $doc->createElement($name);
 
         foreach( $object as $k=>$o )
         {
-            if( !is_object($o) )
+            if( is_array( $o ) )
             {
-                $node->appendChild( $doc->createElement($k,$o) );
+                $k_clean = preg_replace('/([^aiou])s$/', '\1', $k);
+                foreach( $o as $el )
+                {
+                    if( is_string( $el ) )
+                    {
+                        $node->appendChild( $doc->createElement( $k_clean, $el ) );
+                    }
+                    else
+                    {
+                        $node->appendChild( object_to_xml( $el, $doc, $k_clean ) );
+                    }
+                }
+            }
+            else if( !is_object($o) )
+            {
+                $node->appendChild( $doc->createElement($k,nuXmlChars($o)) );
             }
             else
             {
                 $node->appendChild( object_to_xml($o, $doc, $k) );
             }
+        }
+
+        return $node;
+    }
+
+    function array_to_xml( $array, $doc, $name, $nodeName )
+    {
+        $node = $doc->createElement($name);
+
+        foreach( $array as $el )
+        {
+            $node->appendChild( object_to_xml( $el, $doc, $nodeName ) );
         }
 
         return $node;
