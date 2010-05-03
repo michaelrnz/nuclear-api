@@ -9,30 +9,24 @@
 			connection class initialized for
 			mysql queries
 	*/
+    
+    require_once('class.database.php');
 
 	class MySQLConnection
 	{
-		public static  $c = null;
-
-		//
-		// instantiate connection
 		public static function init($u, $p, $h, $db)
 		{
-			if( is_null(MySQLConnection::$c) )
+            $dbo = Database::getInstance();
+            
+			if( !($c = mysql_connect( $h, $u, $p)) )
 			{
-				//
-				// connect
-				if( !($_c = mysql_pconnect( $h, $u, $p)) )
-				{
-					throw new Exception('Unable to connect to the database: ' . mysql_error());
-				}
+                throw new Exception('Unable to connect to the database: ' . mysql_error());
+            }
 
-				//
-				// select db
-				if( $db ) mysql_select_db($db, $_c);
-
-				MySQLConnection::$c = $_c;
-			}
+			if( $db ) 
+                mysql_select_db($db, $c);
+            
+            $dbo->addConnection( $c );
 		}
 	}
 

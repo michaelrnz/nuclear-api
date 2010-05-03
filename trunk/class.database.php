@@ -58,13 +58,13 @@
 
 		public function affected( $str, $errmsg=false )
 		{
-			self::void( $str, $errmsg );
+			$this->void( $str, $errmsg );
 			return mysql_affected_rows();
 		}
 
 		public function single( $str, $errmsg )
 		{
-			$r = self::q( $str, $errmsg );
+			$r = $this->execute( $str, $errmsg );
 			if( $r )
 				return mysql_fetch_array( $r );
 			return null;

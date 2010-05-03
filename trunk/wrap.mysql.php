@@ -12,37 +12,29 @@
 
 	class WrapMySQL
 	{
-	  public static function id( $str, $errmsg=false, $errcode=7 )
-	  {
-	    $r = mysql_query($str);
-	    if( !$r && $errmsg ) throw new Exception($errmsg .": ". mysql_error(), $errcode);
-	    return mysql_insert_id();
-	  }
+        public static function id( $str, $errmsg=false, $errcode=7 )
+        {
+            return Database::getInstance()->id( $str, $errmsg, $errcode );
+        }
 
 		public static function void( $str, $errmsg=false, $errcode=7 )
 		{
-			$r = mysql_query($str);
-			if( !$r && $errmsg ) throw new Exception($errmsg .": ". mysql_error(), $errcode);
+            Database::getInstance()->void( $str, $errmsg, $errcode );
 		}
 
 		public static function &q( $str, $errmsg, $errcode=7 )
 		{
-			if( !($r = mysql_query($str)) ) throw new Exception($errmsg .": ". mysql_error(), $errcode);
-			return $r;
+            Database::getInstance()->execute( $str, $errmsg, $errcode );
 		}
 
 		public static function affected( $str, $errmsg=false )
 		{
-			self::void( $str, $errmsg );
-			return mysql_affected_rows();
+            Database::getInstance()->affected( $str, $errmsg, $errcode );
 		}
 
 		public static function single( $str, $errmsg )
 		{
-			$r = self::q( $str, $errmsg );
-			if( $r )
-				return mysql_fetch_array( $r );
-			return null;
+            Database::getInstance()->single( $str, $errmsg, $errcode );
 		}
 	}
 ?>
