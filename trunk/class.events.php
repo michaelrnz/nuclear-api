@@ -41,6 +41,11 @@
             return array_search( $this->handlers, $callback );
         }
 
+        function hasSubscribers()
+        {
+            return count($this->handlers)>0;
+        }
+
         function emit( &$data=null, &$source=null )
         {
             if( count($this->handlers)>0 )
@@ -136,6 +141,21 @@
 
             if( array_key_exists( $aspect, $this->aspects ) )
                 return $this->aspects[$aspect]->isSubscribed( $callback ) > 0;
+
+            return false;
+        }
+
+        public function isObserved( $aspect )
+        {
+            if( strlen($aspect) )
+            {
+                $aspect = strtolower($aspect);
+
+                if( array_key_exists( $aspect, $this->aspects ) )
+                {
+                    return $this->aspects[$aspect]->hasSubscribers();
+                }
+            }
 
             return false;
         }
