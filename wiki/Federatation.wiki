@@ -1,0 +1,26 @@
+#summary Nuclear's native federated relation and distribution system.
+
+= Introduction =
+
+Nuclear has a native protocol supporting both a federated model for social relation as well as entry or packet notification broadcast to subscribed parties. We should move this page from http://nuclearworks.pbworks.com/Federated-Packet-Specification
+
+
+= Details =
+
+The basis of the Federated Micro-Publishing specification relies on OAuth established relationships for distribution across domains. In the current specification, we rely on established, hard-specified endpoints and a semi-finite xml packet structure. There should be a few changes to these items.
+
+  * Endpoints for all modes of operation should be established as a single url.
+  * Endpoints should be a link element in a domain or subdomain page.
+  * Endpoints will be stored per-domain.
+
+  * Internal representation of entries will be an object.
+  * External representation of entries will be xml.
+  * A JSON representation may exist in the future, but XML will be bread and butter.
+
+  * Storage of entries may be specified with Event listeners.
+  * External fp terminology will be changed to entry.
+
+Add your content here.  Format your content with:
+  * Text in *bold* or _italic_
+  * Headings, paragraphs, and lists
+  * Automatic links to other wiki pages
