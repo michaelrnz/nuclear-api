@@ -9,7 +9,7 @@
             simple functions related
             to globals, and code flow
     */
-    
+
 
 /* POSSIBLY TRASH */
   function &nuXmlChars( &$str,$mode=0)
@@ -81,7 +81,7 @@
 		}
 		return false;
 	}
-    
+
     /* END POSSIBLY TRASH */
 
 
@@ -95,17 +95,17 @@
             $value = is_array($value) ?
             array_map('stripslashes_deep', $value) :
             stripslashes($value);
-            
+
             return $value;
         }
-        
+
         $_POST = array_map('stripslashes_deep', $_POST);
         $_GET = array_map('stripslashes_deep', $_GET);
         $_COOKIE = array_map('stripslashes_deep', $_COOKIE);
         $_REQUEST = array_map('stripslashes_deep', $_REQUEST);
     }
 
-    
+
     //
     // Typing function, utility
     // can save a regex for url testing
@@ -114,13 +114,13 @@
     {
         return strpos("-|{$group}|","|{$type}|");
     }
-    
+
     function is_type( $group, $type )
     {
         return strpos("-|{$group}|","|{$type}|");
     }
-    
-    
+
+
     //
     // Make caching directory (checks presence)
     //
@@ -129,8 +129,8 @@
         if( is_dir( $dir ) ) return;
         mkdir( $dir, $mode, true );
     }
-    
-    
+
+
     //
     // invasive slash management
     // two-stage process
@@ -141,12 +141,27 @@
         $rep = array("\'",'\1\\\\\\\\\2');
         return preg_replace( $find, $rep, str_replace("'","\'",$f) );
     }
-    
+
     function safe_unslash( $f )
     {
         return str_replace("\'", "'", $f);
     }
-    
+
+    //
+    // base64url version
+    //
+    function base64url_encode( $input )
+    {
+        return strtr( base64_encode( $input ), "+/=", "-_," );
+    }
+
+    function base64url_decode($input)
+    {
+        return base64_decode( strtr( $input, '-_,', '+/=' ) );
+    }
+
+
+
     //
     // GLOBALS get/set wrapper
     //
@@ -154,7 +169,7 @@
     {
         $GLOBALS[$id] = $data;
     }
-    
+
     function &get_global( $f )
     {
         if( array_key_exists($f, $GLOBALS) )
@@ -164,8 +179,8 @@
         //return null; TODO
         return false;
     }
-    
-    
+
+
     //
     // GET, POST, REQUEST, SESSION fetching
     //
@@ -177,7 +192,7 @@
         }
         return false;
     }
-    
+
     function POST($f)
     {
         if( array_key_exists($f, $_POST) )
@@ -186,7 +201,7 @@
         }
         return false;
     }
-    
+
     function REQUEST($f)
     {
         if( array_key_exists($f, $_REQUEST) )
@@ -195,8 +210,8 @@
         }
         return false;
     }
-    
-    
+
+
     //
     // real request uri, without GET
     //
@@ -211,8 +226,8 @@
         }
         return $_REAL_REQUEST_URI;
     }
-    
-    
+
+
     //
     // convert an xml doc to object recursively
     // requires only a few miliseconds to convert 20 fmp packets
@@ -266,7 +281,7 @@
 
         return $result;
     }
-    
+
     function object_to_xml( $object, $doc, $name )
     {
         $node = $doc->createElement($name);
@@ -316,7 +331,7 @@
     //
     // TODO migrate ATIME to the Service abstract
     //
-    
+
     $GLOBALS['ATIME']= microtime(true);
 
 ?>
