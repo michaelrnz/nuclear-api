@@ -1,13 +1,13 @@
 <?php
 
-	/*
-		nuclear.framework
-		altman,ryan,2008 (recod 2010)
+    /*
+        nuclear.framework
+        altman,ryan,2008 (recod 2010)
 
-		Cache
-		===================================================
-			library for handling application-wide cache
-	*/
+        Cache
+        ===================================================
+            library for handling application-wide cache
+    */
 
     require_once('interface.nuclear.php');
 
@@ -142,16 +142,16 @@
 
             $dir = $prefix_dir ? $prefix_dir : $this->cache_dir;
 
-			if( $this->isCached( $resource, $lifetime, $prefix_dir ) )
-			{
-				if( ($data = file_get_contents( $resource )) )
-				{
-					return $data;
-				}
-			}
+            if( $this->isCached( $resource, $lifetime, $prefix_dir ) )
+            {
+                if( ($data = file_get_contents( $resource )) )
+                {
+                    return $data;
+                }
+            }
 
-			return false;
-		}
+            return false;
+        }
 
         public function getText( $resource, $lifetime=false, $prefix_dir=false )
         {
@@ -168,32 +168,32 @@
         public function getObject( $resource, $lifetime=false, $prefix_dir=false )
         {
             if( $data = self::_uncache( $resource, $lifetime, $prefix_dir ) )
-			{
-				return unserialize( $data );
-			}
-			return null;
+            {
+                return unserialize( $data );
+            }
+            return null;
         }
 
         public function setObject( $resource, $object, $prefix_dir=false )
         {
             if( is_object( $object ) && strlen( $resource )>0 )
-			{
-			    $this->_cache( $resource, serialize( $object ), $prefix_dir );
-			}
+            {
+                $this->_cache( $resource, serialize( $object ), $prefix_dir );
+            }
 
-			return $this;
+            return $this;
         }
 
         public function getDocument( $resource, $prefix_dir=false )
         {
-			if( $data = $this->_uncache( $resource, $lifetime, $prefix_dir ) )
-			{
-				$doc = new DOMDocument("1.0","utf-8");
-				$doc->loadXML( $data );
-				return $doc;
-			}
+            if( $data = $this->_uncache( $resource, $lifetime, $prefix_dir ) )
+            {
+                $doc = new DOMDocument("1.0","utf-8");
+                $doc->loadXML( $data );
+                return $doc;
+            }
 
-			return null;
+            return null;
         }
 
         public function setDocument( $resource, $doc, $prefix_dir=false )
@@ -205,6 +205,6 @@
 
             return $this;
         }
-	}
+    }
 
 ?>
