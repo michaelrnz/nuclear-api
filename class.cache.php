@@ -21,6 +21,12 @@
                 self::$_instance = new IO();
             return self::$_instance;
         }
+
+        public function mkdir( $dir, $mode=0775 )
+        {
+            if( is_dir( $dir ) ) return;
+            mkdir( $dir, $mode, true );
+        }
     }
 
     class Cache implements iSingleton
@@ -30,10 +36,12 @@
         private $on;
         private $cache_dir;
         private $events;
+        private $io;
 
         function __construct()
         {
             $this->events       = Events::getInstance();
+            $this->io           = IO::getInstance();
             $this->time         = time();
             $this->on           = true;
             $this->cache_dir    = get_global( 'CACHE' );
@@ -58,6 +66,14 @@
             return $this;
         }
 
+        private function key( $resource )
+        {
+            $k0 = hash( "md5", $resource );
+            $k1 = substr( $k0, 0, 2 );
+            $k2 = substr( $k0, 2, 2 );
+            return (object) array("path"=>"{$k1}/{$k2}/", "hash"=>"{$k0}");
+        }
+
         //
         // isCached: privately check if resource exists or has not expired
         //
@@ -72,13 +88,16 @@
                 return $this->events->filter( 'nu_cache_check', $cached, $source );
             }
 
-            $expires = $this->time - ($lifetime === false ? -100000 : $lifetime);
-
-            $full_resource = ( $prefix_dir ? $prefix_dir : $this->cache_dir ) . $resource;
-
-            if( file_exists( $full_resource ) && filemtime( $full_resource ) >= $expires )
+            if( $this->on )
             {
-                return true;
+                $expires    = $this->time - ($lifetime === false ? -100000 : $lifetime);
+                $key_path   = $this->key( $resource );
+                $key_file   = ( $prefix_dir ? $prefix_dir : $this->cache_dir ) . $key_path->path . $key_path->hash;
+
+                if( file_exists( $key_file ) && filemtime( $key_file ) >= $expires )
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -97,31 +116,27 @@
                 return;
             }
 
-            // output directory
-            $dir    = $prefix_dir ? $prefix_dir : $this->cache_dir;
+            if( $this->on )
+            {
+                $key_path   = $this->key( $resource );
+                $dir        = ($prefix_dir ? $prefix_dir : $this->cache_dir) . $key_path->path;
+                $t          = "{$dir}{$key_path->hash}.". microtime(true);
 
-            // ensure resource
-            mk_cache_dir( "{$dir}" );
-
-            // save temporary cache
-            $t  = "{$dir}". hash("md5", $resource) .".". microtime(true);
-            file_put_contents( $t, $data );
-
-            // rename to directory
-            rename( $t, "{$dir}{$resource}" );
+                $this->io->mkdir( "{$dir}" );
+                file_put_contents( $t, $data );
+                rename( $t, "{$dir}{$key_path->hash}" );
+            }
         }
 
-		//
-		// private uncache, returns string data
-		//
-		private static function _get( $resource, $lifetime=false, $prefix_dir=false )
-		{
+        private static function _get( $resource, $lifetime=false, $prefix_dir=false )
+        {
 
             // allow custom management of caching
             if( $this->events->isObserved( 'nu_cache_get' ) )
             {
+                $source = (object) array("resource"=>$resource, "lifetime"=>$lifetime);
                 $data = null;
-                $data = $events->filter( 'nu_cache_get', $data, $id );
+                $data = $this->events->filter( 'nu_cache_get', $data, $source );
                 return $data;
             }
 
@@ -134,15 +149,21 @@
 					return $data;
 				}
 			}
+
 			return false;
 		}
 
+        public function getText( $resource, $lifetime=false, $prefix_dir=false )
+        {
+            return $this->_uncache( $resource, $lifetime, $prefix_dir );
+        }
 
-        /*
+        public function setText( $resource, $text, $prefix_dir=false )
+        {
+            $this->_cache( $resource, $text, $prefix_dir );
 
-            Public caching methods (text, document, object)
-
-        */
+            return $this;
+        }
 
         public function getObject( $resource, $lifetime=false, $prefix_dir=false )
         {
@@ -161,16 +182,6 @@
 			}
 
 			return $this;
-        }
-
-        public function getText( $resource, $lifetime=false, $prefix_dir=false )
-        {
-            return $this->_uncache( $resource, $lifetime, $prefix_dir );
-        }
-
-        public function setText( $resource, $text, $prefix_dir=false )
-        {
-            return $this->_cache( $resource, $text, $prefix_dir );
         }
 
         public function getDocument( $resource, $prefix_dir=false )
