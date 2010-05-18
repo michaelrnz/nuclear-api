@@ -10,24 +10,7 @@
     */
 
     require_once('interface.nuclear.php');
-
-    class IO implements iSingleton
-    {
-        private static $_instance;
-
-        public static function getInstance()
-        {
-            if( is_null(self::$_instance) )
-                self::$_instance = new IO();
-            return self::$_instance;
-        }
-
-        public function mkdir( $dir, $mode=0775 )
-        {
-            if( is_dir( $dir ) ) return;
-            mkdir( $dir, $mode, true );
-        }
-    }
+    require_once('class.io.php');
 
     class Cache implements iSingleton
     {
