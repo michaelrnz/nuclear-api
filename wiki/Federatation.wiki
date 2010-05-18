@@ -20,6 +20,10 @@ The basis of the Federated Micro-Publishing specification relies on OAuth establ
   * Storage of entries may be specified with Event listeners.
   * External fp terminology will be changed to entry.
 
+Federated Endpoint
+
+  * /api/portal - Params( mode, party, data ), XML-only
+
 Add your content here.  Format your content with:
   * Text in *bold* or _italic_
   * Headings, paragraphs, and lists
