@@ -49,6 +49,35 @@
         }
     }
 
+
+    function attach_public_key( $resp, $acct )
+    {
+        require_once('lib.nuuser.php');
+        $user_id = NuUser::userID( $acct['user'], $acct['domain'] );
+
+        if( $user_id )
+        {
+            // do the magic
+            require_once('lib.magic.php');
+            $nuclear_magic = new NuUserMagic( $user_id, $acct['domain']==get_global('DOMAIN') );
+            $href = $nuclear_magic->load()->href();
+
+            $link   = $resp->createElement('Link');
+            $link->setAttribute('rel', 'magic-public-key');
+            $link->setAttribute( 'href', $href );
+            $resp->firstChild->appendChild( $link );
+
+        }
+        else
+        {
+            throw new WebfingerException("Invalid or unknown user");
+        }
+
+        return $resp;
+    }
+
+    Events::getInstance()->attach( 'nu_webfinger_xrd', 'attach_public_key' );
+
     return "getWebFingerXRD";
 
 ?>
