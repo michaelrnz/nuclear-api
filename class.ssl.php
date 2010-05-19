@@ -25,6 +25,11 @@
             return self::$_instance;
         }
 
+        public function clean( $key )
+        {
+            return str_replace("\n","",preg_replace('/^\-+[ \w]+\-+/m', '', $key));
+        }
+
         public function createKeys( $config = array('digest_alg'=>'sha256', 'private_key_bits'=>512) )
         {
             $keys   = array();
@@ -34,11 +39,11 @@
 
             // acquire public key
             $pub    = openssl_pkey_get_details( $res );
-            $keys['public']     = $pub['key'];
+            $keys['public']     = $this->clean($pub['key']);
 
             // acquire private key
             openssl_pkey_export( $res, $priv );
-            $keys['private']    = $priv;
+            $keys['private']    = $this->clean($priv);
 
             // free the resource
             openssl_pkey_free( $res );
