@@ -49,112 +49,11 @@ DROP TABLE IF EXISTS `nu_domain`;
 CREATE TABLE `nu_domain` (
   `id` int(10) unsigned NOT NULL auto_increment,
   `name` varchar(255) default NULL,
+  `webfinger` varchar(255) default NULL,
+  `portal` varchar(255) default NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `name` (`name`)
 ) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `nu_federated_auth`
---
-
-DROP TABLE IF EXISTS `nu_federated_auth`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `nu_federated_auth` (
-  `publisher` int(10) unsigned NOT NULL,
-  `subscriber` int(10) unsigned NOT NULL,
-  `token` varchar(255) collate latin1_general_ci NOT NULL,
-  `secret` varchar(255) collate latin1_general_ci default NULL,
-  `ts` timestamp NOT NULL default CURRENT_TIMESTAMP,
-  PRIMARY KEY  (`publisher`,`subscriber`),
-  KEY `token` (`token`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `nu_federated_auth_request`
---
-
-DROP TABLE IF EXISTS `nu_federated_auth_request`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `nu_federated_auth_request` (
-  `subscriber` int(10) unsigned NOT NULL,
-  `publisher` varchar(128) character set utf8 NOT NULL,
-  `domain` int(10) unsigned NOT NULL,
-  `token` varchar(255) collate latin1_general_ci NOT NULL,
-  `secret` varchar(255) collate latin1_general_ci NOT NULL,
-  `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-  PRIMARY KEY  (`subscriber`,`publisher`),
-  KEY `token` (`token`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `nu_federated_namespace`
---
-
-DROP TABLE IF EXISTS `nu_federated_namespace`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `nu_federated_namespace` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `prefix` varchar(32) default NULL,
-  `uri` varchar(255) default NULL,
-  PRIMARY KEY  (`id`),
-  KEY `prefix` (`prefix`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `nu_federated_packet_namespace`
---
-
-DROP TABLE IF EXISTS `nu_federated_packet_namespace`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `nu_federated_packet_namespace` (
-  `packet` int(10) unsigned NOT NULL,
-  `namespace` int(10) unsigned NOT NULL,
-  PRIMARY KEY  (`namespace`,`packet`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `nu_federated_publisher_auth`
---
-
-DROP TABLE IF EXISTS `nu_federated_publisher_auth`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `nu_federated_publisher_auth` (
-  `user` int(10) unsigned NOT NULL,
-  `federated_user` int(10) unsigned NOT NULL,
-  `token` varchar(255) collate latin1_general_ci NOT NULL,
-  `secret` varchar(255) collate latin1_general_ci NOT NULL,
-  `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-  PRIMARY KEY  (`user`,`federated_user`),
-  KEY `token` (`token`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `nu_federated_subscriber_auth`
---
-
-DROP TABLE IF EXISTS `nu_federated_subscriber_auth`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `nu_federated_subscriber_auth` (
-  `user` int(10) unsigned NOT NULL,
-  `federated_user` int(10) unsigned NOT NULL,
-  `token` varchar(255) collate latin1_general_ci NOT NULL,
-  `secret` varchar(255) collate latin1_general_ci NOT NULL,
-  `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-  PRIMARY KEY  (`user`,`federated_user`),
-  KEY `token` (`token`)
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -205,21 +104,6 @@ CREATE TABLE `nu_oauth_consumer` (
   `secret` varchar(255) collate latin1_general_ci default NULL,
   PRIMARY KEY  (`id`),
   UNIQUE KEY `token` (`token`)
-) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Table structure for table `nu_packet_hash`
---
-
-DROP TABLE IF EXISTS `nu_packet_hash`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `nu_packet_hash` (
-  `publisher` int(10) unsigned NOT NULL,
-  `hash` binary(20) NOT NULL,
-  `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-  PRIMARY KEY  (`publisher`,`hash`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -346,8 +230,12 @@ CREATE TABLE `nu_relation` (
   `party` int(10) unsigned NOT NULL,
   `model` tinyint(3) unsigned NOT NULL default '0',
   `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+<<<<<<< .mine
+  PRIMARY KEY  (`user`,`model`,`party`)
+=======
   PRIMARY KEY  (`user`,`party`),
   KEY `user` (`user`,`model`)
+>>>>>>> .r112
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -542,6 +430,8 @@ CREATE TABLE `nuclear_userkey` (
   `id` int(10) unsigned NOT NULL,
   `pass` char(28) collate latin1_bin NOT NULL,
   `auth` binary(20) NOT NULL,
+  `public_key` blob default NULL,
+  `private_key` blob default NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
