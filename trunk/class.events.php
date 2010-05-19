@@ -114,7 +114,7 @@
             if( !array_key_exists( $aspect, $this->aspects ) )
                 $this->aspects[ $aspect ] = new Aspect();
 
-            $this->handlers[ $aspect ]->subscribe( $callback );
+            $this->aspects[ $aspect ]->subscribe( $callback );
 
             return $this;
         }
@@ -128,7 +128,7 @@
             if( !array_key_exists( $aspect, $this->aspects ) )
                 return $this;
 
-            $this->handlers[ $aspect ]->unsubscribe( $callback );
+            $this->aspects[ $aspect ]->unsubscribe( $callback );
 
             return $this;
         }
