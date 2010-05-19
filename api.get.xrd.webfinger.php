@@ -15,15 +15,17 @@
 
             if( !$acct )
                 throw new WebfingerException('Invalid uri');
-            $events = Events::getInstance();
 
+            $events = Events::getInstance();
             $resp   = new XMLContainer('1.0', 'UTF-8');
 
             //
             // append the XRD root
             //
-            $xrd    = $resp->createElement('XRD');
-            $xrd->createAttribute('xmlns', 'http://docs.oasis-open.org/ns/xri/xrd-1.0');
+            $xrd    = $resp->createElementNS(
+                        'http://docs.oasis-open.org/ns/xri/xrd-1.0',
+                        'XRD');
+
             $resp->appendChild($xrd);
 
             $xrd->appendChild(
