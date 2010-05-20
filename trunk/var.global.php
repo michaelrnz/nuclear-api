@@ -180,6 +180,14 @@
         return false;
     }
 
+    //
+    // Nuclear database prefix
+    //
+    function nu_db()
+    {
+        return get_global('NU_DB');
+    }
+
 
     //
     // GET, POST, REQUEST, SESSION fetching
