@@ -10,6 +10,12 @@
     {
         function __construct( $data=null )
         {
+            if( !is_null($data) )
+                $this->merge( $data );
+        }
+
+        public function merge( $data )
+        {
             if( is_array($data) )
                 $data = (object) $data;
 
