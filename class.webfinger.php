@@ -19,6 +19,7 @@
         private static $_instance;
         private $domains;
         private $io;
+        private $xrd;
 
         function __construct()
         {
@@ -51,18 +52,16 @@
             return false;
         }
 
-        public function template( $domain )
+        public function link( $rel, $attribute='template' )
         {
-            $xrd    = $this->domains->host_meta( $domain );
-
-            if( $xrd )
+            if( $this->xrd )
             {
-                $links = $xrd->getElementsByTagName('Link');
+                $links = $this->xrd->getElementsByTagName('Link');
                 foreach( $links as $link )
                 {
-                    if( $link->getAttribute('rel') == 'lrdd' )
+                    if( $link->getAttribute('rel') == $rel )
                     {
-                        return $link->getAttribute('template');
+                        return $link->getAttribute($attribute);
                     }
                 }
             }
@@ -75,7 +74,8 @@
             if( !$template )
             {
                 $acct       = urlencode( 'acct:' . str_replace('acct:', '', $acct) );
-                $template   = $this->template( $domain );
+                $this->domains->host_meta( $domain );
+                $template   = $this->domains->template( 'lrdd' );
             }
 
             if( strlen($template)>0 )
@@ -87,9 +87,9 @@
                 {
                     require_once('class.domdocumentexceptor.php');
 
-                    $doc = new DOMDocumentExceptor('1.0', 'utf-8');
-                    $doc->loadXML( $xrd_data );
-                    return $doc;
+                    $this->xrd = new DOMDocumentExceptor('1.0', 'utf-8');
+                    $this->xrd->loadXML( $xrd_data );
+                    return $this->xrd;
                 }
             }
 
