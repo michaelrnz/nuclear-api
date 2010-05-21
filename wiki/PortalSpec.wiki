@@ -9,23 +9,23 @@ Nuclear is a fully-federated relation framework. We document here the small deta
 We wish to adhere to a similar packet format as Atom (entry, author, title, summary, content), with reliance on extended namespaces such as ActivityStreams. Data posted to a portal (endpoint) should contain a data parameter (REST). A brief structure follows.
 
 entry
-  *id* - integer id of entry on local node
-  *guid* - uuid of entry on all nodes (originates at source)
-  *timestamp* - GMT timestamp in seconds
-  *created_at* - GMT date (Tue May 18 3:37:01 +0000 2010)
-  visibility - private or public
-  source - contains name/url of client
-  *author* - contains author data
-  *text* - a text representation of the entry
-  title
-  summary
-  actions (ActionStatus)
-  activity (ActivityStream)
-  attachment
-    type
-    url
-    disposition
-  thr (in_reply_to) - http://www.ietf.org/rfc/rfc4685.txt
+  * *id* - integer id of entry on local node
+  * *guid* - uuid of entry on all nodes (originates at source)
+  * *timestamp* - GMT timestamp in seconds
+  * *created_at* - GMT date (Tue May 18 3:37:01 +0000 2010)
+  * visibility - private or public
+  * source - contains name/url of client
+  * *author* - contains author data
+  * *text* - a text representation of the entry
+  * title
+  * summary
+  * actions (ActionStatus)
+  * activity (ActivityStream)
+  * attachment
+    * type
+    * url
+    * disposition
+  * thr (in_reply_to) - http://www.ietf.org/rfc/rfc4685.txt
 
 Bold properties should always be expected.
 
