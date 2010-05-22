@@ -242,35 +242,55 @@
     //
     function &xml_to_object( &$xml )
     {
-        $result = new Object();
+        $result = null;
+        $attributes = null;
 
-        // attribute check
-        foreach( $xml->attributes as $attrName => $attrNode )
+        // handle attributes
+        if( $xml->hasAttributes() )
         {
-            $result->$attrName = $attrNode->nodeValue;
+            $attributes = new stdClass();
+            foreach( $xml->attributes as $attrName => $attrNode )
+            {
+                //if( strpos($attrName, ':')>0 ) continue;
+                $attrName = "attr_{$attrName}";
+                $attributes->$attrName = $attrNode->nodeValue;
+            }
         }
 
+        $child  = $xml->firstChild;
+        $key    = $child->nodeName;
+
+        // handle first child
+        if( strpos($key,'#')===0 )
+        {
+            if( is_object($attributes) )
+            {
+                $attributes->nodeValue = $child->nodeValue;
+                return $attributes;
+            }
+
+            return $child->nodeValue;
+        }
+        else if( is_object($attributes) )
+        {
+            $result = new stdClass();
+
+            foreach( $attributes as $a=>$v )
+                $result->$a = $v;
+
+            $attributes = null;
+        }
+
+        // handle children
         foreach( $xml->childNodes as $node )
         {
             $key = $node->nodeName;
 
-            // assume no more nodes
-            if( strpos($key,'#')===0 )
-            {
-                return $node->nodeValue;
-            }
+            // format node name (NS:tag => ns_NS_tag)
+            $key = preg_replace('/^(\w+):(\w+)/', 'ns_\1_\2', $key);
 
-            // recursive check
-            if( $node->hasChildNodes() )
-            {
-                $value  = xml_to_object( $node );
-            }
-            else
-            {
-                $value  = $node->nodeValue;
-            }
+            $value = xml_to_object( $node );
 
-            // collision check
             if( !is_null($result->$key) )
             {
                 if( !is_array($result->$key) )
@@ -294,13 +314,19 @@
     {
         $node = $doc->createElement($name);
 
+        $has_attribute = false;
+
         foreach( $object as $k=>$o )
         {
+            $k = preg_replace('/^ns_([a-zA-Z0-9]+)_(\w+)/', '\1:\2', $k);
+
             if( is_array( $o ) )
             {
                 $k_clean = preg_replace('/([^aiou])s$/', '\1', $k);
                 foreach( $o as $el )
                 {
+
+
                     if( is_string( $el ) )
                     {
                         $node->appendChild( $doc->createElement( $k_clean, $el ) );
@@ -313,6 +339,19 @@
             }
             else if( !is_object($o) )
             {
+                if( strpos($k, 'attr_')===0 )
+                    {
+                        $node->setAttribute( str_replace('attr_', '', $k), $o);
+                        $has_attribute = true;
+                        continue;
+                    }
+
+                if( $has_attribute && $k === "nodeValue" )
+                {
+                    $node->nodeValue = $o;
+                    continue;
+                }
+
                 $node->appendChild( $doc->createElement($k,nuXmlChars($o)) );
             }
             else
