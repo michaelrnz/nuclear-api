@@ -30,7 +30,7 @@
         public static function getInstance()
         {
             if( is_null(self::$_instance) )
-                self::$_instance = new PortalPublisher();
+                self::$_instance = new PortalEntry();
 
             return self::$_instance;
         }
