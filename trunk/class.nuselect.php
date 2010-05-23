@@ -124,6 +124,32 @@
 	}
       }
     }
+    
+        public function filter( $aspect, $attributes )
+        {
+            $ev     = Evnets::getInstance();
+            
+            if( $ev->isObserved( $aspect ) )
+            {
+                $dummy  = new NuSelect('_void_');
+                $dummy  = Events::getInstance()->filter( $aspect, $dummy );
+                
+                foreach( $attributes as $att=>$type )
+                {
+                    if( !isType('fields|joins|conditions', $att) )
+                        continue;
+                    
+                    if( $type == 'premerge' )
+                    {
+                        $this->premerge( $att, $dummy->$att );
+                    }
+                    else
+                    {
+                        $this->postmerge( $att, $dummy->$att );
+                    }
+                }
+            }
+        }
   }
 
 ?>
