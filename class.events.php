@@ -164,7 +164,7 @@
         {
             $aspect = strtolower($aspect);
 
-            if( array_key_exists( $aspect, $this->handlers ) )
+            if( array_key_exists( $aspect, $this->aspects ) )
             {
                 $this->aspects[ $aspect ]->emit( $data, $source );
             }
