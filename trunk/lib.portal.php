@@ -133,10 +133,10 @@
             }
 
             // restore dynamic attributes for echo
-            $entry->id      = $this->id;
-            $entry->guid    = to_base( from_hex($this->guid) );
-            $entry->published= date('Y-m-d\TH:i:s\Z', $this->published);
-            $entry->updated = date('Y-m-d\TH:i:s\Z', $this->updated);
+            $entry->id          = $this->id;
+            $entry->guid        = to_base( from_hex($this->guid) );
+            $entry->published   = date('Y-m-d\TH:i:s\Z', $this->published);
+            $entry->updated     = date('Y-m-d\TH:i:s\Z', $this->updated);
 
             return $entry;
         }
