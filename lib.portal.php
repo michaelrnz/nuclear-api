@@ -164,7 +164,7 @@
             if( is_null(self::$_instance) )
                 self::$_instance = new PortalPublishing();
 
-            return sefl::$_instance;
+            return self::$_instance;
         }
 
         public function publish( $publisher, $entry, $isLocal )
