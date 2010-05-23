@@ -44,7 +44,7 @@
                     $entry->author  = new Author( array(
                                         'id'=>$data->author_id, 
                                         'name'=>$data->author_name, 
-                                        'domain'=>$data->author_domain );
+                                        'domain'=>$data->author_domain) );
                     
                     if( $do_filter )
                         $entry      = $events->filter( 'portal_timeline_entry', $entry, $data );

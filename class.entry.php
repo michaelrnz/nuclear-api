@@ -60,11 +60,12 @@
     {
         public $id;
         public $name;
+        public $domain;
+        
+        /*
         public $display_name;
         public $screen_name;
         public $gravatar;
-
-        /*
         public $location;
         public $time_zone;
         public $gmt_offset;
