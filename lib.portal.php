@@ -162,7 +162,7 @@
         public static function getInstance()
         {
             if( is_null(self::$_instance) )
-                self::$_instance = new PortalPublisher();
+                self::$_instance = new PortalPublishing();
 
             return sefl::$_instance;
         }
