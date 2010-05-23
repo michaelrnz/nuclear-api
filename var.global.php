@@ -375,10 +375,53 @@
         return $node;
     }
 
+    function to_base( $dec, $lib="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" )
+    {
+        $code = "";
+        $base = strlen($lib);
+
+        while( $dec>0 )
+        {
+            $m      = (int) bcmod($dec, $base);
+            $code  .= substr( $lib, $m, 1);
+            $dec    = bcdiv($dec, $base, 0);
+        }
+
+        return strrev( $code );
+    }
+
+    function from_base( $alpha, $lib="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" )
+    {
+        $dec    = 0;
+        $base   = strlen($lib);
+        $len    = strlen($alpha);
+
+        for($a=0; $a<$len; $a++)
+        {
+            $p      = ($len - ($a+1));
+            $c      = substr($alpha, $a, 1);
+            $dec    = bcadd( $dec, bcmul( strpos($lib,$c), bcpow($base, $p, 0) ) );
+        }
+
+        return $dec;
+    }
+
+    function to_hex( $dec )
+    {
+        return to_base( $dec, "0123456789ABCDEF" );
+    }
+
+    function from_hex( $hex )
+    {
+        return from_base( strtoupper($hex), "0123456789ABCDEF" );
+    }
+
     //
     // TODO migrate ATIME to the Service abstract
     //
 
     $GLOBALS['ATIME']= microtime(true);
+
+    define( 'NU_ACCESS_TIME', microtime(true) );
 
 ?>
