@@ -45,7 +45,7 @@
 
             $sql =      "insert into ". nu_db() ."nu_entry_index ".
                         "(publisher, guid, published, updated) ".
-                        "values ({$publisher}, UNHEX(REVERSE('{$guid}')), {$published}, {updated}) ";
+                        "values ({$publisher}, UNHEX(REVERSE('{$guid}')), {$published}, {$updated}) ";
 
             $this->id       = $this->db->id( $sql, "Error creating portal entry (index)" );
             $this->guid     = $guid;
@@ -134,9 +134,9 @@
 
             // restore dynamic attributes for echo
             $entry->id      = $this->id;
-            $entry->guid    = $this->guid;
-            $entry->published= $this->published;
-            $entry->updated = $this->updated;
+            $entry->guid    = to_base( from_hex($this->guid) );
+            $entry->published= date('Y-m-d\TH:i:s\Z', $this->published);
+            $entry->updated = date('Y-m-d\TH:i:s\Z', $this->updated);
 
             return $entry;
         }
@@ -219,10 +219,26 @@
             if( $this->events->isObserved('portal_publish_unidentified') )
                 $this->events->emit('portal_publish_unidentified', $this->entry, $this->publisher);
 
+            $has_published  = !is_null($this->entry->published);
+            $has_updated    = !is_null($this->entry->updated);
+
+            if( $has_published && !$has_updated )
+            {
+                $auto = false;
+            }
+            else if( $has_updated && !$has_published )
+            {
+                $this->entry->published = $this->entry->updated;
+            }
+            else
+            {
+                $auto = NU_ACCESS_TIME;
+            }
+
             $entry_id = PortalEntry::getInstance()->create(
                             $this->publisher->id,
-                            $this->timestamp( $this->entry->published ),
-                            $this->timestamp( $this->entry->updated ),
+                            $this->timestamp( $this->entry->published, $auto ),
+                            $this->timestamp( $this->entry->updated, $auto ),
                             $this->guid( $this->entry->guid ) );
 
             return $entry_id;
