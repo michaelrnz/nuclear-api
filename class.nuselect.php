@@ -127,12 +127,12 @@
     
         public function filter( $aspect, $attributes )
         {
-            $ev     = Evnets::getInstance();
+            $ev     = Events::getInstance();
             
             if( $ev->isObserved( $aspect ) )
             {
                 $dummy  = new NuSelect('_void_');
-                $dummy  = Events::getInstance()->filter( $aspect, $dummy );
+                $dummy  = $ev->filter( $aspect, $dummy );
                 
                 foreach( $attributes as $att=>$type )
                 {
