@@ -1,5 +1,5 @@
 <?php
-    
+
     /*
         nuclear.framework
         altman,ryan,2008
@@ -56,7 +56,7 @@
                 $this->validateCall();
 
                 //
-                // parse 
+                // parse
                 $this->parse();
 
                 //
@@ -81,18 +81,18 @@
             //
             // assign op
             $operation = $this->operation();
-            
+
             //
             // check if operation is remote
             if( $operation == 'nuclear' )
             {
                 $operation = $this->runScheduler();
             }
-            
+
             //
             // nu_api_operation filter
             $filter_operation = NuEvent::filter('nu_api_operation', $operation);
-            
+
             //
             // test for operation, fallback on default
             if( strlen($filter_operation) )
@@ -101,11 +101,11 @@
                 $this->op = $operation;
 
             $this->format = $this->mapField('format');
-            
+
             //
             // assign resource via REQUEST
             $this->resource = $_REQUEST;
-            
+
             // output
             if( isset($this->resource['output']) )
             {
@@ -131,32 +131,32 @@
         {
             $this->includer( strtolower($this->opFile()) );
         }
-        
+
         //
         // run scheduler
         private function runScheduler()
         {
             $id = $_REQUEST['schedule_id'];
-            
+
             if( !is_numeric( $id ) )
                 throw new Exception("Missing schedule_id for nuclear.api", 4);
-            
+
             // must return operation
             require_once('class.scheduler.php');
-            
+
             $data = Scheduler::getInstance()->unqueue( $id, 'nuclear_api' );
-                        
+
             // TODO data checking
             if( is_null($data) || is_null($data->operation) )
                 throw new Exception("Scheduler does not exist", 5);
-            
+
             $operation          = $data->operation;
             $this->method       = $data->method;
             $this->auth_user    = $data->auth_user;
-            
+
             foreach( $data->parameters as $p=>$v )
                 $_REQUEST[$p] = $v;
-            
+
             return $operation;
         }
 
@@ -191,7 +191,7 @@
                 default:
                     throw new Exception("No REST method");
             }
-            
+
             return $r;
         }
 
@@ -201,7 +201,7 @@
         {
             $map = $this->map[$f];
             $v = isset($_REQUEST[$map]) ? $_REQUEST[$map] : $_GET[$map];
-            
+
             if( $v )
             {
                 return $v;
@@ -262,7 +262,7 @@
         private function validateAccess()
         {
             require_once('lib.id.php');
-            
+
             $auth_data  = null;
 
             //
@@ -295,7 +295,7 @@
                 switch( $oauth_type )
                 {
 
-                  // OAuth for requesting access token 
+                  // OAuth for requesting access token
                   case 'oauth_access':
                     // not-implmeneted here
                     break;
@@ -304,53 +304,53 @@
                   // OAuth for fmp/access_token
                   //
                   case 'oauth_fmp':
-                    $auth_resp = NuOAuthorize::federation( 
+                    $auth_resp = NuOAuthorize::federation(
                            "http://{$GLOBALS['DOMAIN']}". real_request_uri(),
-                           $this->getMethod(), 
+                           $this->getMethod(),
                            $this->resource,
                            "format|op|output" );
 
                     // CHECK VALID
                     if( !$auth_resp[0] )
                       throw new Exception("Unauthorized oauth_fmp request", 2);
-                    
+
                     $auth_data  = $auth_resp;
                     break;
 
                   //
-                  // Publisher OAuth (fmp) 
+                  // Publisher OAuth (fmp)
                   //
                   case 'oauth_publisher':
 
-                    $auth_resp = NuOAuthorize::publisher( 
+                    $auth_resp = NuOAuthorize::publisher(
                            "http://{$GLOBALS['DOMAIN']}". real_request_uri(),
-                           $this->getMethod(), 
+                           $this->getMethod(),
                            $this->resource,
                            "format|op|output" );
 
                     // CHECK VALID
                     if( !$auth_resp[0] )
                       throw new Exception("Unauthorized oauth_publisher request", 2);
-                    
+
                     $auth_data  = array_splice( $auth_resp, 0, 10 );
                     $auth_data['id'] = $auth_data['publisher'];
                     break;
 
                   //
-                  // Subscriber OAuth (fmp, uses publisher's keys) 
+                  // Subscriber OAuth (fmp, uses publisher's keys)
                   //
                   case 'oauth_subscriber':
 
-                    $auth_resp = NuOAuthorize::subscriber( 
+                    $auth_resp = NuOAuthorize::subscriber(
                            "http://{$GLOBALS['DOMAIN']}". real_request_uri(),
-                           $this->getMethod(), 
+                           $this->getMethod(),
                            $this->resource,
                            "format|op|output" );
 
                     // CHECK VALID
                     if( !$auth_resp[0] )
                       throw new Exception("Unauthorized oauth_subscriber request", 2);
-                    
+
                     $auth_data  = $auth_resp;
                     $auth_data['id'] = $auth_data['subscriber'];
                     break;
@@ -392,7 +392,7 @@
 
                 $auth_user  = new AuthorizedUser( $auth_data['id'], $auth_data['name'], get_global('DOMAIN') );
                 $auth_user->setAuthorization( $auth_type, $auth_data );
-                
+
                 // do we return always true for authorized users?
                 // user-level checking can be left to Call
                 //
@@ -501,7 +501,7 @@
                 // test format
                 $format = $this->format ? $this->format : 'rest';
             }
-            
+
 
             // test for c or meth
             if( $c || $format=='rest' )
@@ -541,7 +541,7 @@
         }
 
         /*
-            format parsing methods 
+            format parsing methods
         */
 
         //
@@ -564,8 +564,7 @@
             $o = new Object();
             foreach( $c as $f=>$k )
             {
-                // handle magic slash
-                $o->$f = stripslashes( trim($k) );
+                $o->$f = trim($k);
             }
             return $o;
         }
@@ -608,7 +607,7 @@
         {
             // basic error logging
             file_put_contents($GLOBALS['CACHE'] . "/api.log", time() . ":{$code}:{$message}\n", FILE_APPEND);
-            
+
           $ms = number_format( (microtime(true) - $GLOBALS['ATIME']) * 1000, 3);
 
           if( $code==2 )
@@ -619,9 +618,9 @@
             case "xml":
               $xml = '<?xml version="1.0"?>' . "\n" . //<?
                      '<response status="error" '.
-                     'code="'. $code .'" ms="'. $ms . '"' . 
+                     'code="'. $code .'" ms="'. $ms . '"' .
                      ($message ? "><message>{$message}</message></response>" : " />");
-                     
+
               header('Content-type: text/xml');
 
               if( $die )
