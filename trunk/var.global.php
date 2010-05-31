@@ -139,7 +139,7 @@
     {
         $find = array("/\\\+'/","/([^\\\])\\\([^'\\\])/");
         $rep = array("\'",'\1\\\\\\\\\2');
-        return preg_replace( $find, $rep, str_replace("'","\'",$f) );
+        return preg_replace( $find, $rep, str_replace("'","\'", str_replace('\\', '\\\\', $f)) );
     }
 
     function safe_unslash( $f )
