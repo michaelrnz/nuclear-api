@@ -45,15 +45,39 @@
     }
 
 
-
     abstract class UserObject extends Entity
     {
+        protected $prefs;
+
         function __construct( $id, $name, $domain=null )
         {
             parent::__construct( 'user', $id, $name, $domain );
+            require_once('class.nupreference.php');
+            $this->prefs = NuPreference::getInstance();
+        }
+
+        public function setInteger( $label, $value )
+        {
+            $this->prefs->setInteger( $this->id, $label, $value );
+            return $this;
+        }
+
+        public function getInteger( $label )
+        {
+            return $this->prefs->getInteger( $label );
+        }
+
+        public function setBlob( $label, $value )
+        {
+            $this->prefs->setBlob( $this->id, $label, $value );
+            return $this;
+        }
+
+        public function getBlob( $label )
+        {
+            return $this->prefs->getBlob( $label );
         }
     }
-
 
     
     //
