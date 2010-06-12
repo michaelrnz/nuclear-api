@@ -39,12 +39,32 @@
             {
                 return $this->response->__toString();
             }
-            
+
+            if( $this->call->output == "xml" )
+            {
+                if( is_a($this->response, "DOMDocument") )
+                {
+                    return $this->response->saveXML();
+                }
+                else if( is_object( $this->response ) )
+                {
+                    $resp = new DOMDocument('1.0', 'UTF-8');
+                    $resp->appendChild( object_to_xml( $this->response, $resp, 'response' ) );
+                    return $resp->saveXML();
+                }
+                else if( is_array( $this->response ) )
+                {
+                    $resp = new DOMDocument('1.0', 'UTF-8');
+                    $resp->appendChild( array_to_xml( $this->response, $resp, 'response', 'item' ) );
+                    return $resp->saveXML();
+                }
+            }
+
             if( is_object( $this->response) || is_array( $this->response ) )
             {
                 return json_encode( $this->response );
             }
-                        
+
             return "";
         }
 

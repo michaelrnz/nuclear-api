@@ -17,12 +17,12 @@
     {
         private $map;
         private $method;
-        private $op;
         private $format;
         private $output_extension;
         private $_optext;
         private $auth_user;
 
+        protected $op;
         protected $resource;
         protected $call;
 
