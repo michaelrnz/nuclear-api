@@ -45,6 +45,7 @@
     }
 
 
+
     abstract class UserObject extends Entity
     {
         protected $prefs;
@@ -64,7 +65,7 @@
 
         public function getInteger( $label )
         {
-            return $this->prefs->getInteger( $label );
+            return $this->prefs->getInteger( $this->id, $label );
         }
 
         public function setBlob( $label, $value )
@@ -75,9 +76,21 @@
 
         public function getBlob( $label )
         {
-            return $this->prefs->getBlob( $label );
+            return $this->prefs->getBlob( $this->id, $label );
+        }
+
+        public function setObject( $label, $value )
+        {
+            $this->prefs->setObject( $this->id, $label, $value );
+            return $this;
+        }
+
+        public function getObject( $label )
+        {
+            return $this->prefs->getObject( $this->id, $label );
         }
     }
+
 
     
     //
