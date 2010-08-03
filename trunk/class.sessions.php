@@ -117,8 +117,6 @@
 		      }
 		      else
 		      {
-		        $GLOBALS['USER_CONTROL'] = $_SESSION['USER_CONTROL'];
-
                         // AuthorizedUser control
                         $auth_user = new AuthorizedUser( $_SESSION['id'], $_SESSION['username'], get_global('DOMAIN') );
                         $auth_user->setAuthorization( 'cookie', $_SESSION['USER_CONTROL'] );
