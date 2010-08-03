@@ -107,6 +107,48 @@ CREATE TABLE `nu_oauth_consumer` (
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+
+--
+-- Table structure for Entries
+--
+
+DROP TABLE IF EXISTS `nu_entry_index`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `nu_entry_index` (
+  `id` int(10) unsigned NOT NULL auto_increment,
+  `publisher` int(10) unsigned NOT NULL,
+  `guid` binary(20) default NULL,
+  `published` int(10) unsigned NOT NULL,
+  `updated` int(10) unsigned NOT NULL,
+  PRIMARY KEY  (`id`),
+  KEY `publisher` (`publisher`,`updated`),
+  UNIQUE `published` (`publisher`,`guid`)
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+DROP TABLE IF EXISTS `nu_entry_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `nu_entry_data` (
+  `entry` int(10) unsigned NOT NULL,
+  `data` blob NULL,
+  PRIMARY KEY  (`entry`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+DROP TABLE IF EXISTS `nu_entry_inbox`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `nu_entry_inbox` (
+  `subscriber` int(10) unsigned NOT NULL,
+  `entry` int(10) unsigned NOT NULL,
+  `updated` int(10) unsigned NOT NULL,
+  PRIMARY KEY  (`subscriber`,`updated`,`entry`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+
 --
 -- Table structure for table `nu_packet_inbox`
 --
@@ -121,6 +163,7 @@ CREATE TABLE `nu_packet_inbox` (
   PRIMARY KEY  (`subscriber`,`ts`,`packet`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
 
 --
 -- Table structure for table `nu_packet_index`
@@ -154,23 +197,6 @@ CREATE TABLE `nu_packet_proxy` (
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `nu_packet_queue`
---
-
-DROP TABLE IF EXISTS `nu_packet_queue`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `nu_packet_queue` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `publisher` int(10) unsigned NOT NULL,
-  `global_id` int(10) unsigned NOT NULL,
-  `local_id` int(10) unsigned NOT NULL,
-  `mode` enum('notify','publish','unpublish','republish') default 'publish',
-  `data` blob,
-  PRIMARY KEY  (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `nu_preference`
@@ -188,20 +214,6 @@ CREATE TABLE `nu_preference` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Table structure for table `nu_publisher_packet_index`
---
-
-DROP TABLE IF EXISTS `nu_publisher_packet_index`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
-CREATE TABLE `nu_publisher_packet_index` (
-  `publisher` int(10) unsigned NOT NULL,
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `packet` int(10) unsigned NOT NULL,
-  PRIMARY KEY  (`publisher`,`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Table structure for table `nu_queue`
@@ -230,12 +242,8 @@ CREATE TABLE `nu_relation` (
   `party` int(10) unsigned NOT NULL,
   `model` tinyint(3) unsigned NOT NULL default '0',
   `ts` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
-<<<<<<< .mine
-  PRIMARY KEY  (`user`,`model`,`party`)
-=======
   PRIMARY KEY  (`user`,`party`),
   KEY `user` (`user`,`model`)
->>>>>>> .r112
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -430,8 +438,8 @@ CREATE TABLE `nuclear_userkey` (
   `id` int(10) unsigned NOT NULL,
   `pass` char(28) collate latin1_bin NOT NULL,
   `auth` binary(20) NOT NULL,
-  `public_key` blob default NULL,
-  `private_key` blob default NULL,
+  `public_key` varbinary(128) default NULL,
+  `private_key` varbinary(512) default NULL,
   PRIMARY KEY  (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1 COLLATE=latin1_bin;
 /*!40101 SET character_set_client = @saved_cs_client */;
