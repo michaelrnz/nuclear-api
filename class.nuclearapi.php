@@ -14,9 +14,9 @@
     {
         protected static $_instance;
         public static $_gv = "APICALL";
-        
+
         /* iSingleton interfacing */
-        
+
         public static function getInstance()
         {
             if( is_null( self::$_instance ) )
@@ -24,18 +24,18 @@
 
             return self::$_instance;
         }
-        
+
         public static function setInstance( &$object )
         {
             if( is_a( $object, "NuclearAPI" ) )
                 self::$_instance = $object;
-            
+
             return self::$_instance;
         }
-        
-        
+
+
         /* anonymous caller  // api method generation */
-        
+
         //
         // We call the api method file dynamically
         //
@@ -46,7 +46,7 @@
                 $rest               = strtolower($method_match[1]);
                 $method         = $method_match[2];
                 $method[0]  = strtolower($method[0]);
-                
+
                 return self::execute( $rest, $method, $args[0], $args[1] );
             }
             else
@@ -82,7 +82,7 @@
             //
             // try include
             $api_class  = (@include $src_2);
-            
+
             if( !$api_class )
             {
                 $api_class  = (@include $src_1);
@@ -92,18 +92,18 @@
             {
                 $dynamic    = true;
             }
-            
+
             if( $api_class && strlen($api_class)>1 )
             {
                     if( class_exists( $api_class, false ) )
                     {
                         try
                         {
-                            if( $dynamic )
+                            if( $dynamic || is_subclass_of( $api_class, 'NuclearAPIMethod') )
                                 $co = new $api_class( microtime(true), false );
                             else
                                 $co = new $api_class( microtime(true), $output, false );
-                            
+
                             return $co->response;
                         }
                         catch( Exception $e )
@@ -127,12 +127,12 @@
                 $o->status      = "error";
                 $o->message = "Operation does not exist: {$method}";
             }
-            
+
         }
 
 
         //
-        // get/set global field index 
+        // get/set global field index
         // index of call
         //
         public static function setGlobal($s)
