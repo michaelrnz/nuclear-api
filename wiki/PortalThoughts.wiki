@@ -19,8 +19,19 @@ Mode may be better left unstated or included as part of the data. Mode may not b
   * Entry contains guid which exists in system under acct.
     * Footprint has changed (republish)
     * How do we determine unpublish?
+    * Unpublish will be designated by activity:verb delete
   * Entry does not contain guid.
     * Notify mode.
+
+ActivityStreams conventions (verbs)
+
+  * post: publish an entry
+  * update: republish an entry
+  * delete: unpublish an entry
+
+Other verbs of potential use include follow, share, like, and favorite.
+
+We will check the activity verb at the portal endpoint, and route accordingly; mode is not required. Should we save the activity data in json? Aside from the three primary verbs, all other entries are notifications and not permanent.
 
 ==Party==
  
@@ -53,5 +64,5 @@ The sender, or owner of the content? Acct might work better? So we parse acct fr
 
 =Suggestions=
 
-  * Remove mode for now
+  * Remove mode for now (rely on activity streams)
   * Party should become 'acct'
