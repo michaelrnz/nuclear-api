@@ -1,0 +1,30 @@
+=Introduction=
+
+Our primary concern is with the parameters of an endpoint (portal has magic) and their purpose.
+
+==Mode==
+ 
+Mode designates what function the packet is designated. Notify is default?
+
+==Party==
+ 
+The sender, or owner of the content? Acct might work better? So we parse acct from the beginning, or check what the packet is going to do?
+ 
+  * Parsing the acct, we can check the magic signatures and/or acquire the right domain info.
+  * Checking the packet might allows us to avoid verifying the signature.
+  * How do we determine packet "types"
+    * ActivityStreams?
+    * inclusive/exclusive/default
+
+==Data==
+{{{
+{
+  "id",
+  "guid",
+  "text",
+  "title",
+  "html",
+  "author",
+  ...
+}
+}}}
