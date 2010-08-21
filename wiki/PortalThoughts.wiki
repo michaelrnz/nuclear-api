@@ -11,7 +11,16 @@ Mode designates what function the packet is designated. Notify is default?
   * Republish - update entry
   * Notify - non-saved entry, process and discard
 
-Mode may be better left unstated or included as part of the data.
+Mode may be better left unstated or included as part of the data. Mode may not be a viable parameter because we can implicitly determine the type of update so long as we are within the 4 listed modes.
+
+  * Entry contains guid but does not exist in local system.
+    * Publish mode.
+    * Check for subscribers (or Borneo) and process.
+  * Entry contains guid which exists in system under acct.
+    * Footprint has changed (republish)
+    * How do we determine unpublish?
+  * Entry does not contain guid.
+    * Notify mode.
 
 ==Party==
  
@@ -41,3 +50,8 @@ The sender, or owner of the content? Acct might work better? So we parse acct fr
   ...
 }
 }}}
+
+=Suggestions=
+
+  * Remove mode for now
+  * Party should become 'acct'
