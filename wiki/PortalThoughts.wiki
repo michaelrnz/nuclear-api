@@ -3,18 +3,31 @@
 Our primary concern is with the parameters of an endpoint (portal has magic) and their purpose.
 
 ==Mode==
- 
+
 Mode designates what function the packet is designated. Notify is default?
+
+  * Publish - basic entry push
+  * Unpublish - remove entry
+  * Republish - update entry
+  * Notify - non-saved entry, process and discard
+
+Mode may be better left unstated or included as part of the data.
 
 ==Party==
  
 The sender, or owner of the content? Acct might work better? So we parse acct from the beginning, or check what the packet is going to do?
  
   * Parsing the acct, we can check the magic signatures and/or acquire the right domain info.
+    * acct processing of portal should occur within the API core authorization.
+    * What about portal publishing for local account.
   * Checking the packet might allows us to avoid verifying the signature.
+    * We can disregard certain notices; repeats or non-listening (what about Borneo/aggregation)
+    * We could use a simple footprint for checking redundancy of 'data' (good).
   * How do we determine packet "types"
-    * ActivityStreams?
     * inclusive/exclusive/default
+    * ActivityStreams
+    * ActionStatus
+    * Portal mode - preferably not because eating entries is similar for listed modes.
 
 ==Data==
 {{{
