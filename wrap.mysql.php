@@ -34,7 +34,7 @@
 
 		public static function single( $str, $errmsg )
 		{
-            return Database::getInstance()->single( $str, $errmsg, $errcode );
+            return Database::getInstance()->single( $str, $errmsg, 7 );
 		}
 	}
 ?>
