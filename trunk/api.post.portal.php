@@ -59,11 +59,20 @@
             {
                 $doc = new DOMDocumentExceptor('1.0', 'UTF-8');
                 $doc->loadXML( $data );
-                $data_obj = xml_to_object( $doc );
+
+                $prov = $doc->getElementsByTagNameNS('http://salmon-protocol.org/ns/magic-env','provenance');
+                $magic_pack = $prov->item(0);
+
+                $data = base64url_decode(preg_replace('/\s/','',$magic_pack->getElementsByTagName('data')->item(0)->nodeValue));
+
+                $magic_doc = new DOMDocumentExceptor('1.0', 'UTF-8');
+                $magic_doc->loadXML( $data );
+
+                $data_obj = xml_to_object( $magic_doc );
             }
 
             // we check for excessive data size TODO create GLOBAL
-            if( $data_length > 16000 )
+            if( $data_length > 65000 )
             {
                 $data_obj = Events::getInstance()->filter('portal_overflow', $data_obj);
             }
@@ -83,18 +92,38 @@
             if( !is_object($author) || !is_numeric($author->id) )
                 throw new Exception("Invalid publisher", 5);
 
+            // get the entry from local or remote
             $entry  = $this->entry();
 
             if( is_null($entry->ns_activity_verb) )
                 throw new Exception("Missing activity:verb", 5);
 
+            // get verb
             $verb   = $this->activityVerb( $entry->ns_activity_verb );
 
-            include( 'lib.portal.php' );
-            PortalPublishing::getInstance()->publish( $publisher, $data, $this->local );
+            switch( $verb )
+            {
+                case 'post':
+                    include( 'lib.portal.php' );
+                    PortalPublishing::getInstance()->post( $author, $entry, $this->local );
+                    break;
 
-            return $data;
+                case 'update':
+                    include( 'lib.portal.php' );
+                    PortalPublishing::getInstance()->update( $author, $entry, $this->local );
+                    break;
 
+                case 'delete':
+                    include( 'lib.portal.php' );
+                    PortalPublishing::getInstance()->delete( $author, $entry, $this->local );
+                    break;
+            }
+
+            // pass object to handlers
+            Events::getInstance()->emit('portal_activity_' . $verb, $entry);
+
+            // echo entry
+            return $entry;
         }
     }
 
