@@ -77,7 +77,7 @@
                     else
                     {
                         // pass by reference for 5.2.x and lower
-                        if( !is_object($o) && version_compare( PHP_VERSION, '5.3.0', '<' ) )
+                        if( !is_object($data) && version_compare( PHP_VERSION, '5.3.0', '<' ) )
                             $data = call_user_func( $H, array($data) );
                         else
                             $data = call_user_func( $H, $data );
