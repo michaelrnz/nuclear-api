@@ -21,11 +21,13 @@
         private $published;
         private $updated;
 
+
         function __construct()
         {
             $this->db       = Database::getInstance();
             $this->events   = Events::getInstance();
         }
+
 
         public static function getInstance()
         {
@@ -34,6 +36,7 @@
 
             return self::$_instance;
         }
+
 
         //
         // Take int timestamps for creating
@@ -50,6 +53,7 @@
                         "(publisher, guid, published, updated) ".
                         "values ({$publisher}, UNHEX(REVERSE('{$guid}')), {$published}, {$updated}) ";
 
+            // store creation data inside the singleton
             $this->id       = $this->db->id( $sql, "Error creating portal entry (index)" );
             $this->guid     = to_base( from_hex($guid) );
 
@@ -59,6 +63,7 @@
 
             return $this->id;
         }
+
 
         //
         // TODO why do we need GUID in update?
@@ -101,6 +106,7 @@
             return $this->db->affected( $sql, "Error updating portal entry (index)" );
         }
 
+
         public function delete( $entry_id )
         {
             $this->db->void(
@@ -112,23 +118,32 @@
                 "Error removing entry_index");
         }
 
+
+        //
+        // get hex-based UUID
+        //
         public function guid()
         {
             $guid = $this->db->single( "select REPLACE(UUID(),'-','')" );
             return $guid[0];
         }
 
+
+        //
+        // set Object saves entry to entry_id
+        //
         public function setObject( $entry_id, $entry )
         {
             $restore = array();
 
-            // remove dynamic attributes from entry
+            // remove indexed attributes from entry
             foreach( array('id','guid','published','updated') as $f )
             {
                 $restore[$f] = $entry->$f;
                 unset($entry->$f);
             }
 
+            // remove activity streams data
             if( $entry->ns_activity_verb == 'http://activitystrea.ms/schema/1.0/post' || $entry->ns_activity_verb == 'http://activitystrea.ms/schema/1.0/update' )
             {
                 $verb = $entry->ns_activity_verb;
@@ -148,7 +163,7 @@
                     "Error downmixing entry data");
             }
 
-            // restore dynamic attributes for echo
+            // restore indexed attributes for echo
             foreach( array('id','guid','published','updated') as $f )
             {
                 $entry->$f  = $restore[$f];
@@ -160,6 +175,10 @@
             return $entry;
         }
 
+
+        //
+        // downmix created entry by entry_id
+        //
         public function downmix( $entry_id, $entry )
         {
             // downmix current dynamic attributes
@@ -168,14 +187,16 @@
             $entry->published   = $this->published;
             $entry->updated     = $this->updated;
 
-            // emit unidentified entry to observers
-            if( $this->events->isObserved('portal_publish_identified') )
-                $entry = $this->events->filter('portal_publish_identified', $entry, $entry_id);
-
             return $this->setObject( $entry_id, $entry );
         }
     }
 
+    /**
+     *
+     * PortalPublishing singleton
+     * used by portal API to interface PortalEntry singleton
+     *
+    **/
     class PortalPublishing implements iSingleton
     {
         private static $_instance;
@@ -183,15 +204,16 @@
         private $events;
         private $publisher;
         private $entry;
-        private $isLocal;
         private $entry_id;
         private $mode;
+
 
         function __construct()
         {
             $this->db       = Database::getInstance();
             $this->events   = Events::getInstance();
         }
+
 
         public static function getInstance()
         {
@@ -201,30 +223,43 @@
             return self::$_instance;
         }
 
-        public function post( $publisher, $entry, $isLocal )
+
+        //
+        // Maps to AS verb = post
+        //
+        public function post( $publisher, $entry )
         {
             $this->mode         = "post";
-            $this->isLocal      = $isLocal;
             $this->publisher    = $publisher;
             $this->entry        = $entry;
-            $this->entry_id     = $this->create();
 
-            $entry              = PortalEntry::getInstance()->downmix( $this->entry_id, $this->entry );
+            // adjust for providing only published/updated
+            if( $entry->published && !isset($entry->updated) )
+            {
+                $entry->updated = $entry->published;
+            }
+
+            $entry_id = PortalEntry::getInstance()->create(
+                            $this->publisher->id,
+                            $this->timestamp( $entry->published ),
+                            $this->timestamp( $entry->updated ),
+                            ($publisher->isLocal() ? false : $this->guid( $entry->guid )) );
+
+            $entry    = PortalEntry::getInstance()->downmix( $entry_id, $entry );
 
             // emit published, use for local subs
             $this->events->emit('portal_posted', $entry, $publisher);
 
-            // emit published local, use for dispatch
-            if( $isLocal )
-                $this->events->emit('portal_post_local', $entry, $publisher);
-
             return $entry;
         }
 
-        public function update( $publisher, $entry, $isLocal )
+
+        //
+        // Maps to AS verb = update
+        //
+        public function update( $publisher, $entry )
         {
             $this->mode         = "update";
-            $this->isLocal      = $isLocal;
             $this->publisher    = $publisher;
             $this->entry        = $entry;
             $this->entry_id     = $this->identify();
@@ -242,17 +277,16 @@
             // emit published, use for local subs
             $this->events->emit('portal_updated', $entry, $publisher);
 
-            // emit published local, use for dispatch
-            if( $isLocal )
-                $this->events->emit('portal_update_local', $entry, $publisher);
-
             return $entry;
         }
 
-        public function delete( $publisher, $entry, $isLocal )
+
+        //
+        // Maps to AS verb = delete
+        //
+        public function delete( $publisher, $entry )
         {
             $this->mode         = "delete";
-            $this->isLocal      = $isLocal;
             $this->publisher    = $publisher;
             $this->entry        = $entry;
             $this->entry_id     = $this->identify();
@@ -261,28 +295,8 @@
 
             // emit published, use for local subs
             $this->events->emit('portal_deleted', $entry, $publisher);
-
-            // emit published local, use for dispatch
-            if( $isLocal )
-                $this->events->emit('portal_delete_local', $entry, $publisher);
         }
 
-        public function create()
-        {
-            // adjust for providing only published/updated
-            if( $this->entry->published && !isset($this->entry->updated) )
-            {
-                $this->entry->updated = $this->entry->published;
-            }
-
-            $entry_id = PortalEntry::getInstance()->create(
-                            $this->publisher->id,
-                            $this->timestamp( $this->entry->published ),
-                            $this->timestamp( $this->entry->updated ),
-                            $this->guid( $this->entry->guid ) );
-
-            return $entry_id;
-        }
 
         public function identify()
         {
