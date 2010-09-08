@@ -105,17 +105,17 @@
             {
                 case 'post':
                     include( 'lib.portal.php' );
-                    PortalPublishing::getInstance()->post( $author, $entry, $this->local );
+                    PortalPublishing::getInstance()->post( $author, $entry );
                     break;
 
                 case 'update':
                     include( 'lib.portal.php' );
-                    PortalPublishing::getInstance()->update( $author, $entry, $this->local );
+                    PortalPublishing::getInstance()->update( $author, $entry );
                     break;
 
                 case 'delete':
                     include( 'lib.portal.php' );
-                    PortalPublishing::getInstance()->delete( $author, $entry, $this->local );
+                    PortalPublishing::getInstance()->delete( $author, $entry );
                     break;
             }
 
