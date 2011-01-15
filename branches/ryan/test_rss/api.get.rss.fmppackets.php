@@ -1,0 +1,145 @@
+<?php
+    
+    /*
+        example api call
+    */
+
+    require_once( 'abstract.apimethod.php' );
+
+    abstract class baseNuclearAuthorizedMethod extends NuclearAPIMethod
+    {
+      protected function getUser()
+      {
+	if( !isset($GLOBALS['USER_CONTROL']) )
+	  throw new Exception("Unauthorized", 2);
+	
+	$user = new Object();
+	$user->id   = $GLOBALS['USER_CONTROL']['id'];
+	$user->name = $GLOBALS['USER_CONTROL']['name'];
+
+	return $user;
+      }
+    }
+
+    abstract class baseNuclearUserMethod extends NuclearAPIMethod
+    {
+      protected function getUser()
+      {
+	if( !isset($GLOBALS['USER']) )
+	  throw new Exception("Unknown user", 3);
+	
+	return $GLOBALS['USER'];
+      }
+    }
+
+    require_once('class.nupacketquery.php');
+    require_once('lib.nupackets.php');
+
+    class getFMPPacketsRSS extends baseNuclearUserMethod
+    {
+        private function packets()
+	{
+	  $user = $this->getUser();
+
+	  if( isset($this->call->namespace) )
+	  {
+	    $ns_id = NuPacketNamespace::lookup($this->call->namespace);
+	    
+	    if( $ns_id == 0 )
+	      throw new Exception("Unknown namespace", 5);
+	  }
+
+	  if( isset($ns_id) )
+	  {
+	    $packets = new NuPacketNSQuery($user->id, $ns_id, $this->call->page, $this->call->limit);
+	  }
+	  else
+	  {
+	    $packets = new NuPacketQuery($user->id, $this->call->page, $this->call->limit);
+	  }
+
+	  NuSelect::eventFilter( $packets, 'nu_fmp_packet_query', array("fields"=>"premerge", "joins"=>"postmerge", "conditions"=>"postmerge") );
+
+	  return $packets;
+	}
+
+        protected function packet_xml()
+        {
+	  $packets = $this->packets();
+
+	  require_once('class.xmlcontainer.php');
+
+	  $resp = new XMLContainer("1.0", "utf-8", $this->time);
+
+	  $root = $resp->createElement('response');
+
+	  if( $packets->select() )
+	  {
+	    while($packet = $packets->hash())
+	    {
+	      $data = NuPacketStorage::read($packet['packet']);
+
+	      if( strlen($data)==0 ) continue;
+
+	      $packet_xml = new DOMDocumentExceptor();
+	      $packet_xml->preserveWhiteSpace = false;
+	      $packet_xml->formatOutput = true;
+	      $packet_xml->loadXML( $data );
+
+	      //
+	      // append id/time data
+	      $ts = $packet['ts'];
+	      $id = $packet['packet'];
+	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('created_at', gmdate('r',$ts)), $packet_xml->documentElement->firstChild );
+	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('timestamp', $ts), $packet_xml->documentElement->firstChild );
+	      $packet_xml->documentElement->insertBefore( $packet_xml->createElement('id', $id), $packet_xml->documentElement->firstChild );
+
+	      //
+	      // append user/data
+	      $user = $packet_xml->createElement('user');
+	      $user->appendChild($packet_xml->createElement('id', $packet['publisher']));
+	      $user->appendChild($packet_xml->createElement('name', $packet['name']));
+	      $user->appendChild($packet_xml->createElement('domain', $packet['domain']));
+
+	      //
+	      // replace user packet
+	      $pre_user = $packet_xml->getElementsByTagName('user');
+	      if( $pre_user->length>0 )
+	      {
+	        $packet_xml->documentElement->replaceChild( $user, $pre_user->item(0) );
+	      }
+	      else
+	      {
+	        $packet_xml->documentElement->appendChild($user);
+	      }
+
+	      //
+	      // filter xml
+	      $packet_xml = NuEvent::filter('nu_fmp_user_packet_xml', $packet_xml, $packet);
+
+	      $packet_node = $resp->importNode( $packet_xml->firstChild, true );
+	      $root->appendChild($packet_node);
+	    }
+	  }
+
+	  $resp->appendRoot($root);
+	  $resp->preserveWhiteSpace = false;
+	  $resp->formatOutput = true;
+	  return $resp;
+        }
+
+        protected function build()
+        {
+          $resp = $this->packet_xml();
+          $resp->addStylesheet("/home/nuclear/packet-to-rss.xsl");
+
+          header('Content-type: application/xhtml+xml');
+          $resp->transformToURI("php://output");
+
+          exit();
+        }
+    }
+
+    return "getFMPPacketsRSS";
+
+?>
