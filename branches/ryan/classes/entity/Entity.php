@@ -6,7 +6,6 @@
  *		Nuclear Framework
  *		Revised 2010 Winter
  *
- *		Entity
  *		==========================================
  *			Abstract which represents a userland
  * 			identity.
