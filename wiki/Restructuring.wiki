@@ -1,0 +1,15 @@
+#summary Lightly restructuring the code base for organization.
+
+= Goals =
+
+The main course of action is to shift work into branches and away from trunk, along with a restructuring of the files, naming conventions, and auto-inclusion.
+
+= Details =
+
+ * Create branches
+ * Create directory structure
+ * Shift files into directories
+ * Rename files according to classes
+  * (some convention will apply)
+ * Split apart sources with multiple classes
+ * Introduce resolution handling
