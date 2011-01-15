@@ -6,7 +6,6 @@
  *		Nuclear Framework
  *		Revised 2010 Winter
  *
- *		UserObject
  *		==========================================
  *			Container for userland entity
  */
