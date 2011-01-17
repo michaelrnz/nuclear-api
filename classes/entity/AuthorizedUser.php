@@ -10,7 +10,7 @@
  *			Authorized user entity
  */
 
-class AuthorizedUser extends UserObject implements iSingleton
+class AuthorizedUser extends UserEntity implements iSingleton
 {
 	private static $_instance;
 	protected $_properties;

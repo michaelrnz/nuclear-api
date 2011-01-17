@@ -1,6 +1,6 @@
 <?php
 /*
- *		LocalUser.php
+ *		DomainUser.php
  *
  *		Copyright 2010 Ryan <altaokami@gmail.com>
  *		Nuclear Framework
@@ -10,7 +10,7 @@
  *			Local-domain user entity
  */
 
-class LocalUser extends UserObject implements iSingleton
+class DomainUser extends UserEntity implements iSingleton
 {
 	private static $_instance;
 	protected $email;
@@ -39,7 +39,7 @@ class LocalUser extends UserObject implements iSingleton
 
 	public static function setInstance( &$object )
 	{
-		if( $object instanceof LocalUser ) )
+		if( $object instanceof DomainUser ) )
 			self::$_instance = $object;
 
 		return self::$_instance;

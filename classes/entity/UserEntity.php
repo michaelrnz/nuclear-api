@@ -1,6 +1,6 @@
 <?php
 /*
- *		UserObject.php
+ *		UserEntity.php
  *
  *		Copyright 2010 Ryan <altaokami@gmail.com>
  *		Nuclear Framework
@@ -10,7 +10,7 @@
  *			Container for userland entity
  */
 
-abstract class UserObject extends Entity
+abstract class UserEntity extends Entity
 {
 	protected $prefs;
 
