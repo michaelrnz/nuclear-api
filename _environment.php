@@ -21,6 +21,9 @@ if( !defined("ENV_FORCE_REFRESH") ) {
 	define("ENV_FORCE_REFRESH", 60);
 }
 
+// require the global functions
+require_once('var.global.php');
+
 // require the path environment (auto-loading)
 require_once('classes/environment/EnvironmentIndex.php');
 
