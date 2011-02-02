@@ -29,7 +29,7 @@ class EnvironmentIndex extends DirectoryIndex {
 	 *
 	 * @return void
 	 */
-	private function __construct () {
+	function __construct () {
 
 		parent::__construct(ENV_REFRESH);
 		$this->forceRefresh = ENV_FORCE_REFRESH;
