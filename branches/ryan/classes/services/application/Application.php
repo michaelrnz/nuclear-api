@@ -113,7 +113,7 @@ abstract class Application extends Service {
 	 * @return void
 	 */
 	public function doPostLayer(){}
-s
+	
 
 	/**
 	 * Application-specific
