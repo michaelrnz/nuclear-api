@@ -21,6 +21,9 @@ if( !defined("ENV_FORCE_REFRESH") ) {
 	define("ENV_FORCE_REFRESH", 60);
 }
 
+// ENV_PATH - path to nuclear source
+define("ENV_PATH", dirname(__FILE__));
+
 // require the global functions
 require_once('var.global.php');
 
