@@ -19,6 +19,7 @@ class DirectoryIndex {
 	 * @var index
 	 * @var buildTime
 	 */
+	protected $path;
 	protected $paths;
 	protected $refresh;
 	protected $index;
@@ -36,6 +37,7 @@ class DirectoryIndex {
 		$this->accessTime	= time();
 		$this->paths		= array();
 		$this->setRefresh($refresh);
+		$this->resourcePath("/tmp");
 	}
 	
 	
@@ -78,8 +80,24 @@ class DirectoryIndex {
 		$this->paths = array_merge(array($path), $this->paths);
 		return $this;
 	}
-	
-	
+
+
+	/**
+	 * getResourcePath
+	 * @param string
+	 * @return string
+	 */
+	public function resourcePath ($path=null) {
+
+		if (strlen($path)) {
+			$this->path = rtrim($path, '/');
+			return $this;
+		}
+		
+		return "{$this->path}/env.{$this->resourceKey()}";
+	}
+
+
 	/**
 	 * search for a filename in the path
 	 * 
@@ -88,32 +106,25 @@ class DirectoryIndex {
 	 */
 	public function search ($fileName) {
 		
-		// ensure the filename starts with slash
-		if( substr($fileName,0,1) != '/' )
-			$fileName= "/" . trim($fileName);
-		
+		// trim and add forward-slash (first character delim)
+		$fileName = "/" . ltrim($fileName, "/");
+
 		// get the listing (text)
-		$index = $this->getIndex();
+		$index = $this->index();
 
-		// check for position of fileName in text		
-		if( ($pos = strpos($index, $fileName . "\n")) )
-		{
-			// get a 1k chunk of the text before match
-			$buffer = substr($index,
-							($pos<1024) ? 0 : $pos-1024,
-							($pos<1024) ? $pos : 1024);
-			
-			// reverse and find newline (this is a length)
-			$firstNewline = $pos - strpos(strrev($buffer), "\n");
-			
-			// find the next newline from the original match
-			$lastNewline = strpos($index, "\n", $pos-1);
+		// check for position of fileName in text
+		if (($pos = strpos($index, $fileName . "\t"))!==false) {
 
-			return substr($index,
-						$firstNewline,
-						($lastNewline-$firstNewline));
+			// adjust position to after the tab
+			$pos = $pos + strlen($fileName . "\t");
+
+			// get the position of the next newline
+			$end = strpos($index, "\n", $pos);
+
+			// return the path from search to newline
+			return substr($index, $pos, ($end - $pos));
 		}
-		
+
 		return false;
 	}
 	
@@ -123,11 +134,11 @@ class DirectoryIndex {
 	 * 
 	 * @return string
 	 */
-	protected function getIndex () {
+	protected function index () {
 		
 		if( is_null($this->index) )
 		{
-			$cacheFile	= $this->getResourcePath();
+			$cacheFile	= $this->resourcePath();
 			$fileExists	= file_exists($cacheFile);
 
 			// set the build time
@@ -164,11 +175,14 @@ class DirectoryIndex {
 	 */
 	protected function &buildIndex () {
 
-		$index = "\n";
-		
+		$index = "";
+
 		foreach( $this->paths as $path )
 		{
-			exec("find ". $path ." -type f -not -path '*/.*'", $output);
+			exec('find '. $path .' -type f -not -path \'*/.*\' '.
+				'-printf "%T@\t/%f\t%p\n" | sort -k1 -n -r | '.
+				'cut -f2,3', $output);
+
 			$index .= implode("\n", $output) . "\n";
 		}
 
@@ -180,19 +194,9 @@ class DirectoryIndex {
 	 * getResourceKey
 	 * @return string
 	 */
-	protected function getResourceKey () {
+	protected function resourceKey () {
 		
 		return hash('md5', implode($this->paths));
 	}
-	
-	
-	/**
-	 * getResourcePath
-	 * @return string
-	 */
-	protected function getResourcePath () {
-		
-		return "/tmp/path.". $this->getResourceKey();
-	}
-	
+
 }
