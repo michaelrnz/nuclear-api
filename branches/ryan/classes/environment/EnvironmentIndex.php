@@ -61,7 +61,7 @@ class EnvironmentIndex extends DirectoryIndex {
 		if( empty($this->registered) )
 		{
 			$this->registered = true;
-			$this->getIndex();
+			$this->index();
 
 			// register the loader
 			spl_autoload_register(array($this,"resolve"));
@@ -82,7 +82,7 @@ class EnvironmentIndex extends DirectoryIndex {
 		$this->index	= null;
 		$refresh		= $this->refresh;
 		$this->refresh	= 0;
-		$this->getIndex();
+		$this->index();
 		$this->refresh	= $refresh;
 	}
 
