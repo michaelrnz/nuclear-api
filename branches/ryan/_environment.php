@@ -31,4 +31,4 @@ require_once('var.global.php');
 require_once('classes/environment/EnvironmentIndex.php');
 
 // get singleton and add the current Nuclear path
-EnvironmentIndex::getInstance()->addPath(dirname(__FILE__));
+EnvironmentIndex::getInstance()->addPath(ENV_PATH);
