@@ -10,60 +10,134 @@
  * Default response class (Mehod return)
  */
 
-class Response extends ObjectContainer implements iResponse {
+class Response implements IResponse {
 
 
 	/**
-	 * @var int $status (relates to HTTP status codes)
-	 * @var string $output (type of output)
+	 * @var int status (HTTP status)
+	 * @var array headers (HTTP headers)
+	 * @var mixed content
 	 */
-	protected $status = 200;
-	protected $output;
-	
+	protected $status	= 200;
+	protected $headers	= array();
+	protected $content;
+
 
 	/**
-	 * Default constructor sets
-	 * output type
+	 * Status accessor
+	 *
+	 * @param int status
+	 * @return int
 	 */
-	function __construct ($output="json") {
+	public function Status ($status=null) {
 
-		$this->output = $output;
+		if (is_numeric($status)) {
+			$this->status = intval($status);
+			return $this;
+
+		} else {
+			return $this->status;
+
+		}
 	}
-	
-	
+
+
+	/**
+	 * Header accessor
+	 *
+	 * @param string key
+	 * @param string value
+	 * @return string
+	 */
+	public function Header ($key, $value=null) {
+
+		if (empty($value)) {
+			return empty($this->headers[$key]) ?
+				null : $this->headers[$key];
+
+		} else {
+			$this->header[$key] = (string) $value;
+			return $this;
+
+		}
+
+	}
+
+
+	/**
+	 * Headers accessor
+	 *
+	 * @param array headers
+	 * @return array
+	 */
+	public function Headers ($headers=null) {
+
+		if (is_array($headers)) {
+			foreach ($headers as $key=>$value) {
+				$this->Header($key, $value);
+			}
+
+			return $this;
+
+		} else {
+			return $this->headers;
+
+		}
+	}
+
+
+	/**
+	 * Content accessor
+	 *
+	 * @param mixed content
+	 * @return mixed
+	 */
+	public function Content ($content=null) {
+
+		if (is_null($content)) {
+			return $this->content;
+
+		} else {
+			$this->content = content;
+			return $this;
+
+		}
+
+	}
+
+
 	/**
 	 * Default string; return is to json_encode self
 	 * 
 	 * @return string
 	 */
 	public function __toString () {
-	
-		return json_encode( $this );
+
+		// Check for generic content
+		if (empty($this->content)) {
+			return "";
+
+		} else if ($this->content instanceof IGeneric) {
+			$content = $this->content->toGeneric();
+
+		} else {
+			$content = $this->content;
+
+		}
+
+		// Hint the string conversion
+		if ($this->content instanceof DOMDocument) {
+			return $this->content->saveXML();
+
+		} else if (is_object($this->content) || is_array($this->content)) {
+			return json_encode($this->content);
+
+		} else if (is_string($this->content)) {
+			return $this->content;
+
+		}
+
+		throw new Exception("Unknown response content", 500);
 	}
-	
-	
-	/**
-	 * Default implementation to
-	 * return the response status.
-	 * 
-	 * @return int
-	 */
-	public function getStatus () {
-		
-		return $this->status;
-	}
-	
-	
-	/**
-	 * Default implementation to
-	 * set the response status.
-	 * 
-	 * @return Response
-	 */
-	public function setStatus ($status) {
-		
-		$this->status = $status;
-		return $this;
-	}
-	
+
 }

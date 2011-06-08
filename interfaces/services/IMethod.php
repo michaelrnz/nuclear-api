@@ -10,7 +10,7 @@
  * Nuclear Method interface
  */
 
-interface iMethod {
+interface IMethod {
 
 
 	/**
@@ -18,30 +18,38 @@ interface iMethod {
 	 * a service method. Implementation will
 	 * execute the body/specifics of the command.
 	 * 
-	 * @return iResponse
+	 * @return IResponse
 	 */
-	public function execute ();
-	
-	
+	public function Execute ();
+
+
 	/**
-	 * return the current
-	 * parameters passed to the method.
-	 * 
+	 * Parameters accessor
+	 *
+	 * @param object parameters
 	 * @return Object
 	 */
-	public function getParameters ();
-	
-	
+	public function Parameters ($parameters);
+
+
 	/**
-	 * set the parameter object
-	 * within the method.
-	 * 
-	 * @param Object params
-	 * @return iMethod
+	 * Terminal setter
+	 *
+	 * @param Terminal terminal
+	 * @return IMethod
 	 */
-	public function setParameters ($params);
-	
-	
+	public function Terminal ($terminal);
+
+
+	/**
+	 * Type accessor
+	 *
+	 * @param string type
+	 * @return string
+	 */
+	public function Type ($type);
+
+
 	/**
 	 * handle an exception
 	 * throw within the method, usually
@@ -50,6 +58,7 @@ interface iMethod {
 	 * 
 	 * @return void
 	 */
-	public function commandException ($e);
-	
+	public function MethodException ($e);
+
+
 }
