@@ -20,31 +20,10 @@ abstract class Method implements IMethod {
 
 
 	/**
-	 * Controlling parameters for the method
-	 * @var Object $parameters
+	 * Controlling request for the method
+	 * @var Request $request
 	 */
-	protected $parameters;
-
-
-	/**
-	 * Suggested response type (format)
-	 * @var string $type
-	 */
-	protected $type;
-
-
-	/**
-	 * Default constructor for the command.
-	 * Receives the parameters and output setting.
-	 * 
-	 * @param Object params
-	 * @param string output
-	 * @return void
-	 */
-	function __construct ($params) {
-
-		$this->parameters = is_object($params) ? $params : (object) $params;
-	}
+	protected $request;
 
 
 	/**
@@ -66,46 +45,19 @@ abstract class Method implements IMethod {
 
 
 	/**
-	 * Default implementation to return
-	 * parameters.
+	 * Request accessor
 	 *
-	 * @param Object parameters
-	 * @return Object
+	 * @param Request request
+	 * @return Request
 	 */
-	public function Parameters ($parameters=null) {
+	public function Request (Request $request=null) {
 
-		if ($parameters) {
-
-			if (is_object($parameters)) {
-				$this->parameters = $parameters;
-
-			} else {
-				$this->parameters = (object) $parameters;
-
-			}
-
+		if ($request) {
+			$this->request = $request;
 			return $this;
 		}
 
-		return $this->parameters;
-	}
-
-
-	/**
-	 * Type accessor
-	 * Set the type hinting (suggested response format)
-	 *
-	 * @param string $type
-	 * @return Method
-	 */
-	public function Type ($type=null) {
-
-		if (is_scalar($type)) {
-			$this->type = (string) $type;
-			return $this;
-		}
-
-		return $this->type;
+		return $this->request;
 	}
 
 

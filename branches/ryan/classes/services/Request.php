@@ -24,12 +24,18 @@ class Request implements IRequest {
 	 * @var mixed content
 	 */
 	protected $method;
-	protected $headers = array();
+	protected $headers;
 	protected $content;
 
 
+	/**
+	 * Construct - auto-load
+	 *
+	 * @return void
+	 */
 	function __construct () {
 
+		$this->headers = array();
 		$this
 			->loadMethod()
 			->loadHeaders()
@@ -37,6 +43,11 @@ class Request implements IRequest {
 	}
 
 
+	/**
+	 * Set the request method
+	 *
+	 * @return Request
+	 */
 	protected function loadMethod () {
 
 		// set the method
@@ -67,6 +78,11 @@ class Request implements IRequest {
 	}
 
 
+	/**
+	 * Generate HTTP headers from _SERVER
+	 *
+	 * @return Request
+	 */
 	protected function loadHeaders () {
 
 		// collect the headers via majksner at gmail dot com (php.net - getallheaders)
@@ -85,28 +101,17 @@ class Request implements IRequest {
 	}
 
 
+	/**
+	 * Generate content object via ContentFactory
+	 *
+	 * @return Request
+	 */
 	protected function loadContent () {
 
-		// determine content
-		switch ($this->method) {
-
-			case self::GET:
-				// create basic content object from GET
-				$this->content = new Object($_GET);
-				break;
-
-			default:
-				// check content-type
-				switch ($this->Header("Content-Type")) {
-
-					case "application/x-www-form-urlencoded":
-					case "multipart/form-data":
-					default:
-						$this->content = new Object($_REQUEST);
-						break;
-				}
-				break;
-		}
+		$this->content = ContentFactory::getInstance()
+							->Build($this->Header("Content-Type"))
+							->Content($this->Body())
+							->Content();
 
 		return $this;
 	}
@@ -135,7 +140,7 @@ class Request implements IRequest {
 	 *
 	 * @return string
 	 */
-	public function Header () {
+	public function Header ($key) {
 
 		return empty($this->headers[$key]) ?
 				null : $this->headers[$key];
@@ -161,6 +166,33 @@ class Request implements IRequest {
 	public function Content () {
 
 		return $this->content;
+	}
+
+
+	/**
+	 * Body
+	 *
+	 * @return string
+	 */
+	public function Body () {
+
+		// determine content
+		switch ($this->method) {
+
+			case self::GET:
+			case self::DELETE:
+
+				return $_SERVER['QUERY_STRING'];
+
+			default:
+
+				// TODO - handle FILE uploads
+				if ($this->Header("Content-Type") == "multipart/form-data") {
+					return null;
+				} else {
+					return file_get_contents("php://input");
+				}
+		}
 	}
 
 }
