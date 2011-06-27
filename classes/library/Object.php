@@ -19,6 +19,12 @@ class Object {
 	 * @return void
 	 */
 	function __construct ($data=null) {
+
+		if (is_string($data)) {
+			$dataStr = $data;
+			$data = array();
+			parse_str($dataStr, $data);
+		}
 		if( !is_null($data) )
 			$this->merge( $data );
 	}

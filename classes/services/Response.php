@@ -15,11 +15,19 @@ class Response implements IResponse {
 
 	/**
 	 * @var int status (HTTP status)
-	 * @var array headers (HTTP headers)
-	 * @var mixed content
 	 */
 	protected $status	= 200;
+
+
+	/**
+	 * @var array headers (HTTP headers)
+	 */
 	protected $headers	= array();
+
+
+	/**
+	 * @var mixed content
+	 */
 	protected $content;
 
 
