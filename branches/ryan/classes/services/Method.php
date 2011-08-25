@@ -27,18 +27,11 @@ abstract class Method implements IMethod {
 
 
 	/**
-	 * Default implementation to return
-	 * parameters.
+	 * Terminal accessor
 	 * 
 	 * @return Terminal
-	 * @return Method
 	 */
-	public function Terminal ($terminal=null) {
-
-		if ($terminal instanceof Terminal) {
-			$this->terminal = $terminal;
-			return $this;
-		}
+	public function Terminal () {
 
 		return $this->terminal;
 	}
@@ -47,15 +40,9 @@ abstract class Method implements IMethod {
 	/**
 	 * Request accessor
 	 *
-	 * @param Request request
 	 * @return Request
 	 */
 	public function Request (Request $request=null) {
-
-		if ($request) {
-			$this->request = $request;
-			return $this;
-		}
 
 		return $this->request;
 	}
@@ -77,9 +64,11 @@ abstract class Method implements IMethod {
 	 * Execute the method and return
 	 * a response; to be handled by
 	 * child class.
-	 * 
+	 *
+	 * @param Request $request
+	 * @param Terminal $terminal
 	 * @return Response
 	 */
-	abstract public function Execute ();
+	abstract public function Execute (Request $request, Terminal $terminal);
 
 }
