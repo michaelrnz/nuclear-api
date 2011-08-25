@@ -17,37 +17,28 @@ interface IMethod {
 	 * Core functionality of 
 	 * a service method. Implementation will
 	 * execute the body/specifics of the command.
-	 * 
+	 *
+	 * @param Request $request
+	 * @param Terminal $terminal
 	 * @return IResponse
 	 */
-	public function Execute ();
+	public function Execute (Request $request, Terminal $terminal);
 
 
 	/**
-	 * Parameters accessor
+	 * Request accessor
 	 *
-	 * @param object parameters
-	 * @return Object
+	 * @return Request
 	 */
-	public function Parameters ($parameters);
+	public function Request ();
 
 
 	/**
 	 * Terminal setter
 	 *
-	 * @param Terminal terminal
-	 * @return IMethod
+	 * @return Terminal
 	 */
-	public function Terminal ($terminal);
-
-
-	/**
-	 * Type accessor
-	 *
-	 * @param string type
-	 * @return string
-	 */
-	public function Type ($type);
+	public function Terminal ();
 
 
 	/**
