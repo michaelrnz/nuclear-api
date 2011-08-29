@@ -30,7 +30,7 @@ class ValueMap {
 		if (isset($this->data[$key])) {
 			return $this->data[$key];
 
-		else {
+		} else {
 			return null;
 		}
 	}
