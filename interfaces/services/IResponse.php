@@ -7,7 +7,10 @@
  * Revised 2011
  *
  * ==========================================
- * Response interface
+ * Response interface, our interface relies
+ * on accessor methods (get-only). Objects
+ * handling the Response will typically only
+ * rely on getting members
  */
 
 interface IResponse {
@@ -16,38 +19,34 @@ interface IResponse {
 	/**
 	 * Status accessor
 	 *
-	 * @param int status
 	 * @return iResponse
 	 */
-	public function Status ($status);	
-	
+	public function Status ();
+
 
 	/**
-	 * Add a response header
+	 * Get a response header
 	 *
 	 * @param string key
-	 * @param string value
-	 * @return iResponse
+	 * @return string
 	 */
-	public function Header ($key, $value);
+	public function Header ($key);
 
 
 	/**
 	 * Headers accessor
 	 *
-	 * @param array headers
-	 * @return array
+	 * @return Headers
 	 */
-	public function Headers ($headers);
+	public function Headers ();
 
 
 	/**
 	 * Content accessor
 	 *
-	 * @param mixed content
 	 * @return mixed
 	 */
-	public function Content ($content);
+	public function Content ();
 
 
 	/**
