@@ -85,6 +85,8 @@ class Request implements IRequest {
 	 */
 	protected function loadHeaders () {
 
+		$this->headers = new Headers();
+
 		// collect the headers via majksner at gmail dot com (php.net - getallheaders)
 		foreach ($_SERVER as $key => $value) {
 			if (substr($key,0,5) == 'HTTP_') {
@@ -93,7 +95,7 @@ class Request implements IRequest {
 						strtolower(
 							str_replace("_"," ",substr($key,5)))));
 
-				$this->headers[$key] = $value;
+				$this->headers->Set($key, $value);
 			}
 		}
 
@@ -120,16 +122,9 @@ class Request implements IRequest {
 	/**
 	 * Method accessor
 	 *
-	 * @param int method
 	 * @return int
 	 */
-	public function Method ($method=null) {
-
-		if (is_numeric($method)) {
-			$this->method = intval($method);
-			return $this;
-
-		}
+	public function Method () {
 
 		return $this->method;
 	}
@@ -142,8 +137,7 @@ class Request implements IRequest {
 	 */
 	public function Header ($key) {
 
-		return empty($this->headers[$key]) ?
-				null : $this->headers[$key];
+		return $this->headers->Get($key);
 	}
 
 
