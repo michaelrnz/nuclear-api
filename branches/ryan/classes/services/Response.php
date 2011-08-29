@@ -20,9 +20,9 @@ class Response implements IResponse {
 
 
 	/**
-	 * @var array headers (HTTP headers)
+	 * @var Header headers (HTTP headers)
 	 */
-	protected $headers	= array();
+	protected $headers;
 
 
 	/**
@@ -32,21 +32,23 @@ class Response implements IResponse {
 
 
 	/**
+	 * Construct init headers
+	 * @return void
+	 */
+	public function __cosntruct () {
+
+		$this->headers = new Headers();
+	}
+
+
+	/**
 	 * Status accessor
 	 *
-	 * @param int status
 	 * @return int
 	 */
-	public function Status ($status=null) {
+	public function Status () {
 
-		if (is_numeric($status)) {
-			$this->status = intval($status);
-			return $this;
-
-		} else {
-			return $this->status;
-
-		}
+		return $this->status;
 	}
 
 
@@ -54,63 +56,56 @@ class Response implements IResponse {
 	 * Header accessor
 	 *
 	 * @param string key
-	 * @param string value
 	 * @return string
 	 */
-	public function Header ($key, $value=null) {
+	public function Header ($key) {
 
-		if (empty($value)) {
-			return empty($this->headers[$key]) ?
-				null : $this->headers[$key];
-
-		} else {
-			$this->header[$key] = (string) $value;
-			return $this;
-
-		}
-
+		return $this->headers->Get($key);
 	}
 
 
 	/**
 	 * Headers accessor
 	 *
-	 * @param array headers
-	 * @return array
+	 * @return Header
 	 */
-	public function Headers ($headers=null) {
+	public function Headers () {
 
-		if (is_array($headers)) {
-			foreach ($headers as $key=>$value) {
-				$this->Header($key, $value);
-			}
-
-			return $this;
-
-		} else {
-			return $this->headers;
-
-		}
+		return $this->headers;
 	}
 
 
 	/**
 	 * Content accessor
 	 *
-	 * @param mixed content
 	 * @return mixed
 	 */
-	public function Content ($content=null) {
+	public function Content () {
 
-		if (is_null($content)) {
-			return $this->content;
+		return $this->content;
+	}
 
-		} else {
-			$this->content = content;
-			return $this;
+
+	/**
+	 * Magic Set
+	 *
+	 * @param string key
+	 * @param mixed value
+	 * @return void
+	 */
+	public function __set ($key, $value) {
+
+		switch ($key) {
+
+			case 'status':
+				$this->status = (int) $value;
+				break;
+
+			case 'content':
+				$this->content = $value;
+				break;
 
 		}
-
 	}
 
 
