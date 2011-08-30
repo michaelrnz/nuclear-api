@@ -10,7 +10,7 @@
  * Represet REST parameters as a set
  */
 
-class RestParameters extends stdClass {
+class RestParameters {
 
 
 	/**
@@ -25,7 +25,7 @@ class RestParameters extends stdClass {
 
 			// process REST parameters via encoded string
 			foreach (array_filter(explode("&", $data)) as $parameter) {
-				$this->parameter($parameter);
+				$this->Parameter($parameter);
 			}
 		}
 	}

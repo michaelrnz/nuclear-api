@@ -69,6 +69,9 @@ abstract class Method implements IMethod {
 	 * @param Terminal $terminal
 	 * @return Response
 	 */
-	abstract public function Execute (Request $request, Terminal $terminal);
+	public function Execute (Request $request, Terminal $terminal=null) {
+
+		throw new Exception("Method::Execute() not implemented in child class");
+	}
 
 }

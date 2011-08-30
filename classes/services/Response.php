@@ -35,7 +35,7 @@ class Response implements IResponse {
 	 * Construct init headers
 	 * @return void
 	 */
-	public function __cosntruct () {
+	public function __construct () {
 
 		$this->headers = new Headers();
 	}
@@ -135,12 +135,12 @@ class Response implements IResponse {
 		} else if (is_object($this->content) || is_array($this->content)) {
 			return json_encode($this->content);
 
-		} else if (is_string($this->content)) {
-			return $this->content;
+		} else if (is_scalar($this->content)) {
+			return (string) $this->content;
 
 		}
 
-		throw new Exception("Unknown response content", 500);
+		return "";
 	}
 
 }
