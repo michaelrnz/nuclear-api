@@ -104,7 +104,7 @@ class EnvironmentIndex extends DirectoryIndex {
 
 			if( strlen($filename) )
 			{
-				@include_once($filename);
+				include_once($filename);
 
 				if( class_exists($structure) || interface_exists($structure) )
 					return;
@@ -124,4 +124,3 @@ class EnvironmentIndex extends DirectoryIndex {
 
 }
 
-		
