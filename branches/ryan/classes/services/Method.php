@@ -37,7 +37,7 @@ abstract class Method implements IMethod {
 	 * @param Request $request
 	 * @return Method
 	 */
-	public function Prepare (Request $request) {
+	public function Prepare (IRequest $request) {
 
 		$this->request = $request;
 		return $this;
@@ -52,7 +52,7 @@ abstract class Method implements IMethod {
 	 * @param Request $request
 	 * @return Response
 	 */
-	public function Execute (Request $request=null) {
+	public function Execute (IRequest $request=null) {
 
 		throw new Exception("Method::Execute() not implemented in child class");
 	}
