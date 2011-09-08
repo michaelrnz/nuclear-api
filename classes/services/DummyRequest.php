@@ -24,8 +24,11 @@ class DummyRequest implements IRequest {
 	 */
 	public function __construct ($content=null) {
 
-		if (!is_null($content)) {
+		if (is_object($content)) {
 			$this->content = $content;
+
+		} else {
+			$this->content = new stdClass();
 		}
 	}
 
@@ -39,9 +42,7 @@ class DummyRequest implements IRequest {
 	 */
 	public function __set ($key, $value) {
 
-		if ($this->content instanceof stdClass) {
-			$this->content->{$key} = $value;
-		}
+		$this->content->{$key} = $value;
 	}
 
 
@@ -53,11 +54,8 @@ class DummyRequest implements IRequest {
 	 */
 	public function __get ($key) {
 
-		if ($this->content instanceof stdClass) {
-
-			if (isset($this->content->{$key})) {
-				return $this->content->{$key};
-			}
+		if (isset($this->content->{$key})) {
+			return $this->content->{$key};
 		}
 
 		return null;
