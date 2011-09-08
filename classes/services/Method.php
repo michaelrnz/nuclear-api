@@ -13,13 +13,6 @@
 abstract class Method implements IMethod {
 
 	/**
-	 * Output terminal passed from Proxy
-	 * @var Terminal $terminal
-	 */
-	protected $terminal;
-
-
-	/**
 	 * Controlling request for the method
 	 * @var Request $request
 	 */
@@ -27,36 +20,27 @@ abstract class Method implements IMethod {
 
 
 	/**
-	 * Terminal accessor
-	 * 
-	 * @return Terminal
-	 */
-	public function Terminal () {
-
-		return $this->terminal;
-	}
-
-
-	/**
 	 * Request accessor
 	 *
 	 * @return Request
 	 */
-	public function Request (Request $request=null) {
+	public function Request () {
 
 		return $this->request;
 	}
 
 
 	/**
-	 * Default implementation to
-	 * throw exception to higher classes.
-	 * 
-	 * @return void
+	 * Prepare by injecting Request
+	 * should be used for Request validation
+	 *
+	 * @param Request $request
+	 * @return Method
 	 */
-	public function MethodException ($e) {
+	public function Prepare (Request $request) {
 
-		throw $e;
+		$this->request = $request;
+		return $this;
 	}
 
 
@@ -66,12 +50,23 @@ abstract class Method implements IMethod {
 	 * child class.
 	 *
 	 * @param Request $request
-	 * @param Terminal $terminal
 	 * @return Response
 	 */
-	public function Execute (Request $request, Terminal $terminal=null) {
+	public function Execute (Request $request=null) {
 
 		throw new Exception("Method::Execute() not implemented in child class");
+	}
+
+
+	/**
+	 * Default implementation to
+	 * throw exception to higher classes.
+	 * 
+	 * @return void
+	 */
+	protected function MethodException ($e) {
+
+		throw $e;
 	}
 
 }

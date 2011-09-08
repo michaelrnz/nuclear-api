@@ -14,18 +14,6 @@ interface IMethod {
 
 
 	/**
-	 * Core functionality of 
-	 * a service method. Implementation will
-	 * execute the body/specifics of the command.
-	 *
-	 * @param Request $request
-	 * @param Terminal $terminal
-	 * @return IResponse
-	 */
-	public function Execute (Request $request, Terminal $terminal);
-
-
-	/**
 	 * Request accessor
 	 *
 	 * @return Request
@@ -34,22 +22,22 @@ interface IMethod {
 
 
 	/**
-	 * Terminal setter
+	 * Prepare, set Request
 	 *
-	 * @return Terminal
+	 * @return IMethod
 	 */
-	public function Terminal ();
+	public function Prepare (Request $request);
 
 
 	/**
-	 * handle an exception
-	 * throw within the method, usually
-	 * relaying the exception to a
-	 * higher layer
-	 * 
-	 * @return void
+	 * Core functionality of 
+	 * a service method. Implementation will
+	 * execute the body/specifics of the command.
+	 *
+	 * @param Request $request
+	 * @return IResponse
 	 */
-	public function MethodException ($e);
+	public function Execute (Request $request);
 
 
 }
