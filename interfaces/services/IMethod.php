@@ -26,7 +26,7 @@ interface IMethod {
 	 *
 	 * @return IMethod
 	 */
-	public function Prepare (Request $request);
+	public function Prepare (IRequest $request);
 
 
 	/**
@@ -37,7 +37,7 @@ interface IMethod {
 	 * @param Request $request
 	 * @return IResponse
 	 */
-	public function Execute (Request $request);
+	public function Execute (IRequest $request);
 
 
 }
