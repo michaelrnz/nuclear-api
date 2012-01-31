@@ -14,9 +14,16 @@ class RestParameters {
 
 
 	/**
+	 * Component Types
+	 */
+	const COMPONENT_ARRAY = 1;
+	const COMPONENT_OBJECT = 2;
+
+
+	/**
 	 * Constructor
 	 * 
-	 * @param Iterator data
+	 * @param string data
 	 * @return void
 	 */
 	function __construct ($data=null) {
@@ -43,78 +50,120 @@ class RestParameters {
 		$parameter = explode("=", $parameter, 2);
 
 		// get the key/value
-		$key	= trim(urldecode($parameter[0]));
-		$value	= urldecode($parameter[1]);
+		$key		= trim(urldecode($parameter[0]));
+		$value		= urldecode($parameter[1]);
+		$components	= array_filter(explode(".", $key));
 
-		// .property depths
-		$properties	= array_filter(explode(".", $key));
-
-		if (count($properties)==1) {
-			$this->Assign($this, $properties[0], $value);
-
-		} else {
-
-			$final = array_pop($properties);
-			$this->Assign($this->Expand($this, $properties), $final, $value);
+		// check for complex properties
+		foreach ($components as &$c) {
+			$c = $this->Component($c);
 		}
+
+		$this->Expand($this, $components, $value);
 	}
 
 
 	/**
-	 * Assign a key to a node, do not display values
+	 * Expand
 	 *
-	 * @param stdClass node
-	 * @param string key
-	 * @param string value
-	 * @return void
-	 */
-	protected function Assign ($node, $key, $value) {
-
-		if (isset($node->{$key})) {
-			if (!is_array($node->{$key})) {
-				$node->{$key} = array($node->{$key});
-			}
-
-			array_push($node->{$key}, $value);
-
-		} else {
-			$node->{$key} = $value;
-		}
-	}
-
-
-	/**
-	 * Expand a node with property hierarchy
-	 *
-	 * @param stdClass node
-	 * @param array properties
+	 * @param stdClass $node
+	 * @param array $components
+	 * @param string $value
 	 * @return stdClass
 	 */
-	protected function Expand ($node, &$properties) {
+	protected function Expand ($node, &$components, $value) {
 
-		$last = $node;
-		foreach ($properties as $p) {
+		$parent = &$node;
+		$count = count($components);
+		foreach ($components as $def) {
 
-			if (!isset($last->{$p})) {
-				$last->{$p} = new stdClass();
+			$key = $def->key;
 
-			} else if (!($last->{$p} instanceof stdClass)) {
-				if (!is_array($last->{$p})) {
-					$last->{$p} = array($last->{$p});
+			// base case
+			if ($count-- == 1) {
+
+				// assign as array
+				if ($def->type == self::COMPONENT_ARRAY) {
+
+					// create or overwrite as array
+					if (!(isset($parent->{$key}) && is_array($parent->{$key}))) {
+						$parent->{$key} = array();
+					}
+
+					// push
+					if (strlen($def->index)==0) {
+						array_push($parent->{$key}, $value);
+
+					// associate
+					} else {
+						$arr = &$parent->{$key};
+						$arr[$def->index] = $value;
+					}
+
+				// assign to array
+				} else if (is_array($parent)) {
+					array_push($parent, $value);
+
+				// assign to object
+				} else if (is_object($parent)) {
+					$parent->{$key} = $value;
 				}
 
-				$item = new stdClass();
-				array_push($last->{$p}, $item);
-				$last = $item;
-				continue;
+				return $node;
 			}
 
-			$last = $last->{$p};
+			// assign value
+			if ($def->type == self::COMPONENT_ARRAY) {
+
+				// ensure array
+				if (!(isset($parent->{$key}) && is_array($parent->{$key}))) {
+					$parent->{$key} = array();
+				}
+
+				$arr = &$parent->{$key};
+				$arr[$def->index] = new stdClass();
+				$parent = $arr[$def->index];
+
+			// object component
+			} else {
+				if (!isset($parent->{$key})) {
+					$parent->{$key} = new stdClass();
+				}
+
+				$parent = $parent->{$key};
+			}
 		}
 
 		// return the last node in the hierarchy
-		return $last;
+		return $node;
 	}
 
+
+	/**
+	 * Component
+	 *
+	 * @param string $key
+	 * @param string $index
+	 * @param int $type
+	 * @return stdClass
+	 **/
+	protected function Component ($key, $index=null, $type=self::COMPONENT_OBJECT) {
+
+		// check for array keying []
+		if (substr($key,-1)==']' && ($left = strpos($key,'['))) {
+
+			// array index string
+			$index = substr($key, $left+1, strlen($key) - $left - 2);
+
+			if (strlen($index)>0) {
+				$key = substr($key, 0, $left);
+				$type = self::COMPONENT_ARRAY;
+			} else {
+				$index = null;
+			}
+		}
+
+		return (object) array("type"=>$type, "key"=>$key, "index"=>$index);
+	}
 
 }
