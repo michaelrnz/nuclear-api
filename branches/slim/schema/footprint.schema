@@ -1,0 +1,11 @@
+/*
+    Footprint schema
+*/
+
+create table nu_footprint (
+    id int unsigned auto_increment primary key,
+    signature binary(20),
+    updated int unsigned not null,
+    expires int unsigned not null,
+    unique(signature)
+) engine=InnoDB collate latin1_general_ci;
