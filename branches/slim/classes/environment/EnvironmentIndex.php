@@ -24,19 +24,6 @@ class EnvironmentIndex extends DirectoryIndex {
 
 
 	/**
-	 * private constructor for singleton
-	 * sets up the refresh properties
-	 *
-	 * @return void
-	 */
-	function __construct () {
-
-		parent::__construct(ENV_REFRESH);
-		$this->forceRefresh = ENV_FORCE_REFRESH;
-	}
-
-
-	/**
 	 * Singleton instance retrieval
 	 * 
 	 * @return EnvironmentIndex
@@ -49,6 +36,23 @@ class EnvironmentIndex extends DirectoryIndex {
 		return self::$instance;
 	}
 
+	
+	/**
+	 * Set refresh times
+	 *
+	 * @param int $refresh
+	 * @param int $forceRefresh
+	 * @return EnvironmentIndex
+	 */
+	public function setRefresh ($refresh, $forceRefresh=null) {
+		parent::setRefresh($refresh);
+		if (!is_null($forceRefresh)) {
+			$this->forceRefresh = $forceRefresh;
+		}
+
+		return $this;
+	}
+
 
 	/**
 	 * register
@@ -56,12 +60,12 @@ class EnvironmentIndex extends DirectoryIndex {
 	 * 
 	 * @return EnvironmentIndex
 	 */
-	function register () {
+	public function register () {
 
-		if( empty($this->registered) )
-		{
+		if (empty($this->registered)) {
+
 			$this->registered = true;
-			$this->index();
+			$this->index($this->refresh);
 
 			// register the loader
 			spl_autoload_register(array($this,"resolve"));
@@ -77,13 +81,9 @@ class EnvironmentIndex extends DirectoryIndex {
 	 *
 	 * @return void
 	 */
-	function forceIndex () {
-
-		$this->index	= null;
-		$refresh		= $this->refresh;
-		$this->refresh	= 0;
-		$this->index();
-		$this->refresh	= $refresh;
+	public function forceIndex () {
+		$this->index = null;
+		$this->index(0);
 	}
 
 
@@ -96,22 +96,20 @@ class EnvironmentIndex extends DirectoryIndex {
 	 * @param structure - string (class or instance)
 	 * @return void
 	 */
-	function resolve ($structure) {
+	public function resolve ($structure) {
 
-		while(true) {
+		while (true) {
 
 			$filename = $this->search($structure .'.php');
 
-			if( strlen($filename) )
-			{
+			if (strlen($filename)) {
 				include_once($filename);
 
 				if( class_exists($structure) || interface_exists($structure) )
 					return;
 			}
 			
-			if( ($this->accessTime - $this->buildTime) > $this->forceRefresh )
-			{
+			if (($this->accessTime - $this->buildTime) > $this->forceRefresh) {
 				$this->forceIndex();
 				continue;
 			}

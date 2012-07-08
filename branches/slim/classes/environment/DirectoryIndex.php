@@ -49,7 +49,7 @@ class DirectoryIndex {
 	 */
 	public function setRefresh ($refresh=0) {
 		
-		if( is_numeric($refresh) )
+		if (is_numeric($refresh))
 			$this->refresh = $refresh;
 		
 		return $this;
@@ -110,7 +110,7 @@ class DirectoryIndex {
 		$fileName = "/" . ltrim($fileName, "/");
 
 		// get the listing (text)
-		$index = $this->index();
+		$index = $this->index($this->refresh);
 
 		// check for position of fileName in text
 		if (($pos = strpos($index, $fileName . "\t"))!==false) {
@@ -134,21 +134,25 @@ class DirectoryIndex {
 	 * 
 	 * @return string
 	 */
-	protected function index () {
+	protected function index ($refresh=null) {
+
+		if (is_null($refresh)) {
+			$refresh = $this->refresh;
+		}
 		
-		if( is_null($this->index) )
-		{
+		if (is_null($this->index)) {
+
 			$cacheFile	= $this->resourcePath();
 			$fileExists	= file_exists($cacheFile);
 
 			// set the build time
-			if( $fileExists )
+			if ($fileExists)
 				$this->buildTime = filemtime($cacheFile);
 			else
 				$this->buildTime = 0;
 
 			// conditions to use index
-			if( $fileExists && ($this->accessTime - filemtime($cacheFile)) <= $this->refresh )
+			if( $fileExists && ($this->accessTime - filemtime($cacheFile)) <= $refresh )
 			{
 				$index = file_get_contents($cacheFile);
 			}
