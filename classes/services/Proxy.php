@@ -15,7 +15,7 @@ class Proxy {
 
 	const METHOD_INTERFACE		= "IMethod";
 	const RESPONSE_INTERFACE	= "IResponse";
-	const METHOD_ERROR			= "Method does not implement IMethod";
+	const METHOD_ERROR		= "Method does not implement IMethod";
 	const RESPONSE_ERROR		= "Response does not implement IResponse";
 
 
@@ -45,42 +45,39 @@ class Proxy {
 	 *
 	 * @return Response
 	 */
-	public function __call ($name, $args) {
+	public function __call ($name, $request) {
 
 		try {
 
 			// Determine the method class
-			$className	= $this->ClassName(
-								$this->MethodName(
-									$this->RestPrefix(
-										$this->restMode), $name));
+			$className = $this->ClassName(
+					$this->MethodName(
+						$this->RestPrefix(
+							$this->restMode), $name));
 
 			// Verify Method fits interface constraint
 			if (in_array(self::METHOD_INTERFACE, class_implements($className))) {
 
 				// Instantiate new Method class
-				$method		= new $className();
+				$method	= new $className();
 
 				// Set the type hint and terminal; execute for response
-				if (count($args)>0) {
+				if (count($request)>0) {
 					$method->Prepare($request);
 				}
 
-				$response	= $method->Execute();
+				$response = $method->Execute();
 
 				// Verify Response fits interface constraint
 				$interface = self::RESPONSE_INTERFACE;
 				if ($response instanceof $interface) {
-
 					return $response;
 
 				} else {
-
 					throw new Exception(self::RESPONSE_ERROR);
 				}
 
 			} else {
-
 				throw new Exception(self::METHOD_ERROR);
 			}
 
@@ -202,8 +199,8 @@ class Proxy {
 	protected function MethodName ($prefix, $name) {
 
 		return str_replace(' ', '',
-					ucwords(
-						preg_replace('/[\/\-]/', ' ', "{$prefix}/{$name}")));
+			ucwords(preg_replace('/[\/\-]/', ' ', "{$prefix}/{$name}"))
+		);
 	}
 	
 

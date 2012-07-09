@@ -12,10 +12,20 @@
 
 class Request implements IRequest {
 
+	/**
+	 * MIME types for parsing requests
+	 */
+	const WWW_FORM_URLENCODED 	= 'application/x-www-form-urlencoded';
+	const MULTIPART_FORM_DATA	= 'multipart/form-data';
+
+
+	/**
+	 * Request methods
+	 */
 	const GET		= 1;
 	const POST		= 2;
 	const PUT		= 3;
-	const DELETE	= 4;
+	const DELETE		= 4;
 
 
 	/**
@@ -111,9 +121,9 @@ class Request implements IRequest {
 	protected function loadContent () {
 
 		$this->content = ContentFactory::getInstance()
-							->Build($this->Header("Content-Type"))
-							->Content($this->Body())
-							->Content();
+					->Build($this->Header("Content-Type"))
+					->Content($this->Body())
+					->Content();
 
 		return $this;
 	}
@@ -181,7 +191,7 @@ class Request implements IRequest {
 			default:
 
 				// TODO - handle FILE uploads
-				if ($this->Header("Content-Type") == "multipart/form-data") {
+				if ($this->Header("Content-Type") == Request::WWW_FORM_DATA) {
 					return null;
 				} else {
 					return file_get_contents("php://input");

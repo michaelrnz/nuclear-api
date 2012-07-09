@@ -46,8 +46,8 @@ class ContentFactory extends Factory {
 		switch ($type) {
 
 			case "":
-			case "application/x-www-form-urlencoded":
-			case "multipart/form-data":
+			case Request::WWW_FORM_URLENCODED:
+			case Request::MULTIPART_FORM_DATA:
 				return new ContentHandler();
 
 			default:
