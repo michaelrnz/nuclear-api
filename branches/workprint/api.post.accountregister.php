@@ -15,6 +15,8 @@
     {
         protected function initJSON()
         {
+//            NuEvent::action('pre_account_register', "json");
+
             require_once( 'class.userregistration.php' );
             require_once( 'lib.register.php' );
 
@@ -27,12 +29,14 @@
             if( $ver = Register::post( $registration ) )
             {
                 $o->valid = 1;
+                $o->status= "ok";
                 $o->message = "Check email for verification.";
                 $o->json->hash = $ver;
             }
             else
             {
                 $o->valid = 0;
+                $o->status = "error";
                 $keys = array_keys($GLOBALS['post_error']);
                 $o->message = $GLOBALS['post_error'][$keys[0]];
             }

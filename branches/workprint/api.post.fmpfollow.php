@@ -39,18 +39,6 @@
 			if( !$a ) return false;
 
 
-			//
-			// FEDERATED CORE / LOCAL
-			//
-			require_once( 'lib.nufederated.php' );
-
-			// create tokens
-			$token          = NuFederatedStatic::generateToken( $publisher->id );
-			$token_secret   = NuFederatedStatic::generateToken( $token );
-
-			// insert federated relation
-			NuFederatedIdentity::addFederatedAuth( $publisher->id, $subscriber->id, $token, $token_secret );
-
 			return true;
 		}
 

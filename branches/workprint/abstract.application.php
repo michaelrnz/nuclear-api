@@ -19,7 +19,7 @@
 
 		//
 		// constructor takes general object o
-		function __construct( $auto_post=true, $auto_display=false )
+		function __construct( $auto_post=true, $auto_display=true )
 		{
 			//
 			// load service

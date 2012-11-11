@@ -76,7 +76,8 @@
         //
         public function dispatch( $id, $uri )
         {
-            NuFiles::ping( "{$uri}?id={$id}" );
+            require_once('lib.nufiles.php');
+            NuFiles::ping( "{$uri}?schedule_id={$id}" );
         }
         
     }

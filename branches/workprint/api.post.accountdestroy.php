@@ -33,8 +33,8 @@
 
       //
       // log the user out
-      if( $resp[0] )
-	Sessions::killSession();
+      //if( $resp[0] )
+	//Sessions::killSession();
 
       $o->message = $resp[1];
       return $o;

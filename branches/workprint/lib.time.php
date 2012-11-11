@@ -19,7 +19,7 @@
 			if($span != 1){
 				$units.='s';
 			}
-			return $span . ' ' .$units . " ago";
+			return $span ." ". $units . " ago";
 		}
 
 

@@ -19,14 +19,15 @@
             $push_object->urls = $urls;
 
             require_once('class.scheduler.php');
+            $Scheduler = Scheduler::getInstance();
 
             //
             // queue the push object
-            $schedule_id = Scheduler::queue( 'push_notify', $push_object );
+            $schedule_id = $Scheduler->queue( 'push_notify', $push_object );
 
             //
             // dispatch to ping
-            Scheduler::dispatch($schedule_id, "http://{$GLOBALS['DOMAIN']}/api/push/notify.ping");
+            $Scheduler->dispatch($schedule_id, "http://{$GLOBALS['DOMAIN']}/api/push/notify.ping");
         }
     }
 
