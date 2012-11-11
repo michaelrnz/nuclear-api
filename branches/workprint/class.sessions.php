@@ -124,6 +124,8 @@
                         // Reset cookie
                         setcookie($n, $_COOKIE[$n], time() + ini_get("session.cookie_lifetime"), '/', '.'. $GLOBALS['DOMAIN'] );
 
+			// Set USER_CONTROL dependency
+			$GLOBALS['USER_CONTROL'] = $_SESSION['USER_CONTROL'];
 		      }
 		    }
 		    else
