@@ -337,17 +337,18 @@
         private static function sendDestroyVerification( $rcpt, $hash )
         {
             $body = "In order to complete your account removal please continue to the following link:<br /><br />" . 
-                "<a href=\"http://{$GLOBALS['DOMAIN']}/account/destroy/$hash\">http://{$GLOBALS['DOMAIN']}/account/destroy/$hash</a><br /><br />" . 
+                "<a href=\"http://{$GLOBALS['DOMAIN']}/forms/account/verify_destroy.xml\">http://{$GLOBALS['DOMAIN']}/forms/account/verify_destroy.xml</a><br />" . 
+                "<strong>Verification key:</strong> <br />{$hash}<br /><br />".
                 "If you did not initiate a account removal, please report this to {$GLOBALS['SUPPORT_MAIL']}.<br /><br />" . 
                 "Thank you,<br />{$GLOBALS['APPLICATION_NAME']}";
 
             $headers = 'MIME-Version: 1.0' . "\r\n";
             $headers.= "Content-Type: text/html; charset=utf-8\r\n";
-            $headers.= "From: {$GLOBALS['SUPPORT_MAIL']} <{$GLOBALS['SUPPORT_MAIL']}>\r\n";
+            $headers.= "From: {$GLOBALS['SUPPORT_MAIL']}\r\n";
 
             $subject = "Complete your {$GLOBALS['APPLICATION_NAME']} account removal\r\n";
 
-            mail( $rcpt, $subject, $body, $headers );
+            nu_mail( $rcpt, $subject, $body, $headers );
         }
 
 
@@ -360,11 +361,11 @@
 
             $headers = 'MIME-Version: 1.0' . "\r\n";
             $headers.= "Content-Type: text/html; charset=utf-8\r\n";
-            $headers.= "From: {$GLOBALS['PASSWORD_MAIL']} <{$GLOBALS['PASSWORD_MAIL']}>\r\n";
+            $headers.= "From: {$GLOBALS['PASSWORD_MAIL']}\r\n";
 
             $subject = "Reset your {$GLOBALS['APPLICATION_NAME']} password\r\n";
 
-            mail( $rcpt, $subject, $body, $headers );
+            nu_mail( $rcpt, $subject, $body, $headers );
         }
 
         private static function sendChangeEmailVerification( $rcpt, $hash )
@@ -381,7 +382,7 @@
 
             $subject = "Complete your change of email on {$GLOBALS['APPLICATION_NAME']}\r\n";
 
-            mail( $rcpt, $subject, $body, $headers );
+            nu_mail( $rcpt, $subject, $body, $headers );
         }
 
     }

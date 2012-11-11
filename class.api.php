@@ -17,7 +17,7 @@
     {
         private $map;
         private $method;
-        private $op;
+        protected $op;
         private $format;
         private $output_extension;
         private $_optext;
@@ -565,7 +565,7 @@
             foreach( $c as $f=>$k )
             {
                 // handle magic slash
-                $o->$f = stripslashes( trim($k) );
+                $o->$f = trim($k);
             }
             return $o;
         }

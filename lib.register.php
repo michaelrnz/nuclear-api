@@ -129,12 +129,12 @@
 
 			//
 			// Additional headers
-			$headers .= "From: {$GLOBALS['REGISTRATION_MAIL']} <{$GLOBALS['REGISTRATION_MAIL']}>" . "\r\n";
+			$headers .= "From: {$GLOBALS['REGISTRATION_MAIL']}\r\n";
 			$subject= 'Your registration is almost complete!';
 
 			//
 			// send mail
-			mail($rcpt,$subject,$body,$headers);
+			nu_mail($rcpt,$subject,$body,$headers);
 
 		}
 	}

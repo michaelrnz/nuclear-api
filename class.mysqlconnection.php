@@ -18,7 +18,7 @@
 		{
             $dbo = Database::getInstance();
             
-			if( !($c = mysql_connect( $h, $u, $p)) )
+			if( !($c = mysql_connect( $h, $u, $p, false, MYSQL_CLIENT_SSL )) )
 			{
                 throw new Exception('Unable to connect to the database: ' . mysql_error());
             }

@@ -186,7 +186,7 @@
 			// test the mirrored relation
 			$m = WrapMySQL::affected(
 			      "update nu_relation set model=0 ".
-			      "where user={$o->party} && party={$o->user} && model=2 ".
+			      "where user={$party} && party={$user} && model=2 ".
 			      "limit 1;",
 			      "Error testing two-way relation");
 
@@ -194,7 +194,7 @@
 			{
 			  $c = WrapMySQL::affected(
 			        "update nu_relation set model=1 ".
-				"where user={$o->user} && party={$o->party} && model=2 ".
+				"where user={$user} && party={$party} && model=2 ".
 				"limit 1;",
 				"Error destroying two-way relation");
 			}
@@ -202,8 +202,8 @@
 			{
 			  $c = WrapMySQL::affected(
 			        "delete from nu_relation ".
-				"where (user={$o->user} && party={$o->party} && model=0) ".
-				"|| (user={$o->party} && party={$o->user} && model=1) ".
+				"where (user={$user} && party={$party} && model=0) ".
+				"|| (user={$party} && party={$user} && model=1) ".
 				"limit 2;",
 				"Error destroying one-way relation");
 			}

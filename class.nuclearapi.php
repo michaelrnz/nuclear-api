@@ -14,8 +14,13 @@
     {
         protected static $_instance;
         public static $_gv = "APICALL";
+        protected $resolution;
         
         /* iSingleton interfacing */
+        public function __construct()
+        {
+            $this->resolution = array();
+        }
         
         public static function getInstance()
         {
@@ -47,7 +52,7 @@
                 $method         = $method_match[2];
                 $method[0]  = strtolower($method[0]);
                 
-                return self::execute( $rest, $method, $args[0], $args[1] );
+                return $this->execute( $rest, $method, $args[0], $args[1] );
             }
             else
             {
@@ -69,7 +74,7 @@
         // call the api, via include
         // TODO handle for dynamic output types
         //
-        private static function &execute( $rest, $method, &$call, $output="json" )
+        private function &execute( $rest, $method, &$call, $output="json" )
         {
             // name the src
             $src_1  = "api.{$rest}.". strtolower($method) .".php";
@@ -80,6 +85,21 @@
             self::globalize( $call );
 
             //
+            // test resolution
+            if( array_key_exists( md5($src_1), $this->resolution ) )
+            {
+                $api_class  = $this->resolution[ md5($src_1) ];
+                $dynamic    = false;
+            }
+            else if( array_key_exists( md5($src_2), $this->resolution ) )
+            {
+                $api_class  = $this->resolution[ md5($src_2) ];
+                $dynamic    = true;
+            }
+            else
+            {
+
+            //
             // try include
             $api_class  = (@include $src_2);
             
@@ -87,10 +107,15 @@
             {
                 $api_class  = (@include $src_1);
                 $dynamic    = false;
+
+                $this->resolution[ md5($src_1) ] = $api_class;
             }
             else
             {
                 $dynamic    = true;
+                $this->resolution[ md5($src_2) ] = $api_class;
+            }
+
             }
             
             if( $api_class && strlen($api_class)>1 )
@@ -99,7 +124,7 @@
                     {
                         try
                         {
-                            if( $dynamic )
+                            if( $dynamic || is_subclass_of($api_class, 'NuclearAPIMethod') )
                                 $co = new $api_class( microtime(true), false );
                             else
                                 $co = new $api_class( microtime(true), $output, false );
