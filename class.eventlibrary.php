@@ -40,7 +40,7 @@
 		protected static function fire($t,&$o)
 		{
 			if( !is_null(self::$driver) )
-				self::$driver->fire($t,&$o);
+				self::$driver->fire($t,$o);
 		}
 	}
 

@@ -1,5 +1,5 @@
 <?php
-    
+
     /*
         nuclear.framework
         altman,ryan,2008
@@ -17,12 +17,12 @@
     {
         private $map;
         private $method;
-        protected $op;
         private $format;
         private $output_extension;
         private $_optext;
         private $auth_user;
 
+        protected $op;
         protected $resource;
         protected $call;
 
@@ -56,7 +56,7 @@
                 $this->validateCall();
 
                 //
-                // parse 
+                // parse
                 $this->parse();
 
                 //
@@ -81,18 +81,18 @@
             //
             // assign op
             $operation = $this->operation();
-            
+
             //
             // check if operation is remote
             if( $operation == 'nuclear' )
             {
                 $operation = $this->runScheduler();
             }
-            
+
             //
             // nu_api_operation filter
             $filter_operation = NuEvent::filter('nu_api_operation', $operation);
-            
+
             //
             // test for operation, fallback on default
             if( strlen($filter_operation) )
@@ -101,26 +101,30 @@
                 $this->op = $operation;
 
             $this->format = $this->mapField('format');
-            
-            //
-            // assign resource via REQUEST
-            $this->resource = $_REQUEST;
-            
+
             // output
-            if( isset($this->resource['output']) )
+            //
+            if( array_key_exists('output', $_REQUEST) && strlen($_REQUEST['output'])>0 )
             {
-              $GLOBALS['API_FORMAT'] = $this->resource['output'];
-              $this->output_extension = $this->resource['output'];
-            }
-            else if( isset($_GET['output']) )
-            {
-              $GLOBALS['API_FORMAT'] = $_GET['output'];
-              $this->output_extension = $this->resource['output'];
+              $GLOBALS['API_FORMAT'] = $_REQUEST['output'];
+              $this->output_extension = $_REQUEST['output'];
+              unset($_REQUEST['output']);
             }
             else
             {
               $GLOBALS['API_FORMAT'] = 'json';
               $this->output_extension = 'json';
+            }
+
+            //
+            // assign resource via REQUEST
+            $this->resource = $_REQUEST;
+
+            //
+            // filter resource
+            foreach( $_COOKIE as $f=>$v )
+            {
+                unset($this->resource[$f]);
             }
         }
 
@@ -131,32 +135,32 @@
         {
             $this->includer( strtolower($this->opFile()) );
         }
-        
+
         //
         // run scheduler
         private function runScheduler()
         {
             $id = $_REQUEST['schedule_id'];
-            
+
             if( !is_numeric( $id ) )
                 throw new Exception("Missing schedule_id for nuclear.api", 4);
-            
+
             // must return operation
             require_once('class.scheduler.php');
-            
+
             $data = Scheduler::getInstance()->unqueue( $id, 'nuclear_api' );
-                        
+
             // TODO data checking
             if( is_null($data) || is_null($data->operation) )
                 throw new Exception("Scheduler does not exist", 5);
-            
+
             $operation          = $data->operation;
             $this->method       = $data->method;
             $this->auth_user    = $data->auth_user;
-            
+
             foreach( $data->parameters as $p=>$v )
                 $_REQUEST[$p] = $v;
-            
+
             return $operation;
         }
 
@@ -191,7 +195,7 @@
                 default:
                     throw new Exception("No REST method");
             }
-            
+
             return $r;
         }
 
@@ -201,9 +205,10 @@
         {
             $map = $this->map[$f];
             $v = isset($_REQUEST[$map]) ? $_REQUEST[$map] : $_GET[$map];
-            
+
             if( $v )
             {
+                unset($_REQUEST[$map]);
                 return $v;
             }
 
@@ -237,8 +242,6 @@
         // get method name
         private function getMethod()
         {
-            //$overrides = $this->postOverrides();
-
             //
             // test for get overrides
             //if( $this->readOnly && (!$overrides || preg_match("/^{$overrides}$/", $this->op)==0 ) )
@@ -262,7 +265,7 @@
         private function validateAccess()
         {
             require_once('lib.id.php');
-            
+
             $auth_data  = null;
 
             //
@@ -286,80 +289,50 @@
             //
             else if( isset($this->resource['oauth_version']) )
             {
-                include('lib.nuoauthorize.php');
-
                 // check the auth_type
-                $oauth_type = $this->operationType( $this->opText() );
+                switch( $this->opText() )
+                {
+                    case 'oauthrequest_token':
+                        $oauth_type = "oauth_consumer";
+                        break;
+
+                    case 'oauthaccess_token':
+                        $oauth_type = "oauth_request";
+                        break;
+
+                    default:
+                        $oauth_type = "oauth_access";
+                        break;
+                }
+
                 $auth_type  = $oauth_type;
 
-                switch( $oauth_type )
+                //
+                // oauth_consumer/request are not user-based
+                // should use GET (validate in method)
+                //
+                if( $oauth_type == "oauth_access" )
                 {
+                    require_once('lib.oauth.php');
+                    //$auth_data = OAuthManager::getInstance()->authorizeUser();
+                    $params = array();
+                    foreach( $this->resource as $f=>$v )
+                    {
+                        $params[$f] = $v;
+                    }
 
-                  // OAuth for requesting access token 
-                  case 'oauth_access':
-                    // not-implmeneted here
-                    break;
+                    $req = new OAuthRequest('GET', "http://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'], $params);
 
-                  //
-                  // OAuth for fmp/access_token
-                  //
-                  case 'oauth_fmp':
-                    $auth_resp = NuOAuthorize::federation( 
-                           "http://{$GLOBALS['DOMAIN']}". real_request_uri(),
-                           $this->getMethod(), 
-                           $this->resource,
-                           "format|op|output" );
+                    $test_server = new OAuthServer(new NuOAuthDataStore());
+                    $hmac_method = new OAuthSignatureMethod_HMAC_SHA1();
+                    $plaintext_method = new OAuthSignatureMethod_PLAINTEXT();
+                    $test_server->add_signature_method($hmac_method);
+                    $test_server->add_signature_method($plaintext_method);
 
-                    // CHECK VALID
-                    if( !$auth_resp[0] )
-                      throw new Exception("Unauthorized oauth_fmp request", 2);
-                    
-                    $auth_data  = $auth_resp;
-                    break;
+                    $data = $test_server->verify_request($req);
 
-                  //
-                  // Publisher OAuth (fmp) 
-                  //
-                  case 'oauth_publisher':
-
-                    $auth_resp = NuOAuthorize::publisher( 
-                           "http://{$GLOBALS['DOMAIN']}". real_request_uri(),
-                           $this->getMethod(), 
-                           $this->resource,
-                           "format|op|output" );
-
-                    // CHECK VALID
-                    if( !$auth_resp[0] )
-                      throw new Exception("Unauthorized oauth_publisher request", 2);
-                    
-                    $auth_data  = array_splice( $auth_resp, 0, 10 );
-                    $auth_data['id'] = $auth_data['publisher'];
-                    break;
-
-                  //
-                  // Subscriber OAuth (fmp, uses publisher's keys) 
-                  //
-                  case 'oauth_subscriber':
-
-                    $auth_resp = NuOAuthorize::subscriber( 
-                           "http://{$GLOBALS['DOMAIN']}". real_request_uri(),
-                           $this->getMethod(), 
-                           $this->resource,
-                           "format|op|output" );
-
-                    // CHECK VALID
-                    if( !$auth_resp[0] )
-                      throw new Exception("Unauthorized oauth_subscriber request", 2);
-                    
-                    $auth_data  = $auth_resp;
-                    $auth_data['id'] = $auth_data['subscriber'];
-                    break;
-
-
-                  default:
-                    // USER OAUTH
-
-                    break;
+                    if( is_array($data) && is_object($data[1]) )
+                        $auth_data = $data[1]->auth_data;
                 }
             }
             //
@@ -388,11 +361,9 @@
             //
             if( $auth_data )
             {
-                $GLOBALS['USER_CONTROL'] = $auth_data;
-
                 $auth_user  = new AuthorizedUser( $auth_data['id'], $auth_data['name'], get_global('DOMAIN') );
                 $auth_user->setAuthorization( $auth_type, $auth_data );
-                
+
                 // do we return always true for authorized users?
                 // user-level checking can be left to Call
                 //
@@ -437,32 +408,11 @@
 
 
         //
-        // operation-auth-type
-        // useful for Federated OAuth
-        protected function operationType( $op="" )
-        {
-          if( isType("fmpaccess_token", $op) )
-            return "oauth_fmp";
-
-          if( isType("fmppublish|fmprepublish|fmpunpublish", $op) )
-            return 'oauth_publisher';
-
-          if( isType("fmpunsubscribe", $op) )
-            return 'oauth_subscriber';
-
-          if( $op == "oauthaccess_token" )
-            return 'oauth_access';
-
-          return 'oauth_user';
-        }
-
-
-        //
         // post overrides
         // default no override
         protected function overridePostAuthentication($op="")
         {
-          if( isType("accountregister|accountverify_registration|sessioncreate|accountreset_password|accountverify_password|accountverify_destroy|fmpshare_token|fmppublisher_token", $op) ) return true;
+            if( isType("accountregister|accountverify_registration|sessioncreate|accountreset_password|accountverify_password|accountverify_destroy|fmpshare_token|fmppublisher_token", $op) ) return true;
         }
 
 
@@ -488,9 +438,7 @@
         // test for call
         protected function validateCall()
         {
-            $format = false;
-
-            // get c call
+            /*
             if( isset($this->resource['call']) )
             {
                 $c = $this->resource['call'];
@@ -501,7 +449,7 @@
                 // test format
                 $format = $this->format ? $this->format : 'rest';
             }
-            
+
 
             // test for c or meth
             if( $c || $format=='rest' )
@@ -514,12 +462,10 @@
 
                     case 'rest':
                         $this->call = self::getREST( $this->resource );
-                        $this->call->ATIME = $GLOBALS['ATIME'];
                         break;
 
                     case 'json':
                         $this->call = self::getJSON( $c );
-                        $this->call->ATIME = $GLOBALS['ATIME'];
                         break;
 
                     default:
@@ -534,19 +480,17 @@
 
             if( $exc )
                 throw new Exception( $exc, 4 );
+            */
 
-            // assign global to api
-            $GLOBALS['APICALL'] = &$this->call;
-
+            $GLOBALS['APICALL'] = (object) $this->resource;
         }
 
-        /*
-            format parsing methods 
-        */
 
-        //
-        // JSON
-        //
+        /**
+         *
+         * TODO remove/reorganize this
+         *
+        **/
         protected static function &getJSON( $c )
         {
             $call = json_decode( (GET('base64') ? base64_decode($c) : stripslashes($c)) );
@@ -558,7 +502,6 @@
 
             throw new Exception( "Check JSON format", 6 );
         }
-
         protected static function &getREST( $c )
         {
             $o = new Object();
@@ -569,15 +512,10 @@
             }
             return $o;
         }
-
         protected static function &getXML( $c )
         {
             return false;
         }
-
-        /*
-            end parsing methods
-        */
 
 
         //
@@ -608,7 +546,7 @@
         {
             // basic error logging
             file_put_contents($GLOBALS['CACHE'] . "/api.log", time() . ":{$code}:{$message}\n", FILE_APPEND);
-            
+
           $ms = number_format( (microtime(true) - $GLOBALS['ATIME']) * 1000, 3);
 
           if( $code==2 )
@@ -619,9 +557,9 @@
             case "xml":
               $xml = '<?xml version="1.0"?>' . "\n" . //<?
                      '<response status="error" '.
-                     'code="'. $code .'" ms="'. $ms . '"' . 
+                     'code="'. $code .'" ms="'. $ms . '"' .
                      ($message ? "><message>{$message}</message></response>" : " />");
-                     
+
               header('Content-type: text/xml');
 
               if( $die )

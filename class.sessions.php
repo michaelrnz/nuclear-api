@@ -52,7 +52,7 @@
 		  return (string) @file_get_contents($sess_file);
 		}
 
-		public function write($id, $sess_data)
+		public static function write($id, $sess_data)
 		{
 		  global $sess_save_path;
 
@@ -99,7 +99,7 @@
 		//
 		// SESSION INIT
 		//
-		function sessionLogged()
+		public static function sessionLogged()
 		{
 		  $n = $GLOBALS['APPLICATION_SESSION'];
 		  if( isset($_COOKIE[$n]) && preg_match('/^[a-zA-Z0-9]+$/', $_COOKIE[$n]) )
@@ -117,8 +117,6 @@
 		      }
 		      else
 		      {
-		        $GLOBALS['USER_CONTROL'] = $_SESSION['USER_CONTROL'];
-
                         // AuthorizedUser control
                         $auth_user = new AuthorizedUser( $_SESSION['id'], $_SESSION['username'], get_global('DOMAIN') );
                         $auth_user->setAuthorization( 'cookie', $_SESSION['USER_CONTROL'] );

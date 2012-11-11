@@ -25,7 +25,6 @@ function nu_mail ($rcpt, $subject, $body, $headers=null) {
 	mysql_query($q);
 }
 
-
 /* POSSIBLY TRASH */
   function &nuXmlChars( &$str,$mode=0)
   {
