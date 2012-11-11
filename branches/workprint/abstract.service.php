@@ -60,6 +60,7 @@ function __construct() {
 			require("var.global.php");
 			includer(
                             array(
+                                "class.events.php",
                                 "class.database.php",
                                 "class.mysqlconnection.php",
                                 "wrap.mysql.php",
