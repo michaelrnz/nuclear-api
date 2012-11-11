@@ -124,7 +124,6 @@
 				array(
 					"class.mysqlconnection.php",
 					"wrap.mysql.php",
-                    "class.nuclearapi.php",
 					"class.object.php",
 				)
 			);
@@ -141,7 +140,7 @@
 		}
 
 		//
-		// add event hanlders to daemon in order to process
+		// add event hanlders to daemon in order to process 
 		// client requests, implement in extend
 		//
 		protected function addDaemonHandlers()

@@ -31,23 +31,6 @@
       WrapMySQL::void($q, "Unable to set preference");
     }
 
-    public function getObject($id, $label)
-    {
-      $q = "select blob_store from ". self::$_pref_table ." where id={$id} && label='{$label}' limit 1;";
-
-      if( $d = WrapMySQL::single($q,"Unable to get preference") )
-        return json_decode($d['blob_store']);
-
-      return null;
-    }
-
-    public function setObject($id, $label, $value)
-    {
-      $q = "insert into ". self::$_pref_table ." (id, label, blob_store) values ({$id},'{$label}','" . safe_slash( json_encode($value) ) ."')";
-      $q.= " on duplicate key update blob_store=values(blob_store);";
-      WrapMySQL::void($q, "Unable to set preference");
-    }
-
     public function getInteger($id,$label)
     {
       $q = "select int_store from ". self::$_pref_table ." where id={$id} && label='{$label}' limit 1;";

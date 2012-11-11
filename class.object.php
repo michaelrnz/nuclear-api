@@ -1,41 +1,17 @@
 <?php
-
+	
 	/*
 		Object base class
 		Taiga Project
 		2008 Summer
 	*/
 
-	class Object
-    {
-        function __construct( $data=null )
-        {
-            if( !is_null($data) )
-                $this->merge( $data );
-        }
-
-        public function merge( $data )
-        {
-            if( is_array($data) )
-                $data = (object) $data;
-
-            if( is_object($data) )
-            {
-                foreach( $data as $f=>$v )
-                {
-                    if( is_numeric( $f ) )
-                        continue;
-
-                    $this->$f = $v;
-                }
-            }
-        }
-    }
+	class Object{}
 
 	class ObjectContainer extends Object
 	{
 		protected $_fields;
-
+		
 		function __construct(&$a=null)
 		{
 			if(is_array($a))
@@ -47,7 +23,7 @@
 				$this->_fields=array();
 			}
 		}
-
+		
 		function __get($f)
 		{
 			if( isset($this->_fields[$f]) )
