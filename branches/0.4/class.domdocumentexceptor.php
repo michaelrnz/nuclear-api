@@ -62,7 +62,7 @@
 		// checks the error level and 
 		private static function formatXmlError( $error )
 		{
-			$rv = "\n";
+			$rv = "\n{$error->message}\n";
 			switch( $error->level )
 			{
 				case LIBXML_ERR_WARNING:
