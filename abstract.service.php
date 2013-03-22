@@ -90,11 +90,11 @@ function __construct() {
 				  for($a=2; $a<count($handlers); $a++)
 				  {
 					if( substr( $handlers[$a], -4 ) == '.php' )
-						@include( "{$handler_dir}/{$handlers[$a]}" );
+						include( "{$handler_dir}/{$handlers[$a]}" );
 				  }
 
 				  // log handler loads
-				  @file_put_contents( $GLOBALS['CACHE'] . '/handlers.loaded.log', ob_get_contents() );
+				  file_put_contents( $GLOBALS['CACHE'] . '/handlers.loaded.log', ob_get_contents() );
 
 				  // flush buffer
 				  ob_end_clean();

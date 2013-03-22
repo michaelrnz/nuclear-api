@@ -44,7 +44,7 @@
 	    }
         }
 
-        public function &execute( $str, $errmsg, $errcode=7 )
+        public function &execute( $str, $errmsg=false, $errcode=7 )
         {
             if( !($r = mysql_query($str)) ) {
 		$msg = $errmsg .": ". mysql_error().", $errcode";

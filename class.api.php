@@ -595,10 +595,10 @@
                 case 'xml': header("Content-type: application/xml"); break;
             }
 
-            $api_class = (@include_once $src_2);
+            $api_class = (include_once $src_2);
 
             if( !$api_class )
-                $api_class = (@include_once $src_1);
+                $api_class = (include_once $src_1);
 
             if( $api_class && strlen($api_class)>1 )
             {
