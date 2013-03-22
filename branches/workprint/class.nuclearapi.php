@@ -101,11 +101,11 @@
 
             //
             // try include
-            $api_class  = (@include $src_2);
+            $api_class  = (include $src_2);
             
             if( !$api_class )
             {
-                $api_class  = (@include $src_1);
+                $api_class  = (include $src_1);
                 $dynamic    = false;
 
                 $this->resolution[ md5($src_1) ] = $api_class;
