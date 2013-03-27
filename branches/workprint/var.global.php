@@ -385,10 +385,11 @@ function nu_mail ($rcpt, $subject, $body, $headers=null) {
     {
         $node = $doc->createElement($name);
 
-        foreach( $array as $el )
-        {
-            $node->appendChild( object_to_xml( $el, $doc, $nodeName ) );
-        }
+	if (is_array($array)) {
+		foreach ($array as $el) {
+			$node->appendChild( object_to_xml( $el, $doc, $nodeName ) );
+		}
+	}
 
         return $node;
     }
