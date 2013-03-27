@@ -98,24 +98,26 @@
             }
             else
             {
+		$api_class = false;
+	    	foreach (explode(PATH_SEPARATOR, get_include_path()) as $dir) {
+			if (file_exists($dir.'/'.$src_2)) {
+				$api_class = (include $dir.'/'.$src_2);
+				$dynamic = true;
+				$this->resolution[md5($src_2)] = $api_class;
+				break;
+			}
+		}
 
-            //
-            // try include
-            $api_class  = (include $src_2);
-            
-            if( !$api_class )
-            {
-                $api_class  = (include $src_1);
-                $dynamic    = false;
-
-                $this->resolution[ md5($src_1) ] = $api_class;
-            }
-            else
-            {
-                $dynamic    = true;
-                $this->resolution[ md5($src_2) ] = $api_class;
-            }
-
+		if ($api_class==false) {
+			foreach (explode(PATH_SEPARATOR, get_include_path()) as $dir) {
+				if (file_exists($dir.'/'.$src_1)) {
+					$api_class = (include $dir.'/'.$src_1);
+					$dynamic = false;
+					$this->resolution[md5($src_1)] = $api_class;
+					break;
+				}
+			}
+	    	}
             }
             
             if( $api_class && strlen($api_class)>1 )
