@@ -595,21 +595,31 @@
                 case 'xml': header("Content-type: application/xml"); break;
             }
 
-            $api_class = (include_once $src_2);
+		$api_class = false;
+	    	foreach (explode(PATH_SEPARATOR, get_include_path()) as $dir) {
+			if (file_exists($dir.'/'.$src_2)) {
+				$api_class = (include $dir.'/'.$src_2);
+				break;
+			}
+		}
 
-            if( !$api_class )
-                $api_class = (include_once $src_1);
+		if ($api_class==false) {
+			foreach (explode(PATH_SEPARATOR, get_include_path()) as $dir) {
+				if (file_exists($dir.'/'.$src_1)) {
+					$api_class = (include $dir.'/'.$src_1);
+					break;
+				}
+			}
+	    	}
 
-            if( $api_class && strlen($api_class)>1 )
-            {
-                if( class_exists($api_class,false) )
-                {
-                    $co = new $api_class($GLOBALS['ATIME']);
-                }
-                else
-                {
-                    throw new Exception("Operation is not defined: {$methop}", 1);
-                }
+		if ($api_class && strlen($api_class)>1) {
+			if (class_exists($api_class,false)) {
+				$co = new $api_class($_SERVER['REQUEST_TIME']);
+			}
+
+		} else {
+			throw new Exception("Operation is not defined: {$methop}", 1);
+		}
             }
             else
             {
