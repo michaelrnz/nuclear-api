@@ -612,19 +612,16 @@
 			}
 	    	}
 
-		if ($api_class && strlen($api_class)>1) {
-			if (class_exists($api_class,false)) {
-				$co = new $api_class($_SERVER['REQUEST_TIME']);
-			}
+		if ($api_class==false) {
+			throw new Exception("Operation does not exist: {$methop}", 1);
+		}
+
+		if (class_exists($api_class,false)) {
+			$co = new $api_class($_SERVER['REQUEST_TIME']);
 
 		} else {
 			throw new Exception("Operation is not defined: {$methop}", 1);
 		}
-            }
-            else
-            {
-                throw new Exception("Operation does not exist: {$methop}", 1);
-            }
         }
     }
 ?>
