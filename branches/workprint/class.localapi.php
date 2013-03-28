@@ -54,30 +54,30 @@
 
 			//
 			// try include
-			$apiclass = (include $src);
+			$api_class = false;
+			foreach (explode(PATH_SEPARATOR, get_include_path()) as $dir) {
+				if (file_exists($dir.'/'.$src)) {
+					$api_class = (include $dir.'/'.$src);
+					break;
+				}
+			}
 
-			if( class_exists( $apiclass, false ) )
-			{
-			  try
-			  {
+			if ($api_class!=false && class_exists($apiclass, false)) {
+			  try {
 			    $o = new $apiclass( microtime(true), $output, false );
 
 			    //
 			    // get object of instance
 			    //
 			    return $o->response;
-			  }
-			  catch( Exception $e )
-			  {
+			  } catch (Exception $e) {
 			    $o = new Object();
 			    $o->valid = 0;
 			    $o->message = $e->getMessage();
 
 			    return $o;
 			  }
-			}
-			else
-			{
+			} else {
 			  // should hopefully not occur
 			  throw new Exception("Call to unknown API method: " . $rest . "." . $method);
 			}
