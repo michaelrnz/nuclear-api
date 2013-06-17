@@ -100,12 +100,12 @@ class EnvironmentIndex extends DirectoryIndex {
 
 		while (true) {
 
-			$filename = $this->search($structure .'.php');
+			$filename = $this->search(str_replace('\\','/',$structure).'.php');
 
 			if (strlen($filename)) {
 				include_once($filename);
 
-				if( class_exists($structure) || interface_exists($structure) )
+				if (class_exists($structure,false) || interface_exists($structure,false))
 					return;
 			}
 			
