@@ -107,7 +107,7 @@ class DirectoryIndex {
 	public function search ($fileName) {
 		
 		// trim and add forward-slash (first character delim)
-		$fileName = "/" . ltrim($fileName, "/");
+		$fileName = "\t" . ltrim($fileName, "/");
 
 		// get the listing (text)
 		$index = $this->index($this->refresh);
@@ -115,14 +115,15 @@ class DirectoryIndex {
 		// check for position of fileName in text
 		if (($pos = strpos($index, $fileName . "\t"))!==false) {
 
-			// adjust position to after the tab
-			$pos = $pos + strlen($fileName . "\t");
-
 			// get the position of the next newline
 			$end = strpos($index, "\n", $pos);
 
-			// return the path from search to newline
-			return substr($index, $pos, ($end - $pos));
+			// tab before newline, use reverse search
+			$tab = strrpos($index, "\t", $end-strlen($index));
+
+			if ($tab>$pos) {
+				return substr($index, $tab+1, ($end-$tab-1));
+			}
 		}
 
 		return false;
@@ -184,8 +185,7 @@ class DirectoryIndex {
 		foreach( $this->paths as $path )
 		{
 			exec('find '. $path .' -type f -not -path \'*/.*\' '.
-				'-printf "%T@\t/%f\t%p\n" | sort -k1 -n -r | '.
-				'cut -f2,3', $output);
+				'-printf "%T@\t%P\t%f\t%p\n" | sort -k1 -n -r ',$output);
 
 			$index .= implode("\n", $output) . "\n";
 		}
