@@ -14,6 +14,11 @@
 class DirectoryIndex {
 	
 	/**
+	 * @var string
+	 */
+	const DELIMITER = "$";
+
+	/**
 	 * @var paths
 	 * @var refresh
 	 * @var index
@@ -64,7 +69,7 @@ class DirectoryIndex {
 	 */
 	public function addPath ($path) {
 		
-		array_push($this->paths, $path);
+		array_push($this->paths, rtrim($path,'/'));
 		return $this;
 	}
 	
@@ -77,7 +82,7 @@ class DirectoryIndex {
 	 */
 	public function prependPath ($path) {
 		
-		$this->paths = array_merge(array($path), $this->paths);
+		$this->paths = array_merge(array(rtrim($path,'/')), $this->paths);
 		return $this;
 	}
 
@@ -107,19 +112,19 @@ class DirectoryIndex {
 	public function search ($fileName) {
 		
 		// trim and add forward-slash (first character delim)
-		$fileName = "\t" . ltrim($fileName, "/");
+		$fileName = self::DELIMITER . ltrim($fileName, "/");
 
 		// get the listing (text)
 		$index = $this->index($this->refresh);
 
 		// check for position of fileName in text
-		if (($pos = strpos($index, $fileName . "\t"))!==false) {
+		if (($pos = strpos($index, $fileName . self::DELIMITER))!==false) {
 
 			// get the position of the next newline
 			$end = strpos($index, "\n", $pos);
 
 			// tab before newline, use reverse search
-			$tab = strrpos($index, "\t", $end-strlen($index));
+			$tab = strrpos($index, self::DELIMITER, $end-strlen($index));
 
 			if ($tab>$pos) {
 				return substr($index, $tab+1, ($end-$tab-1));
@@ -179,21 +184,47 @@ class DirectoryIndex {
 	 * @return string
 	 */
 	protected function &buildIndex () {
-
 		$index = "";
-
-		foreach( $this->paths as $path )
-		{
-			exec('find '. $path .' -type f -not -path \'*/.*\' '.
-				'-printf "%T@\t%P\t%f\t%p\n" | sort -k1 -n -r ',$output);
-
-			$index .= implode("\n", $output) . "\n";
+		foreach ($this->paths as $path) {
+			$index .= $this->buildReferenceText($path, $this->extract($path));
 		}
-
 		return $index;
 	}
-	
-	
+
+	/**
+	 * Extract the file structure from the path
+	 *
+	 * @param string $path
+	 * @return array<string>
+	 */
+	protected function &extract ($path) {
+		$sources = glob($path.'/*.php');
+		foreach (glob($path.'/*',GLOB_ONLYDIR) as $subpath) {
+			foreach ($this->extract($subpath) as $source) {
+				$sources[] = $source;
+			}
+		}
+		return $sources;
+	}
+
+	/**
+	 * Build the references from the path sources
+	 *
+	 * @param string $path
+	 * @param array<string> $sources
+	 * @return string
+	 */
+	protected function &buildReferenceText ($path, &$sources) {
+		$referenceText = "";
+		foreach ($sources as $source) {
+			$referenceText .= 
+				self::DELIMITER . str_replace($path.'/','',$source) .
+				self::DELIMITER . basename($source) .
+				self::DELIMITER . $source . "\n";
+		}
+		return $referenceText;
+	}
+
 	/**
 	 * getResourceKey
 	 * @return string
