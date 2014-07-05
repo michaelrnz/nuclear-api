@@ -295,7 +295,6 @@
         {
           $tables = array(
             "nuclear_user",
-            "nuclear_username",
             "nuclear_userkey",
             "nuclear_system");
 
